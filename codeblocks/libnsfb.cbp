@@ -1,0 +1,366 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="libnsfb" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="bin/Debug/libnsfb" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+			</Target>
+			<Target title="Release">
+				<Option output="bin/Release/libnsfb" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+			<Target title="linux">
+				<Option platforms="Unix;" />
+				<Option output="nsfb" imp_lib="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).a" def_file="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).def" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/$(PLATFORM)" />
+				<Option type="3" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+					<Add option="-O0" />
+				</Compiler>
+				<ExtraCommands>
+					<Add after="$(CMD_MV) $(TARGET_OUTPUT_FILE) /usr/local/lib/$(TARGET_OUTPUT_FILE)" />
+					<Mode after="always" />
+				</ExtraCommands>
+			</Target>
+			<Target title="test">
+				<Option output="/usr/local/lib/test" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="/usr/local/lib" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+				<Linker>
+					<Add option="-L/usr/local/lib" />
+					<Add library="nsfb" />
+					<Add library="freetype" />
+					<Add library="m" />
+				</Linker>
+			</Target>
+			<Target title="DLL">
+				<Option output="$(PROJECT_DIR)../../DLL/$(PROJECT_NAME).dll" imp_lib="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).a" def_file="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).def" prefix_auto="0" extension_auto="0" />
+				<Option working_dir="$(PROJECT_DIR)../../DLL" />
+				<Option object_output="obj/Debug/" />
+				<Option type="3" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+				<ExtraCommands>
+					<Add after='$(CMD_CP)  $(TARGET_OUTPUT_FILE)  [[if (PLATFORM == PLATFORM_MSW) print(_T(&quot;$(SystemRoot)\\system32&quot;)) else print(_T(&quot;/usr/local/lib&quot;));]]' />
+					<Mode after="always" />
+				</ExtraCommands>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+			<Add option="-fPIC" />
+		</Compiler>
+		<ExtraCommands>
+			<Add before='install -d   &quot;$(TARGET_COMPILER_DIR)/local/include/altomaltes&quot;' />
+			<Add before='install  $(PROJECT_DIR)../libnsfb.h &quot;$(TARGET_COMPILER_DIR)local/include/altomaltes&quot;' />
+			<Add before='install  $(PROJECT_DIR)../libnsfb_plot.h &quot;$(TARGET_COMPILER_DIR)local/include/altomaltes&quot;' />
+			<Add before='install  $(PROJECT_DIR)../libnsfb_cursor.h &quot;$(TARGET_COMPILER_DIR)local/include/altomaltes&quot;' />
+			<Mode after="always" />
+		</ExtraCommands>
+		<Unit filename="../arena/bitmap.c">
+			<Option compilerVar="CC" />
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../arena/nsglobe.c">
+			<Option compilerVar="CC" />
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../arena/polystar.c">
+			<Option compilerVar="CC" />
+			<Option target="test" />
+		</Unit>
+		<Unit filename="../arena/polystar2.c">
+			<Option compilerVar="CC" />
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../arena/tspeed.c">
+			<Option compilerVar="CC" />
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../cursor.c">
+			<Option compilerVar="CC" />
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="linux" />
+			<Option target="DLL" />
+		</Unit>
+		<Unit filename="../cursor.h">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="linux" />
+			<Option target="DLL" />
+		</Unit>
+		<Unit filename="../drivers/x11.c">
+			<Option compilerVar="CC" />
+			<Option target="linux" />
+		</Unit>
+		<Unit filename="../dump.c">
+			<Option compilerVar="CC" />
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../font_freetype.c">
+			<Option compilerVar="CC" />
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../font_freetype.h">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="linux" />
+			<Option target="DLL" />
+		</Unit>
+		<Unit filename="../libnsfb.c">
+			<Option compilerVar="CC" />
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="linux" />
+			<Option target="DLL" />
+		</Unit>
+		<Unit filename="../libnsfb.h">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="linux" />
+			<Option target="DLL" />
+		</Unit>
+		<Unit filename="../libnsfb_cursor.h">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="linux" />
+			<Option target="DLL" />
+		</Unit>
+		<Unit filename="../libnsfb_plot.h">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="linux" />
+			<Option target="DLL" />
+		</Unit>
+		<Unit filename="../libnsfb_plot_util.h">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="linux" />
+			<Option target="DLL" />
+		</Unit>
+		<Unit filename="../nsfb.h">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="linux" />
+			<Option target="DLL" />
+		</Unit>
+		<Unit filename="../nsfbcfg.h.in">
+			<Option target="linux" />
+		</Unit>
+		<Unit filename="../palette.c">
+			<Option compilerVar="CC" />
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="linux" />
+			<Option target="DLL" />
+		</Unit>
+		<Unit filename="../palette.h">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="linux" />
+			<Option target="DLL" />
+		</Unit>
+		<Unit filename="../plot.h">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="linux" />
+			<Option target="DLL" />
+		</Unit>
+		<Unit filename="../plot/16bpp.c">
+			<Option compilerVar="CC" />
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="linux" />
+			<Option target="DLL" />
+		</Unit>
+		<Unit filename="../plot/1bpp.c">
+			<Option compilerVar="CC" />
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../plot/24bpp.c">
+			<Option compilerVar="CC" />
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="linux" />
+			<Option target="DLL" />
+		</Unit>
+		<Unit filename="../plot/32bpp-common.c">
+			<Option compilerVar="CC" />
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../plot/32bpp-xbgr8888.c">
+			<Option compilerVar="CC" />
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="linux" />
+			<Option target="DLL" />
+		</Unit>
+		<Unit filename="../plot/32bpp-xrgb8888.c">
+			<Option compilerVar="CC" />
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="linux" />
+			<Option target="DLL" />
+		</Unit>
+		<Unit filename="../plot/8bpp.c">
+			<Option compilerVar="CC" />
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="linux" />
+			<Option target="DLL" />
+		</Unit>
+		<Unit filename="../plot/api.c">
+			<Option compilerVar="CC" />
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="linux" />
+			<Option target="DLL" />
+		</Unit>
+		<Unit filename="../plot/common.c">
+			<Option compilerVar="CC" />
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../plot/generic.c">
+			<Option compilerVar="CC" />
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="linux" />
+			<Option target="DLL" />
+		</Unit>
+		<Unit filename="../plot/util.c">
+			<Option compilerVar="CC" />
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="linux" />
+			<Option target="DLL" />
+		</Unit>
+		<Unit filename="../plot_style.h">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="linux" />
+			<Option target="DLL" />
+		</Unit>
+		<Unit filename="../surface.h">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="linux" />
+			<Option target="DLL" />
+		</Unit>
+		<Unit filename="../surface/drm.c">
+			<Option compilerVar="CC" />
+			<Option target="linux" />
+		</Unit>
+		<Unit filename="../surface/linux.c">
+			<Option compilerVar="CC" />
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="linux" />
+		</Unit>
+		<Unit filename="../surface/ram.c">
+			<Option compilerVar="CC" />
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="linux" />
+			<Option target="DLL" />
+		</Unit>
+		<Unit filename="../surface/surface.c">
+			<Option compilerVar="CC" />
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="linux" />
+			<Option target="DLL" />
+		</Unit>
+		<Unit filename="../surface/uterm_drm3d_internal.h">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../surface/uterm_drm3d_render.c">
+			<Option compilerVar="CC" />
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../surface/uterm_drm3d_video.c">
+			<Option compilerVar="CC" />
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../surface/vnc.c">
+			<Option compilerVar="CC" />
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../surface/vt.c">
+			<Option compilerVar="CC" />
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="libnsfb.h">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="linux" />
+			<Option target="DLL" />
+		</Unit>
+		<Unit filename="libnsfb_cursor.h">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="linux" />
+			<Option target="DLL" />
+		</Unit>
+		<Unit filename="libnsfb_plot.h">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="linux" />
+			<Option target="DLL" />
+		</Unit>
+		<Unit filename="libnsfb_plot_util.h">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="linux" />
+			<Option target="DLL" />
+		</Unit>
+		<Unit filename="nsfb.h">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="linux" />
+			<Option target="DLL" />
+		</Unit>
+		<Unit filename="palette.h">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="linux" />
+			<Option target="DLL" />
+		</Unit>
+		<Unit filename="plot.h">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="linux" />
+			<Option target="DLL" />
+		</Unit>
+		<Extensions>
+			<lib_finder disable_auto="1" />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>
