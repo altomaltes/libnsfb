@@ -167,7 +167,7 @@ start_input_rle (j_compress_ptr cinfo, cjpeg_source_ptr sinfo)
      (JDIMENSION) height, (JDIMENSION) 1);
 
 #ifdef PROGRESS_REPORT
-  if (progress != NULL) {
+  if (progress ) {
     /* count file input as separate pass */
     progress->total_extra_passes++;
   }
@@ -260,7 +260,7 @@ load_image (j_compress_ptr cinfo, cjpeg_source_ptr sinfo)
   RLE_CLR_BIT(source->header, RLE_ALPHA); /* don't read the alpha channel */
 
 #ifdef PROGRESS_REPORT
-  if (progress != NULL) {
+  if (progress ) {
     progress->pub.pass_limit = cinfo->image_height;
     progress->pub.pass_counter = 0;
     (*progress->pub.progress_monitor) ((j_common_ptr) cinfo);
@@ -276,7 +276,7 @@ load_image (j_compress_ptr cinfo, cjpeg_source_ptr sinfo)
          ((j_common_ptr) cinfo, source->image, row, (JDIMENSION) 1, TRUE);
       rle_getrow(&source->header, rle_row);
 #ifdef PROGRESS_REPORT
-      if (progress != NULL) {
+      if (progress ) {
         progress->pub.pass_counter++;
         (*progress->pub.progress_monitor) ((j_common_ptr) cinfo);
       }
@@ -300,7 +300,7 @@ load_image (j_compress_ptr cinfo, cjpeg_source_ptr sinfo)
       }
 
 #ifdef PROGRESS_REPORT
-      if (progress != NULL) {
+      if (progress ) {
         progress->pub.pass_counter++;
         (*progress->pub.progress_monitor) ((j_common_ptr) cinfo);
       }
@@ -325,7 +325,7 @@ load_image (j_compress_ptr cinfo, cjpeg_source_ptr sinfo)
       }
 
 #ifdef PROGRESS_REPORT
-      if (progress != NULL) {
+      if (progress ) {
         progress->pub.pass_counter++;
         (*progress->pub.progress_monitor) ((j_common_ptr) cinfo);
       }
@@ -334,7 +334,7 @@ load_image (j_compress_ptr cinfo, cjpeg_source_ptr sinfo)
   }
 
 #ifdef PROGRESS_REPORT
-  if (progress != NULL)
+  if (progress )
     progress->completed_extra_passes++;
 #endif
 

@@ -30,7 +30,7 @@
 #include <string.h>
 
 #include "../libnsfb_plot_util.h"
-#include "images.h"
+#include "surface.h"
 
 #ifndef __WIN32
   #include <alloca.h>
@@ -117,7 +117,7 @@ DeviceImageRec * openIcoFromData2
 }
 
 
-DeviceImageRec * openIcoFromData1
+static DeviceImageRec * openIcoFromData123
                   ( unsigned char * picture  /* Image data               */
                   , int wDst, int hDst       /* desired width and height */
                   , int wOrg, int hOrg       /* stored  width and height */
@@ -130,21 +130,21 @@ DeviceImageRec * openIcoFromData1
   unsigned char * pic;        /* Run all avatars */
 //  int order= 0;
 
-  if ( pals == 0x0905 )
-  { puts("hola");
-}
+ // if ( pals == 0x0905 )
+ // { puts("hola");
+//}
 
   if ( pals )                              /* Multiicon */
-  { cols= pals;      cols &= 0xFF; 
+  { cols= pals;      cols &= 0xFF;
     pals= pals >> 8; pals &= 0xFF;
-  } 
+  }
   else
   { cols= pals= 1;
   }
 
   if ( !pals )
   { pals= 1;
-  } 
+  }
 
   image= initAlphaMap( changerALPHA= allocChanger( 4, wDst ) /* RGB color     */
                      , pics * pals                           /* pictures      */
@@ -228,18 +228,14 @@ DeviceImageRec * openIcoFromData1
  *  @brief                                                            *
  *                                                                    *
 \* ================================================================= **/
-//DeviceImageRec * openIco( IcoRec * src, int deep   /* Histogram         */
-//                        , int     wDst, int hDst ) /* IN ->  Icon size  */
-//{ return( openIcoFromData2
-//          ( deep
-//          ,       1, src->cln       /* Pics and pals            */
-//          , wDst   , hDst    /* desired width and height */
-//          , src->w0, src->h0 /* stored  width and height */
-//          , src->pic         /* image data               */
- //         , src->pal ));     /* color list               */
-//}
 
-typedef IcoRec *  (*LoadIcoCode) ( const char * fname  );
+typedef IcoRec         *  (*LoadIcoCode) ( const char * fname, int w, int h  );
+typedef DeviceImageRec *  (*LoadImgCode) ( const char * fname, int w, int h  );
+
+ANSIC IcoRec * loadImgVecFile( const char * fName, int wide, int height ) /* Vector to raster */
+{
+}
+
 
 
 /** ========================================= [ JACS, 10/01/2012 ] == *\
@@ -247,23 +243,24 @@ typedef IcoRec *  (*LoadIcoCode) ( const char * fname  );
  *   JASC 2012                                                        *
  *                                                                    *
  *  FUNCTION LoadIcoFile                                              *
+ *           LoadImgFile                                              *
  *                                                                    *
  *  @brief                                                            *
  *                                                                    *
 \* ================================================================= **/
-IcoRec * LoadIcoFile( const char * fileName )
+IcoRec * LoadIcoFile( const char * fileName, int w, int h )
 { typedef struct
   { const char * ext;   /* File extension */
     LoadIcoCode codec;  /* Loader         */
   } IcoCodecsRec;
 
   static IcoCodecsRec codecs[]=
-  {
-//  { "xpm", LoadXpmFile }
-//  ,{ "gif", LoadGifFile }
-//  ,{ "ico", LoadICOFile }
-//  ,{ "png", LoadPng }
-  { NULL , NULL        }};
+  {{ ".gif", loadIcoGifFile }
+  ,{ ".png", loadIcoPngFile }
+  ,{ ".jpg", loadIcoJpgFile }
+  ,{ ".xpm", loadIcoXpmFile }
+  ,{ ".ico", loadIcoIcoFile }
+  ,{ NULL , NULL        }};
 
   IcoCodecsRec * codec;
 
@@ -272,9 +269,147 @@ IcoRec * LoadIcoFile( const char * fileName )
      ; codec ++ )
   { if ( strstr( fileName
                , codec->ext ))
-    { return( codec->codec( fileName ));
+    { return( codec->codec( fileName, w, h ));
   } }
 
   return( NULL );
 }
+
+DeviceImageRec * LoadImgFile( const char * fileName, int w, int h )
+{ typedef struct
+  { const char * ext;   /* File extension */
+    LoadImgCode codec;  /* Loader         */
+  } IcoCodecsRec;
+
+  static IcoCodecsRec codecs[]=
+  {{ ".gif", loadImgGifFile }
+  ,{ ".png", loadImgPngFile }
+  ,{ ".jpg", loadImgJpgFile }
+  ,{ ".xpm", loadImgXpmFile }
+  ,{ ".ico", loadImgIcoFile }
+  ,{ ".svg", loadImgVecFile }
+  ,{ NULL , NULL        }};
+
+  IcoCodecsRec * codec;
+
+  for( codec= codecs
+     ; codec->ext
+     ; codec ++ )
+  { if ( strstr( fileName
+               , codec->ext ))
+    { return( codec->codec( fileName, w, h ));
+  } }
+
+  return( NULL );
+}
+
+/** ================================================= [ JACS, 10/06/2004 ] == *\
+ *                                                                            *
+ *   JASC 2004                                                                *
+ *                                                                            *
+ *  FUNCTION getDeviceImage                                                   *
+ *           getDeviceBitmap                                                  *
+ *                                                                            *
+ *  @brief Constructs and loads and caches a device dependent image           *
+ *                                                                            *
+\* ========================================================================= **/
+ANSIC int getDeviceImage( NsfbSurfaceRtns * surf
+                        , ImageMap        * map
+                        , void * img
+                        , void * msk
+                        , int w, int h )
+{ return( surf->pixmap( surf, map, img, msk, w, h ) ); /* Register new image */
+}
+
+ANSIC DeviceImageRec * getDeviceBitmap( Nsfb * nsfb
+                                      , DeviceImageRec  * img )
+{ NsfbSurfaceRtns * surf= nsfb->surfaceRtns;
+
+  if( surf )
+  { surf->pixmap( surf
+                , &img->map
+                , img->image, img->mask
+                , img->width, img->height );
+    return( img );
+  }
+
+  return( NULL );
+}
+
+
+int nsfbGetImageGeometry( DeviceImageRec * img
+                        , int * w, int * h, int * p )
+{ if ( img )
+  { if ( w ) { *w= img->width;  }
+    if ( h ) { *h= img->height; }
+    if ( p ) { *p= img->pics;   }
+
+    return( 0 );
+  }
+  return( -1 );
+}
+
+
+DeviceImageRec * getIconImage( NsfbSurfaceRtns * surf
+                             , IcoRec          * ico
+                             , COLORREF1         hue )
+{ static DeviceImageRec * seed= NULL;                   /* Linked list storing */
+
+  if ( ico )
+  { DeviceImageRec * iter;
+
+/*
+ *  Not found, create a new one
+ */
+
+    if ( !ico->pal )
+    { //ico->pal=  find( hue );
+      //ico->cln= ICOREC_MIRROR_PALETTE | 0x0106;
+    }
+
+    for( iter= seed                      // Iterate list
+       ; iter
+       ; iter= iter->next )
+    { if ( ico != iter->iden )           // Picture differs
+      { continue;
+      }
+
+ //   if ( theHistogram != iter->hist )  // Histogran differs
+ //   { continue;
+ //   }
+
+      if ( iter->iden->pal == ico->pal )
+      { return( iter );  // Found !!!
+    } }
+
+
+    iter= openIcoFromData123( ico->pic             /* image data               */
+                          , ico->wNat, ico->hNat /* desired width and height */
+                          , ico->wNat, ico->hNat /* stored  width and height */
+                          , ico->pics, ico->nCol /* Keep palette            */
+                          , ico->pal );          /* color list               */
+
+    int bmpWidth=  iter->width
+      , bmpHeight= iter->height * iter->pics;
+
+    iter->mask= GETALPHA( bmpWidth, bmpHeight, iter->image );
+
+    surf->pixmap( surf
+                , &iter->map
+                ,  iter->image
+                ,  iter->mask
+                , bmpWidth
+                , bmpHeight  ); /* Register new image */
+
+  //  iter->hist= theHistogram;
+  iter->iden= ico;
+  iter->next= seed; seed= iter;  // Link list
+
+  return( iter );
+    }
+
+  return( NULL );
+}
+
+
 

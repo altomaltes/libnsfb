@@ -40,16 +40,14 @@
  *                                                                            *
  *   JACS 2011                                                                *
  *                                                                            *
- *  FUNCTION: LoadGifFile                                                     *
+ *  FUNCTION: loadImgFile                                                     *
  *                                                                            *
- *  @brief Loads a gif image from disk.                                       *
+ *  @brief Loads a png image from disk.                                       *
  *                                                                            *
 \* ========================================================================= **/
-DeviceImageRec * LoadPng( const char * fname
-                        , int * szW, int * szH  )
+ANSIC DeviceImageRec * loadImgFile( const char * fname, int wtarget, int htarget  )
 { png_structp pngPtr  = NULL;
   png_infop  infoPtr  = NULL;
-  DeviceImageRec * dev= NULL;
 
 /*    Create and initialize the png_struct with the desired error handler
  * functions.  If you want to use the default stderr and longjump method,
@@ -62,17 +60,15 @@ DeviceImageRec * LoadPng( const char * fname
  * set up your own error handlers in the png_create_read_struct() earlier.
  */
 
-  if (( pngPtr= pmg_create_read_struct( PNG_LIBPNG_VER_STRING
-                                   , NULL           /* png_voidp user_error_ptr */
-                                   , NULL           /* user_error_fn            */
-                                   , NULL )))       /* user_warning_fn          */
-  { if (( infoPtr= pngCreateInfoStruct( pngPtr )))  /* Allocate/initialize the memory for image information.  REQUIRED. */
+  if (( pngPtr= png_create_read_struct( PNG_LIBPNG_VER_STRING
+                                      , NULL           /* png_voidp user_error_ptr */
+                                      , NULL           /* user_error_fn            */
+                                      , NULL )))       /* user_warning_fn          */
+  { if (( infoPtr= png_create_info_struct( pngPtr )))  /* Allocate/initialize the memory for image information.  REQUIRED. */
     { FILE * fp= fopen( fname, "rb");
 
       if ( fp )
-      { ChangerRec * changerRGB;     /* Mask can change size    */
-
-        int pics= 1, interlace
+      { int pics= 1, interlace
           , depth, ctype;
         png_uint_32 wOrg, hOrg;  /* Original wide and height    */
         unsigned char * row;
@@ -83,19 +79,28 @@ DeviceImageRec * LoadPng( const char * fname
      //   { goto resume;
        // }
 
-        pngInitIO  ( pngPtr, fp      );      /* Set up the input control if you are using standard C streams */
-        pngReadInfo( pngPtr, infoPtr );
-        pngGetIHDR ( pngPtr, infoPtr
+        png_init_io  ( pngPtr, fp      );      /* Set up the input control if you are using standard C streams */
+        png_read_info( pngPtr, infoPtr );
+        png_get_IHDR ( pngPtr, infoPtr
                    , &wOrg, &hOrg
                    , &depth, &ctype
                    , &interlace
                    , NULL, NULL );
 
 
-        if ( szW ) { *szW= wOrg; }
-        if ( szH ) { *szH= hOrg; }
+//        if ( szW ) { *szW= wOrg; }
+  //      if ( szH ) { *szH= hOrg; }
+        int wDst= wOrg;
+        int hDst= hOrg;
 
-        pngSetStrip16( pngPtr ); /* Tell libpng to strip 16 bit/color files down to 8 bits/color */
+        ChangerRec     * changerAlpha;         /* Mask can change size    */
+        DeviceImageRec * image= initAlphaMap( changerAlpha= allocChanger( 4, wDst ) /* RGB color     */
+                                            , pics                                  /* Planes        */
+                                            , wDst, hDst                            /* Final size    */
+                                            , wOrg, hOrg );                         /* Original size */
+
+        png_set_strip_16( pngPtr ); 
+/* Tell libpng to strip 16 bit/color files down to 8 bits/color */
 //        png_set_strip_alpha( pngPtr ); /* Strip alpha bytes from the input data without combining background (not rec.) */
 /*   png_set_packing(     pngPtr ); Pixels with bit depths of 1, 2, and 4 into separate bytes */
 /*   png_set_packswap(    pngPtr ); Change the order of packed pixels  */
@@ -115,20 +120,20 @@ DeviceImageRec * LoadPng( const char * fname
                             , &my_background
                             , PNG_BACKGROUND_GAMMA_SCREEN, 0, 1.0);
          }
-          */
+*/
 
        // png_set_bKGD( pngPtr, infoPtr, 0 );
 
-        pngSetExpand( pngPtr );
+        png_set_expand( pngPtr );
 
         switch( ctype )
         { case PNG_COLOR_TYPE_PALETTE: /* Expand paletted colors into true RGB triplets */
-            pngSetPaletteToRGB( pngPtr );
+            png_set_palette_to_rgb( pngPtr );
           break;
 
           case PNG_COLOR_TYPE_GRAY:    /* Expand grayscale images to the full 8 bits from 1, 2, or 4 bits/pixel */
             if ( depth < 8 )
-            { pngSetExpandGray124to8( pngPtr );
+            { png_set_expand_gray_1_2_4_to_8( pngPtr );
             }
           break;
 
@@ -145,36 +150,32 @@ DeviceImageRec * LoadPng( const char * fname
           break;
         }
 
+        png_set_filler(pngPtr, 0xFF, PNG_FILLER_AFTER);  // From 24 to 32 bit
 
-        dev= initImageMap
-             ( changerRGB=  allocChanger( 3, wOrg ) // Add alpha channel
-             , NULL /* changerMask= allocChanger( 1, wOrg ) */
-             ,   24, pics    /* Number of planes             */
-             , wOrg, hOrg    /* Destination wide and  height */
-             , wOrg, hOrg ); /* Original wide and height     */
-
-        row= alloca( wOrg * 4 );              /* three colors plus alpha channel */
  /* Read the image a single row at a time */
       /*  for( pass = 0
            ; pass < number_passes
            ; pass++ )   */
+
         { int vert;
 
           for( vert = 0
              ; vert < hOrg
              ; vert++ )
-          { row= changerLine( changerRGB  );
-            pngReadRow( pngPtr, row, NULL );
-            changeImageAddLine( changerRGB  ); /* Line */
-        } } }
+          { char * row= changerLine( changerAlpha  );
+            png_read_row( pngPtr, row, NULL );
+            changeImageAddLine( changerAlpha  ); /* Line */
+          } } 
+          return( image );
+        }
         fclose(fp);
     }
-    pngDestroyReadStruct( &pngPtr
-                        , &infoPtr
-                        , NULL ); /* Free all of the memory associated with the png_ptr and info_ptr */
-  }
 
-  return( dev );
+    png_destroy_read_struct( &pngPtr
+                           , &infoPtr
+                           , NULL ); /* Free all of the memory associated with the png_ptr and info_ptr */
+  }
+  return( NULL );
 }
 
 PUBLIC unsigned fillPng(  )

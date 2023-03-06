@@ -389,7 +389,7 @@ METHODDEF(void) start_input_bmp( j_compress_ptr cinfo
      row_width, (JDIMENSION) biHeight, (JDIMENSION) 1);
   source->pub.get_pixel_rows = preload_image;
   
-  if (cinfo->progress != NULL) 
+  if (cinfo->progress ) 
   { cd_progress_ptr progress = (cd_progress_ptr) cinfo->progress;
     progress->total_extra_passes++; /* count file input as separate pass */
   }

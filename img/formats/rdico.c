@@ -34,8 +34,8 @@
 #include <string.h>
 #include <malloc.h>
 
-#include "config.h"
-#include "images.h"
+#include "nsfb.h"
+#include "../images.h"
 
 /*
 typedef struct
@@ -269,7 +269,7 @@ static int GetHicMap( unsigned char * dst
  *  @brief Loads an ico file                                                  *
  *                                                                            *
 \* ========================================================================= **/
-static IcoRec * LoadIco( unsigned char  * icoData )
+static IcoRec * loadIco( unsigned char * icoData )
 
 { unsigned char w, h;
   word dummy, tipo, items, colors;
@@ -331,9 +331,9 @@ static IcoRec * LoadIco( unsigned char  * icoData )
       { biHeight= -biHeight;  /* Top-Down icon */
       }
 
-      icon->cln= 255;
-      icon->w0= biWidth;
-      icon->h0= biHeight;
+      icon->nCol= 255;
+      icon->wNat= biWidth;
+      icon->hNat= biHeight;
       icon->frm= NULL;
       pic= icon->pic= (dword *)( &icon->pal[colors+1]  );    /* Points to image data */
 
@@ -360,8 +360,6 @@ static IcoRec * LoadIco( unsigned char  * icoData )
   return( icon );        /* Retornar los elementos cargados */
 }
 
-
-
 /** ====================================================[ JACS 1997-11-11 ]== *\
  *                                                                            *
  *   JACS 2011                                                                *
@@ -371,7 +369,7 @@ static IcoRec * LoadIco( unsigned char  * icoData )
  *  @brief Loads an icon from disk                                            *
  *                                                                            *
 \* ========================================================================= **/
-ANSIC IcoRec * loadImageFile( const char * bname )
+ANSIC IcoRec * loadIcoIcoFile( const char * bname, int wtarget, int htarget )
 { unsigned char datos[ 10000 ];
 
   int handler= open( bname, 0 );
@@ -384,8 +382,23 @@ ANSIC IcoRec * loadImageFile( const char * bname )
       , sizeof( datos ));
   close( handler );            /* Not needed yet */
 
-  return( LoadIco( datos ));  /* Retornar el icono encontrado */
+  return( loadIco( datos ));  /* Retornar el icono encontrado */
 }
+
+
+/** ====================================================[ JACS 1997-11-11 ]== *\
+ *                                                                            *
+ *   JACS 2011                                                                *
+ *                                                                            *
+ *  FUNCTION: loadImgIcoFile                                                  *
+ *                                                                            *
+ *  @brief Loads an icon from disk                                            *
+ *                                                                            *
+\* ========================================================================= **/
+DeviceImageRec * loadImgIcoFile( const char * bname, int wtarget, int htarget ) 
+{ return( NULL );
+}
+
 
 
 

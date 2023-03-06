@@ -35,37 +35,34 @@ typedef struct
 } my_error_mgr;
 
 
-/*
- *
- *
- */
-DeviceImageRec * LoadJfif( const char * fName
-                         , int        * szW, int * szH )
+/** ====================================================[ JACS 1997-11-11 ]== *\
+ *                                                                            *
+ *   JACS 2011                                                                *
+ *                                                                            *
+ *  FUNCTION: loadImgFile                                                     *
+ *                                                                            *
+ *  @brief Loads a jpeg image from disk.                                      *
+ *                                                                            *
+\* ========================================================================= **/
+ANSIC DeviceImageRec * loadImgFile( const char * fname, int wtarget, int htarget  )
 { struct jpeg_decompress_struct info;
-  DeviceImageRec * pic= NULL;
-  unsigned char * rowptr;
   int    w,h;
   my_error_mgr jerr;     /* Gestor de errores       */
-  ChangerRec * changer;  /* RGB changers */
   FILE * fp;
 
-  if ( ! (fp= fopen( fName, "rb" )))
+  if ( ! (fp= fopen( fname, "rb" )))
   { return( NULL );
   }
 
   info.err= jpeg_std_error( &jerr.pub );
 
   if ( setjmp(jerr.setjmp_buffer ))
-  { if ( pic )
-    { free(pic);
-    }
-    pic= NULL;
-    goto Salir;
+  { goto Salir;
   }
 
   jpeg_create_decompress( &info       );
-  jpeg_stdio_src    ( &info, fp   );
-  jpeg_read_header  ( &info, TRUE );
+  jpeg_stdio_src    (     &info, fp   );
+  jpeg_read_header  (     &info, TRUE );
 
   info.dct_method         = JDCT_FASTEST;
   info.do_fancy_upsampling= FALSE;
@@ -75,16 +72,11 @@ DeviceImageRec * LoadJfif( const char * fName
   info.scale_denom        = 1;
   jpeg_calc_output_dimensions( &info );   /* note colorspace changes... */
 
-  if ( ! *szW )
-  { *szW= info.output_width;
-  }
+  int szW= info.output_width;
+  int szH= info.output_height;
 
-  if ( ! *szH )
-  { *szH= info.output_height;
-  }
-
-  { int west= *szW;
-    int hest= *szH;
+  { int west= szW;
+    int hest= szH;
 
     while   (( west < ( info.output_width  / 2 ))
           && ( hest < ( info.output_height / 2 ))
@@ -96,22 +88,32 @@ DeviceImageRec * LoadJfif( const char * fName
   w= info.output_width;
   h= info.output_height;
 
-  initChangerSize( szW, szH    /* Destination wide & height */
-                 ,   w, h  );  /* Original    wide & height    */
+//  initChangerSize( szW, szH    /* Destination wide & height */
+//                 ,   w, h  );  /* Original    wide & height    */
 
-  pic= initImageMap( changer=  allocChanger( info.output_components, *szW ) /* RGB color  */
-                   , NULL                                                   /* No mask    */
-                   , info.output_components, 1                           /* Planes        */
-                   , *szW, *szH
-                   , w, h );   /* workspace */
+//  pic= initImageMap( changer= allocChanger( info.output_components, *szW ) /* RGB color  */
+//                   , NULL                                                  /* No mask    */
+//                   , info.output_components, 1                             /* Planes        */
+//                   , *szW, *szH
+//                   , w, h );                                               /* workspace */
 
-  rowptr= changerLine( changer );
+  int pics= 1;
+
+  ChangerRec     * changerAlpha;         /* Mask can change size    */
+  DeviceImageRec * image= initAlphaMap( changerAlpha= allocChanger( 4, szW ) /* RGB color     */
+                                      , pics                                  /* Planes        */
+                                      , szW, szH                            /* Final size    */
+                                      , w, h );                         /* Original size */
+
 
   jpeg_start_decompress( &info );
 
   while (info.output_scanline < info.output_height )
-  { jpeg_read_scanlines( &info, &rowptr, 1 );
-    changeImageAddLine( changer ); /* Feed resizer */
+  { char * row= changerLine( changerAlpha  );
+
+    jpeg_read_scanlines( &info, &row, 1 );
+
+    changeImageAddRGB( changerAlpha ); /* From RGB to 32 bit alpha */
   }
 
   jpeg_finish_decompress( &info );
@@ -119,7 +121,7 @@ DeviceImageRec * LoadJfif( const char * fName
 Salir:
   jpeg_destroy_decompress( &info );
   fclose( fp    );
-  return( pic   );
+  return( image   );
 }
 
 

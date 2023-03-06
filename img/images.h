@@ -84,22 +84,6 @@ typedef struct DeviceImageRec_s
   #define IMAGELINE  sizeof( word )
 #endif
 
-/*
- * Pertenecientes a rdxpm.c
- */
-/*  const char * LoadXPM( PicInfo    * data
-                      , const char * filename
-                      , int        * szx
-                      , int        * szy
-                      , HistRec    * hist );
-  */
-
-  IcoRec * LoadXpmFile( const char * fName );
-  IcoRec * LoadGifFile( const char * fName );
-  IcoRec * LoadICOFile( const char * fName );
-  IcoRec * LoadIcoFile( const char * fName );
-
-
 
 /*
  *  From cropgif.c
@@ -145,9 +129,9 @@ DeviceImageRec * openIcoFromData1
 /*  From images.c
  */
 
-  DeviceImageRec * LoadPng ( const char * fName, int * szW, int * szH );
-  DeviceImageRec * LoadJfif( const char * fName, int * szW, int * szH );
-  DeviceImageRec * LoadImg ( const char * fName, int * szW, int * szH );
+  DeviceImageRec * LoadPng ( const char * fName );
+  DeviceImageRec * LoadJfif( const char * fName );
+  DeviceImageRec * LoadImg ( const char * fName );
 
 /*
  * from resource.c
@@ -214,6 +198,37 @@ void * changerLine( ChangerRec * changer );   /* Process info               */
 
 #define allocChanger( pl, wd ) alloca( changerSize( wd, pl ))
 
+void * getAlpha( unsigned char * mask
+               , int w, int h, int coef
+               , unsigned char * alpha );
+
+void * getCol16( unsigned short * image
+               , int w, int h
+               , unsigned char * array );
+
+void * getCol32( dword * image
+               , int w, int h
+               , unsigned char * array );
+
+void AddHistogram( HistRec * hist
+                 , unsigned char R
+                 , unsigned char G
+                 , unsigned char B );  // Fabrica un nuevo histograma
+
+
+
+
+#define QUANTIZE( sz, q ) (sz ? (( sz - 1 ) >> q ) + 1 : 0)
+#define GETALPHA( w,h,a) getAlpha( (unsigned char*)alloca( QUANTIZE( w , 4 ) * h * sizeof( word )), w,h,0x80,a )
+#define GETCOL16( w,h,a) getCol16( (word*)alloca( 4 * w * h * sizeof( word )), w,h,a )  // 4 ???
+#define GETCOL32( w,h,a) getCol32((dword*)alloca( 8 * w * h * sizeof(dword )), w,h,a )
+
+
+
+
+
+
+
 
   /*
    * Codec for bitmaps
@@ -245,6 +260,7 @@ void * changerLine( ChangerRec * changer );   /* Process info               */
                         , int hOrg  );         /* Original height     */
 
   void   changeImageAddLine( ChangerRec * changer );
+  void    changeImageAddRGB( ChangerRec * changer ); /* Line */
 
   void * changeImageSize( ChangerRec * changer );
 

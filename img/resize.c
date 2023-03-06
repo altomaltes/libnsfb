@@ -633,3 +633,25 @@ void changeImageAddLine( ChangerRec * changer )
                   , &changer->idx );         /* Quantum       */
 }
 
+void changeImageAddRGB( ChangerRec * changer ) /* Line */
+{ int sz= changer->info.ws;
+  unsigned char * row= changerLine( changer  ); 
+  unsigned char * dst= row; /* From RGB */
+  
+  row += sz * 3;     /* Larst RGB */
+  dst += sz * 4;     /* Larst ALPHA */
+  
+  while( sz-- )
+  { dst[3]= 0xFF;    // alpha
+    dst[2]= row[2];  // r
+    dst[1]= row[1];  // g
+    dst[0]= row[0];  // b
+
+    dst-= 4;
+    row-= 3;
+  }
+
+  changeImageAddLine( changer  ); /* Line */
+}
+
+

@@ -30,8 +30,8 @@
 #define DEBUG 10
 
 
-#include "config.h"
-#include "images.h"
+#include "nsfb.h"
+#include "../images.h"
 
 /*
  * File format:
@@ -221,7 +221,7 @@ static int XpmGetc( FILE *f )
  *  @brief                                                            *
  *                                                                    *
 \* ================================================================= **/
-IcoRec * loadXpmFile( const char * bname )
+ANSIC IcoRec * loadIcoXpmFile( const char * bname, int wtarget, int htarget )
 { FILE * fp;
   unsigned char   * picture;
 
@@ -246,7 +246,6 @@ IcoRec * loadXpmFile( const char * bname )
 
   bufchar = -2;
   in_quote= 0;
-
 
 /*
  * Read in the values line.  It is the first string in the
@@ -299,7 +298,7 @@ IcoRec * loadXpmFile( const char * bname )
   icon->pal->blue=
   icon->pal->green= 0x7F;
   picture= icon->pic= (unsigned char *) ( &icon->pal[ nc+1 ]  );                   /* Points to image data */
-  icon->w0= w; icon->h0= h; icon->cln= 255;
+  icon->wNat= w; icon->hNat= h; icon->nCol= 255;
 
   c_sptr= clmp;
 
@@ -437,6 +436,10 @@ IcoRec * loadXpmFile( const char * bname )
   return( icon );
 }
 
+
+DeviceImageRec * loadImgXpmFile( const char * bname, int w, int h ) 
+{ return( NULL );
+}
 
 
 

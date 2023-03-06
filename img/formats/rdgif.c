@@ -28,11 +28,13 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <gif_lib.h>
+#include <gif_lib.h>   
 #include <malloc.h>
 #include <string.h>
 
 #include "nsfb.h"
+#include "../images.h"
+
 
 
 static int InterlacedOffset[] = { 0, 4, 2, 1 }; /* The way Interlaced image should. */
@@ -49,12 +51,211 @@ typedef struct imageList
  *                                                                            *
  *   JACS 2011                                                                *
  *                                                                            *
- *  FUNCTION: loadImageFile                                                     *
+ *  FUNCTION: loadImgFile                                                     *
  *                                                                            *
  *  @brief Loads a gif image from disk.                                       *
  *                                                                            *
 \* ========================================================================= **/
-IcoRec * loadImageFile( const char * fname  )
+ANSIC DeviceImageRec * loadImgFile( const char * fname, int wtarget, int htarget  )
+{ GifRecordType   recordType;
+  ColorMapObject *ColorMap;
+
+  int i, j, ExtCode, Count;
+  int Row, Col, width, Height /*, ColorMapSize */;
+  GifByteType *Extension;
+  int imageSize;
+  int loadErr;
+
+  word      * delay;            /* To build the delay list  */
+
+  imageList * subImage;         /* Subimages working        */
+  imageList * subImages= NULL;  /* Subimages mounting       */
+
+  GifFileType * gifFile= DGifOpenFileName( fname, &loadErr );
+
+  if ( !gifFile )
+  { puts( fname );
+   // PrintGifError();
+    return( NULL );
+  }
+
+
+  int wOrg= gifFile->SWidth;
+  int hOrg= gifFile->SHeight;
+
+  int wDst= gifFile->SWidth;
+  int hDst= gifFile->SHeight;
+
+  int pics= 1;
+
+  ChangerRec     * changerAlpha;         /* Mask can change size    */
+  DeviceImageRec * image= initAlphaMap( changerAlpha= allocChanger( 4, wDst ) /* RGB color     */
+                                      , pics                                  /* Planes        */
+                                      , wDst, hDst                            /* Final size    */
+                                      , wOrg, hOrg );                         /* Original size */
+
+  imageSize= gifFile->SWidth * gifFile->SHeight;
+
+  while( DGifGetRecordType( gifFile
+                         , &recordType ) != GIF_ERROR )
+  { switch( recordType )
+    { case IMAGE_DESC_RECORD_TYPE:
+        if ( DGifGetImageDesc( gifFile ) == GIF_ERROR)
+        { free( image ); return( NULL );
+        }
+
+        ColorMap= gifFile->Image.ColorMap
+                ? gifFile->Image.ColorMap
+                : gifFile->SColorMap;
+
+    
+        Col    = gifFile->Image.Left;
+        Height = gifFile->Image.Height;
+
+
+        if ( gifFile->Image.Left + gifFile->Image.Width  > gifFile->SWidth
+          || gifFile->Image.Top  + gifFile->Image.Height > gifFile->SHeight )
+        { free( image ); return( NULL );  /* Image %d is not confined to screen dimension, aborted ( ImageNum ) */
+        }
+
+        if ( gifFile->Image.Interlace ) /* Need to perform 4 passes on the images: */
+        { for ( Count = i = 0
+              ;         i < 4
+              ;         i ++ )
+            for ( j = gifFile->Image.Top + InterlacedOffset[i]
+                ; j < gifFile->Image.Top + Height
+                ; j += InterlacedJumps[i])
+          { char * line= (unsigned char *)alloca( width= gifFile->Image.Width ); /* Holds a line of data */
+
+            if ( DGifGetLine( gifFile
+                            //, line + j * gifFile->Image.Width + gifFile->Image.Left
+                            , line + gifFile->Image.Left
+                            , width ) == GIF_ERROR)
+            { free( image ); return( NULL );
+        } } }
+        else 
+        { for ( i = 0
+              ; i < Height
+              ; i++)
+          { char * line= (unsigned char *)alloca( width= gifFile->Image.Width ); /* Holds a line of data */
+
+            if ( DGifGetLine( gifFile
+//                            , line + Row++ * gifFile->Image.Width + gifFile->Image.Left
+                            , line + gifFile->Image.Left
+                            , width ) == GIF_ERROR)
+            { free( image ); return( NULL );
+            } 
+
+
+            unsigned char * linePtr= changerLine( changerAlpha  );
+
+            while( width-- )
+            { unsigned char pal= *line ++;
+
+             *linePtr++= ColorMap->Colors[ pal ].Red;
+             *linePtr++= ColorMap->Colors[ pal ].Green;
+             *linePtr++= ColorMap->Colors[ pal ].Blue;
+             *linePtr++= 0xFF; // ( palPtr[ pal ].alpha & 0x0F ) ? 0xFF : 0x00;
+            }
+
+            changeImageAddLine( changerAlpha  ); /* Line */
+          } }
+
+//        icon->pics += 0x100;             /* A new frame (Overloaded) */
+      break;
+
+      case EXTENSION_RECORD_TYPE:      /* Skip any extension blocks in file: */
+
+        if ( DGifGetExtension( gifFile
+                            , &ExtCode
+                            , &Extension ) == GIF_ERROR )
+        { free( image ); return( NULL );
+        }
+
+        switch( ExtCode )
+        { case GRAPHICS_EXT_FUNC_CODE:
+
+        //    if ( Extension[ 4 ]< ColorMap->ColorCount )  // Mark the transparent color
+        //    { icon->pal[ Extension[ 4 ] ].alpha= 0x0F;
+        //    }
+
+            if ( Extension[ 1 ] & 0x1C )              /* New image     */
+            { subImage= alloca( sizeof( imageList )   /* Image control */
+                              +         imageSize  ); /* Image data    */
+
+               subImage->next= subImages;             /* Link list             */
+               subImages= subImage;
+
+               subImage->delay = Extension[ 3 ];      /* Load word             */
+               subImage->delay<<= 8;
+               subImage->delay|= Extension[ 2 ];
+
+               char * line= subImage->pixels;             /* Load next image here  */
+            }
+      break;
+
+      case APPLICATION_EXT_FUNC_CODE:
+      case COMMENT_EXT_FUNC_CODE:
+      break;
+    }
+
+    while ( Extension )
+    { if ( DGifGetExtensionNext( gifFile
+                               , &Extension ) == GIF_ERROR)
+      { free( image ); return( NULL );
+    } }
+    break;
+
+    case TERMINATE_RECORD_TYPE:
+ //     if ( icon->pics > 0x100 && 0 )      /* Mount subimages (OVERLOADED) */
+ //     { //int images= icon->pics >> 8;      /* !!! */
+
+//          icon= ( IcoRec * )realloc( icon
+//                                   , sizeof( IcoRec )               /* Static size       */
+//                                   + colorSize                      /* Holds colormap    */
+//                                   + ( imageSize + sizeof( word )) * images * 2 );  /* Holds image data !!! */
+//
+//          picture= icon->pic= (unsigned char *)( &icon->pal[ ColorMap->ColorCount ] ); /* Points to image data */
+//          delay= icon->frm= (word *)( picture + imageSize * images );          /* Points to delays     */
+
+//          for( subImage= subImages
+//             ; subImage
+//             ; subImage= subImage->next )
+//          { memcpy( picture
+//                  , subImage->pixels
+//                  , imageSize );
+//            *delay= subImage->delay;
+//            picture+= imageSize;  /* next image */
+//            delay ++;
+///        } }
+
+ //       image->mask= GETALPHA( image->width, image->height, image->image );
+
+
+        DGifCloseFile( gifFile, &loadErr );
+      return( image );
+
+
+      default:                /* Should be traps by DGifGetRecordType. */
+      break;
+  } }
+
+  free( image ); return( NULL );
+}
+
+
+
+
+/** ====================================================[ JACS 1997-11-11 ]== *\
+ *                                                                            *
+ *   JACS 2011                                                                *
+ *                                                                            *
+ *  FUNCTION: loadIcoFile                                                     *
+ *                                                                            *
+ *  @brief Loads a gif image from disk.                                       *
+ *                                                                            *
+\* ========================================================================= **/
+ANSIC IcoRec * loadIcoFile( const char * fname, int wtarget, int htarget  )
 { GifRecordType recordType;
   ColorMapObject *ColorMap;
 
@@ -153,7 +354,7 @@ IcoRec * loadImageFile( const char * fname  )
             { return( NULL );
         } } }
 
-        icon->pics += 0x100;             /* A new frame (Overloaded) */
+        icon->pics += 0x1;             /* A new frame (Overloaded) */
       break;
 
       case EXTENSION_RECORD_TYPE:      /* Skip any extension blocks in file: */

@@ -11,8 +11,10 @@
 // To get the definition of size_t
 #include <stdlib.h>
 
+#include "../../../libnsfb.h"
+#include "../../../nsfbPlot.h"
 
-typedef unsigned int svgtiny_colour;
+typedef unsigned int NsfbColour;
 
 #ifdef __riscos__
   #define svgtiny_RGB(r, g, b) (0xff << 24 | (b) << 16 | (g) << 8 | (r))
@@ -20,10 +22,10 @@ typedef unsigned int svgtiny_colour;
   #define svgtiny_GREEN(c) (((c) >> 8) & 0xff)
   #define svgtiny_BLUE(c) (((c) >> 16) & 0xff)
 #else
-  #define svgtiny_RGB(r, g, b) (0xff << 24 | (r) << 16 | (g) << 8 | (b))
-  #define svgtiny_RED(c) (((c) >> 16) & 0xff)
-  #define svgtiny_GREEN(c) (((c) >> 8) & 0xff)
-  #define svgtiny_BLUE(c) ((c) & 0xff)
+  #define svgtiny_RGB(r, g, b ) (0x00 << 24 | (r) << 16 | (g) << 8 | (b))
+  #define svgtiny_RED(      c ) (((c) >> 16) & 0xff)
+  #define svgtiny_GREEN(    c ) (((c) >> 8) & 0xff)
+  #define svgtiny_BLUE(     c ) ((c) & 0xff)
 #endif
 
 #define svgtiny_ALPHA(c) (((c) >> 24) & 0xff)
@@ -32,64 +34,55 @@ typedef unsigned int svgtiny_colour;
 // They are legal, but unlikely, black that's almost transparent.
 // TODO: in a future commit, we'll malloc the gradient description into the _internal_extensions
 // field of the svgtiny_shape, and we'll lopk at that to decide if an object has a gradient.
-#define svgtiny_LINEAR_GRADIENT 0x2000000
-#define svgtiny_TRANSPARENT     0x1000000
 
 
 struct svgtiny_shape
-{ float *path;
+{ float * path;
 	 unsigned int path_length;
-	 char *text;
+	 char  * text;
 	 float text_x, text_y;
-	 svgtiny_colour fill;
-	 svgtiny_colour stroke;
+	 NsfbColour fill;
+	 NsfbColour stroke;
 	 float stroke_width;
-  void *_internal_extensions;  // TODO: if non-NULL, points to an allocated on the heap extension block. (gradients, fonts)
+	 
+//  void *_internal_extensions;  // TODO: if non-NULL, points to an allocated on the heap extension block. (gradients, fonts)
 };
 
-struct SvgtinyDiagram {
-	int width, height;
-
-	struct svgtiny_shape *shape;
-	unsigned int shape_count;
-
-	unsigned short error_line;
-	const char *error_message;
-};
-
-typedef enum {
-	svgtiny_OK,
-	svgtiny_OUT_OF_MEMORY,
-	svgtiny_LIBDOM_ERROR,
-	svgtiny_NOT_SVG,
-	svgtiny_SVG_ERROR,
-	svgtiny_LIBXML_ERROR
+typedef enum 
+{ svgtiny_OK
+, svgtiny_OUT_OF_MEMORY
+,	svgtiny_LIBDOM_ERROR
+,	svgtiny_NOT_SVG
+,	svgtiny_SVG_ERROR
+,	svgtiny_LIBXML_ERROR
 } svgtiny_code;
 
-enum {
-	svgtiny_PATH_MOVE,
-	svgtiny_PATH_CLOSE,
-	svgtiny_PATH_LINE,
-	svgtiny_PATH_BEZIER
+/*
+enum 
+{ NFSB_PLOT_PATHOP_MOVE
+,	NFSB_PLOT_PATHOP_CLOSE
+,	NFSB_PLOT_PATHOP_LINE
+,	NFSB_PLOT_PATHOP_QUAD
+};
+  */
+struct svgtiny_named_color 
+{
+ 	const char *name;
+	 NsfbColour color;
 };
 
-struct svgtiny_named_color {
-	const char *name;
-	svgtiny_colour color;
-};
 
+VectorRec * svgtinyCreate( void );
 
-struct SvgtinyDiagram *svgtiny_create(void);
-
-svgtiny_code svgtiny_parse(struct SvgtinyDiagram *diagram,
-		const char *buffer, size_t size, const char *url,
-		int width, int height);
+svgtiny_code svgtiny_parse( VectorRec *diagram
+                          , const char *buffer, size_t size, const char *url
+                          ,	int width, int height);
 
 // Gets the width and size from the buffer.
-svgtiny_code svgtiny_parse0(struct SvgtinyDiagram *diagram,
-		const char *buffer, size_t size);
+svgtiny_code svgtiny_parse0( VectorRec *diagram
+                           , const char *buffer, size_t size );
 
 
-void svgtiny_free(struct SvgtinyDiagram *svg);
+void VectorsFree( VectorRec *svg );
 
 #endif

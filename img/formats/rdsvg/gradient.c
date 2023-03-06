@@ -16,9 +16,9 @@
 
 #undef GRADIENT_DEBUG
 
-static svgtiny_code svgtiny_parse_linear_gradient(dom_element *linear,
-		struct svgtiny_parse_state *state);
-static float svgtiny_parse_gradient_offset(const char *s);
+static svgtiny_code svgtinyParseLinearGradient(dom_element *linear,
+		struct svgtinyParseState *state);
+static float svgtinyParseGradientOffset(const char *s);
 static void svgtiny_path_bbox(float *p, unsigned int n,
 		float *x0, float *y0, float *x1, float *y1);
 static void svgtiny_invert_matrix(float *m, float *inv);
@@ -28,7 +28,7 @@ static void svgtiny_invert_matrix(float *m, float *inv);
  * Find a gradient by id and parse it.
  */
 
-void svgtiny_find_gradient(const char *id, struct svgtiny_parse_state *state)
+void svgtiny_find_gradient(const char *id, struct svgtinyParseState *state)
 {
 	dom_element *gradient;
 	dom_string *id_str, *name;
@@ -81,7 +81,7 @@ void svgtiny_find_gradient(const char *id, struct svgtiny_parse_state *state)
 	}
 
 	if (dom_string_isequal(name, state->interned_linearGradient))
-		svgtiny_parse_linear_gradient(gradient, state);
+		svgtinyParseLinearGradient(gradient, state);
 
 	dom_node_unref(gradient);
 	dom_string_unref(name);
@@ -99,8 +99,8 @@ void svgtiny_find_gradient(const char *id, struct svgtiny_parse_state *state)
  * http://www.w3.org/TR/SVG11/pservers#LinearGradients
  */
 
-svgtiny_code svgtiny_parse_linear_gradient(dom_element *linear,
-		struct svgtiny_parse_state *state)
+svgtiny_code svgtinyParseLinearGradient(dom_element *linear,
+		struct svgtinyParseState *state)
 {
 	unsigned int i = 0;
 	dom_string *attr;
@@ -195,7 +195,7 @@ svgtiny_code svgtiny_parse_linear_gradient(dom_element *linear,
 		for (stopnr = 0; stopnr < listlen; ++stopnr) {
 			dom_element *stop;
 			float offset = -1;
-			svgtiny_colour color = svgtiny_TRANSPARENT;
+			NsfbColour color = NFSB_PLOT_OPTYPE_TRANSP;
 			exc = dom_nodelist_item(stops, stopnr,
 						(dom_node **) (void *) &stop);
 			if (exc != DOM_NO_ERR)
@@ -206,7 +206,7 @@ svgtiny_code svgtiny_parse_linear_gradient(dom_element *linear,
 			if (exc == DOM_NO_ERR && attr != NULL) {
 				char *s = strndup(dom_string_data(attr),
 						  dom_string_byte_length(attr));
-				offset = svgtiny_parse_gradient_offset(s);
+				offset = svgtinyParseGradientOffset(s);
 				free(s);
 				dom_string_unref(attr);
 			}
@@ -244,7 +244,7 @@ svgtiny_code svgtiny_parse_linear_gradient(dom_element *linear,
 				free(content);
 				dom_string_unref(attr);
 			}
-			if (offset != -1 && color != svgtiny_TRANSPARENT) {
+			if (offset != -1 && color != NFSB_PLOT_OPTYPE_TRANSP) {
 				#ifdef GRADIENT_DEBUG
 				fprintf(stderr, "stop %g %x\n", offset, color);
 				#endif
@@ -267,7 +267,7 @@ no_more_stops:
 }
 
 
-float svgtiny_parse_gradient_offset(const char *s)
+float svgtinyParseGradientOffset(const char *s)
 {
 	int num_length = strspn(s, "0123456789+-.");
 	const char *unit = s + num_length;
@@ -289,12 +289,12 @@ float svgtiny_parse_gradient_offset(const char *s)
 
 
 /**
- * Add a path with a linear gradient fill to the SvgtinyDiagram.
+ * Add a path with a linear gradient fill to the VectorRec.
  */
 
-svgtiny_code svgtiny_add_path_linear_gradient( float *p
+svgtiny_code svgtinyAddPathLinearGradient( float *p
                                              , unsigned int n
-                                             ,	struct svgtiny_parse_state *state )
+                                             ,	struct svgtinyParseState *state )
 { struct grad_point
   { float x, y, r;
  	};
@@ -365,19 +365,19 @@ svgtiny_code svgtiny_add_path_linear_gradient( float *p
 		float *p = malloc(13 * sizeof p[0]);
 		if (!p)
 			return svgtiny_OUT_OF_MEMORY;
-		p[0] = svgtiny_PATH_MOVE;
+		p[0] = NFSB_PLOT_PATHOP_MOVE;
 		p[1] = strip_x0 + (strip_dy * 3);
 		p[2] = strip_y0 - (strip_dx * 3);
-		p[3] = svgtiny_PATH_LINE;
+		p[3] = NFSB_PLOT_PATHOP_LINE;
 		p[4] = p[1] + strip_dx;
 		p[5] = p[2] + strip_dy;
-		p[6] = svgtiny_PATH_LINE;
+		p[6] = NFSB_PLOT_PATHOP_LINE;
 		p[7] = p[4] - (strip_dy * 6);
 		p[8] = p[5] + (strip_dx * 6);
-		p[9] = svgtiny_PATH_LINE;
+		p[9] = NFSB_PLOT_PATHOP_LINE;
 		p[10] = p[7] - strip_dx;
 		p[11] = p[8] - strip_dy;
-		p[12] = svgtiny_PATH_CLOSE;
+		p[12] = NFSB_PLOT_PATHOP_CLOSE;
 		svgtiny_transform_path(p, 13, state);
 		struct svgtiny_shape *shape = svgtiny_add_shape(state);
 		if (!shape) {
@@ -386,7 +386,7 @@ svgtiny_code svgtiny_add_path_linear_gradient( float *p
 		}
 		shape->path = p;
 		shape->path_length = 13;
-		shape->fill = svgtiny_TRANSPARENT;
+		shape->fill = NFSB_PLOT_OPTYPE_TRANSP;
 		shape->stroke = svgtiny_RGB(0, 0xff, 0);
 		state->diagram->shape_count++;
 	}*/
@@ -412,54 +412,62 @@ svgtiny_code svgtiny_add_path_linear_gradient( float *p
 		struct grad_point *point;
 		unsigned int z;
 
-		if (segment_type == svgtiny_PATH_MOVE) {
-			x0 = p[j + 1];
-			y0 = p[j + 2];
-			j += 3;
-			continue;
+		if (segment_type == NFSB_PLOT_PATHOP_MOVE) 
+		{ x0 = p[j + 1];
+			 y0 = p[j + 2];
+			 j += 3;
+			 continue;
 		}
 
-		assert(segment_type == svgtiny_PATH_CLOSE ||
-				segment_type == svgtiny_PATH_LINE ||
-				segment_type == svgtiny_PATH_BEZIER);
+		assert( segment_type == NFSB_PLOT_PATHOP_CLOSE 
+		     ||	segment_type == NFSB_PLOT_PATHOP_LINE 
+		     ||	segment_type == NFSB_PLOT_PATHOP_QUAD );
 
 		/* start point (x0, y0) */
 		x0_trans = trans[0]*x0 + trans[2]*y0 + trans[4];
 		y0_trans = trans[1]*x0 + trans[3]*y0 + trans[5];
-		r0 = ((x0_trans - gradient_x0) * gradient_dx +
-				(y0_trans - gradient_y0) * gradient_dy) /
-				gradient_norm_squared;
-		point = svgtiny_list_push(pts);
-		if (!point) {
-			svgtiny_list_free(pts);
-			return svgtiny_OUT_OF_MEMORY;
+		
+		r0 = ((x0_trans - gradient_x0) * gradient_dx +		(y0_trans - gradient_y0) * gradient_dy) /		gradient_norm_squared;
+		
+		point= svgtiny_list_push( pts );
+		if (!point) 
+		{ svgtiny_list_free(pts);
+			 return( svgtiny_OUT_OF_MEMORY );
 		}
 		point->x = x0;
 		point->y = y0;
 		point->r = r0;
-		if (r0 < min_r) {
-			min_r = r0;
-			min_pt = svgtiny_list_size(pts) - 1;
+		
+		if (r0 < min_r) 
+		{
+			 min_r = r0;
+			 min_pt = svgtiny_list_size(pts) - 1;
 		}
 
 		/* end point (x1, y1) */
-		if (segment_type == svgtiny_PATH_LINE) {
-			x1 = p[j + 1];
-			y1 = p[j + 2];
-			j += 3;
-		} else if (segment_type == svgtiny_PATH_CLOSE) {
-			x1 = p[1];
-			y1 = p[2];
-			j++;
-		} else /* svgtiny_PATH_BEZIER */ {
-			c0x = p[j + 1];
-			c0y = p[j + 2];
-			c1x = p[j + 3];
-			c1y = p[j + 4];
-			x1 = p[j + 5];
-			y1 = p[j + 6];
-			j += 7;
+		if (segment_type == NFSB_PLOT_PATHOP_LINE) 
+		{
+		 	x1 = p[j + 1];
+			 y1 = p[j + 2];
+			 j += 3;
+		} 
+		else if (segment_type == NFSB_PLOT_PATHOP_CLOSE) 
+		{
+			 x1 = p[1];
+			 y1 = p[2];
+			 j++;
+		} 
+		else /* NFSB_PLOT_PATHOP_QUAD */ 
+		{
+			 c0x = p[j + 1];
+			 c0y = p[j + 2];
+			 c1x = p[j + 3];
+			 c1y = p[j + 4];
+			 x1 = p[j + 5];
+			 y1 = p[j + 6];
+			 j += 7;
 		}
+		
 		x1_trans = trans[0]*x1 + trans[2]*y1 + trans[4];
 		y1_trans = trans[1]*x1 + trans[3]*y1 + trans[5];
 		r1 = ((x1_trans - gradient_x0) * gradient_dx +
@@ -468,9 +476,12 @@ svgtiny_code svgtiny_add_path_linear_gradient( float *p
 
 		/* determine steps from change in r */
 
-		if(isnan(r0) || isnan(r1)) {
+		if(isnan(r0) || isnan(r1)) 
+		{
 			steps = 1;
-		} else {
+		} 
+		else 
+		{
 			steps = ceilf(fabsf(r1 - r0) / 0.05);
 		}
 
@@ -482,44 +493,49 @@ svgtiny_code svgtiny_add_path_linear_gradient( float *p
 		#endif
 
 		/* loop through intermediate points */
-		for (z = 1; z != steps; z++) {
-			float t, x, y, x_trans, y_trans, r;
-			struct grad_point *point;
-			t = (float) z / (float) steps;
-			if (segment_type == svgtiny_PATH_BEZIER) {
-				x = (1-t) * (1-t) * (1-t) * x0 +
-					3 * t * (1-t) * (1-t) * c0x +
-					3 * t * t * (1-t) * c1x +
-					t * t * t * x1;
-				y = (1-t) * (1-t) * (1-t) * y0 +
-					3 * t * (1-t) * (1-t) * c0y +
-					3 * t * t * (1-t) * c1y +
-					t * t * t * y1;
-			} else {
-				x = (1-t) * x0 + t * x1;
-				y = (1-t) * y0 + t * y1;
-			}
-			x_trans = trans[0]*x + trans[2]*y + trans[4];
-			y_trans = trans[1]*x + trans[3]*y + trans[5];
-			r = ((x_trans - gradient_x0) * gradient_dx +
-					(y_trans - gradient_y0) * gradient_dy) /
-					gradient_norm_squared;
+		for ( z = 1
+		    ; z != steps
+		    ; z++ ) 
+		{ float t, x, y, x_trans, y_trans, r;
+			 struct grad_point *point;
+			 t = (float) z / (float) steps;
+			 
+			 if (segment_type == NFSB_PLOT_PATHOP_QUAD) 
+			 { x = (1-t) * (1-t) * (1-t) * x0 
+			     +					3 * t * (1-t) * (1-t) * c0x 
+			     +					3 * t * t * (1-t) * c1x 
+			     +		t * t * t * x1;
+			     
+  				y = (1-t) * (1-t) * (1-t) * y0 
+  				  +	3 * t * (1-t) * (1-t) * c0y 
+  				  +	3 * t * t * (1-t) * c1y 
+  				  +	t * t * t * y1;
+			 } 
+			 else 
+			 {	x = (1-t) * x0 + t * x1;
+				  y = (1-t) * y0 + t * y1;
+			 }
+			 
+			 x_trans = trans[0]*x + trans[2]*y + trans[4];
+			 y_trans = trans[1]*x + trans[3]*y + trans[5];
+			 
+			 r = ((x_trans - gradient_x0) * gradient_dx 
+			   +		(y_trans - gradient_y0) * gradient_dy) /	gradient_norm_squared;
 			#ifdef GRADIENT_DEBUG
 			fprintf(stderr, "(%g %g [%g]) ", x, y, r);
 			#endif
-			point = svgtiny_list_push(pts);
-			if (!point) {
-				svgtiny_list_free(pts);
-				return svgtiny_OUT_OF_MEMORY;
-			}
-			point->x = x;
-			point->y = y;
-			point->r = r;
-			if (r < min_r) {
-				min_r = r;
-				min_pt = svgtiny_list_size(pts) - 1;
-			}
-		}
+  		point = svgtiny_list_push(pts);
+		 	if ( !point ) 
+		 	{ svgtiny_list_free(pts);
+				  return svgtiny_OUT_OF_MEMORY;
+			 }
+ 			point->x = x;
+	 		point->y = y;
+		 	point->r = r;
+			 if (r < min_r) 
+			 { min_r = r;
+			  	min_pt = svgtiny_list_size(pts) - 1;
+		}	}
 		#ifdef GRADIENT_DEBUG
 		fprintf(stderr, "\n");
 		#endif
@@ -545,82 +561,81 @@ svgtiny_code svgtiny_add_path_linear_gradient( float *p
 	t = min_pt;
 	a = (min_pt + 1) % svgtiny_list_size(pts);
 	b = min_pt == 0 ? svgtiny_list_size(pts) - 1 : min_pt - 1;
-	while (a != b) {
-		struct grad_point *point_t = svgtiny_list_get(pts, t);
-		struct grad_point *point_a = svgtiny_list_get(pts, a);
-		struct grad_point *point_b = svgtiny_list_get(pts, b);
-		float mean_r = (point_t->r + point_a->r + point_b->r) / 3;
-		float *p;
-		struct svgtiny_shape *shape;
+	
+	while (a != b) 
+	{ struct grad_point *point_t = svgtiny_list_get(pts, t);
+		 struct grad_point *point_a = svgtiny_list_get(pts, a);
+		 struct grad_point *point_b = svgtiny_list_get(pts, b);
+		 float mean_r = (point_t->r + point_a->r + point_b->r) / 3;
+		 float *p;
+		 struct svgtiny_shape *shape;
 		/*fprintf(stderr, "triangle: t %i %.3f a %i %.3f b %i %.3f "
 				"mean_r %.3f\n",
 				t, pts[t].r, a, pts[a].r, b, pts[b].r,
 				mean_r);*/
-		while (current_stop != stop_count && current_stop_r < mean_r) {
-			current_stop++;
-			if (current_stop == stop_count)
-				break;
-			red0 = red1;
-			green0 = green1;
-			blue0 = blue1;
-			red1 = svgtiny_RED(state->
-					gradient_stop[current_stop].color);
-			green1 = svgtiny_GREEN(state->
-					gradient_stop[current_stop].color);
-			blue1 = svgtiny_BLUE(state->
-					gradient_stop[current_stop].color);
-			last_stop_r = current_stop_r;
-			current_stop_r = state->
-					gradient_stop[current_stop].offset;
+		 while (current_stop != stop_count && current_stop_r < mean_r) 
+		 { current_stop++;
+			  if (current_stop == stop_count)
+				   break;
+  			red0  = red1;
+		  	green0= green1;
+  			blue0 = blue1;
+		   red1  = svgtiny_RED(   state->gradient_stop[current_stop].color);
+	 	  green1= svgtiny_GREEN( state->gradient_stop[current_stop].color);
+ 			 blue1 = svgtiny_BLUE(  state->gradient_stop[current_stop].color);
+ 	 		last_stop_r = current_stop_r;
+	 	 	current_stop_r = state->gradient_stop[current_stop].offset;
+ 		}
+		 p = malloc(10 * sizeof p[0]);
+		 if (!p)
+			  return svgtiny_OUT_OF_MEMORY;
+		 p[ 0 ] = NFSB_PLOT_PATHOP_MOVE;
+		 p[ 1 ] = point_t->x;
+		 p[ 2 ] = point_t->y;
+		 p[ 3 ] = NFSB_PLOT_PATHOP_LINE;
+		 p[ 4 ] = point_a->x;
+		 p[ 5 ] = point_a->y;
+		 p[ 6 ] = NFSB_PLOT_PATHOP_LINE;
+		 p[ 7 ] = point_b->x;
+		 p[ 8 ] = point_b->y;
+		 p[ 9 ] = NFSB_PLOT_PATHOP_CLOSE;
+		 
+		 svgtiny_transform_path(p, 10, state);
+		 shape = svgtiny_add_shape(state);
+		 if (!shape) 
+		 { free(p);
+		  	return svgtiny_OUT_OF_MEMORY;
+		 }
+		 shape->path = p;
+		 shape->path_length = 10;
+		/*shape->fill = NFSB_PLOT_OPTYPE_TRANSP;*/
+		 if ( !current_stop )
+		 {	shape->fill = state->gradient_stop[0].color;
+		 }
+ 		else if (current_stop == stop_count)
+	 	{
+			  shape->fill = state->gradient_stop[stop_count - 1].color;
+		 }	
+	 	else 
+		 { float stop_r = (mean_r - last_stop_r) 
+		                /	(current_stop_r - last_stop_r);
+ 			shape->fill= svgtiny_RGB( (int) ((1 - stop_r) * red0 + stop_r * red1)
+ 			                        , (int) ((1 - stop_r) * green0 + stop_r * green1)
+ 			                        ,	(int) ((1 - stop_r) * blue0 + stop_r * blue1));
 		}
-		p = malloc(10 * sizeof p[0]);
-		if (!p)
-			return svgtiny_OUT_OF_MEMORY;
-		p[0] = svgtiny_PATH_MOVE;
-		p[1] = point_t->x;
-		p[2] = point_t->y;
-		p[3] = svgtiny_PATH_LINE;
-		p[4] = point_a->x;
-		p[5] = point_a->y;
-		p[6] = svgtiny_PATH_LINE;
-		p[7] = point_b->x;
-		p[8] = point_b->y;
-		p[9] = svgtiny_PATH_CLOSE;
-		svgtiny_transform_path(p, 10, state);
-		shape = svgtiny_add_shape(state);
-		if (!shape) {
-			free(p);
-			return svgtiny_OUT_OF_MEMORY;
-		}
-		shape->path = p;
-		shape->path_length = 10;
-		/*shape->fill = svgtiny_TRANSPARENT;*/
-		if (current_stop == 0)
-			shape->fill = state->gradient_stop[0].color;
-		else if (current_stop == stop_count)
-			shape->fill = state->
-					gradient_stop[stop_count - 1].color;
-		else {
-			float stop_r = (mean_r - last_stop_r) /
-				(current_stop_r - last_stop_r);
-			shape->fill = svgtiny_RGB(
-				(int) ((1 - stop_r) * red0 + stop_r * red1),
-				(int) ((1 - stop_r) * green0 + stop_r * green1),
-				(int) ((1 - stop_r) * blue0 + stop_r * blue1));
-		}
-		shape->stroke = svgtiny_TRANSPARENT;
+		shape->stroke = NFSB_PLOT_OPTYPE_TRANSP;
 		#ifdef GRADIENT_DEBUG
 		shape->stroke = svgtiny_RGB(0, 0, 0xff);
 		#endif
 		state->diagram->shape_count++;
-		if (point_a->r < point_b->r) {
-			t = a;
-			a = (a + 1) % svgtiny_list_size(pts);
-		} else {
-			t = b;
-			b = b == 0 ? svgtiny_list_size(pts) - 1 : b - 1;
-		}
-	}
+		if (point_a->r < point_b->r) 
+		{ t = a;
+		 	a = (a + 1) % svgtiny_list_size(pts);
+		} 
+		else 
+		{ t = b;
+			 b = b == 0 ? svgtiny_list_size(pts) - 1 : b - 1;
+		} }
 
 	/* render gradient vector for debugging */
 	#ifdef GRADIENT_DEBUG
@@ -628,13 +643,13 @@ svgtiny_code svgtiny_add_path_linear_gradient( float *p
 		float *p = malloc(7 * sizeof p[0]);
 		if (!p)
 			return svgtiny_OUT_OF_MEMORY;
-		p[0] = svgtiny_PATH_MOVE;
+		p[0] = NFSB_PLOT_PATHOP_MOVE;
 		p[1] = gradient_x0;
 		p[2] = gradient_y0;
-		p[3] = svgtiny_PATH_LINE;
+		p[3] = NFSB_PLOT_PATHOP_LINE;
 		p[4] = gradient_x1;
 		p[5] = gradient_y1;
-		p[6] = svgtiny_PATH_CLOSE;
+		p[6] = NFSB_PLOT_PATHOP_CLOSE;
 		svgtiny_transform_path(p, 7, state);
 		struct svgtiny_shape *shape = svgtiny_add_shape(state);
 		if (!shape) {
@@ -643,7 +658,7 @@ svgtiny_code svgtiny_add_path_linear_gradient( float *p
 		}
 		shape->path = p;
 		shape->path_length = 7;
-		shape->fill = svgtiny_TRANSPARENT;
+		shape->fill = NFSB_PLOT_OPTYPE_TRANSP;
 		shape->stroke = svgtiny_RGB(0xff, 0, 0);
 		state->diagram->shape_count++;
 	}
@@ -666,28 +681,32 @@ svgtiny_code svgtiny_add_path_linear_gradient( float *p
 		shape->text_y = state->ctm.b * point->x +
 				state->ctm.d * point->y + state->ctm.f;
 		shape->fill = svgtiny_RGB(0, 0, 0);
-		shape->stroke = svgtiny_TRANSPARENT;
+		shape->stroke = NFSB_PLOT_OPTYPE_TRANSP;
 		state->diagram->shape_count++;
 	}
 	#endif
 
 	/* plot actual path outline */
-	if (state->stroke != svgtiny_TRANSPARENT) {
-		struct svgtiny_shape *shape;
-		svgtiny_transform_path(p, n, state);
+	 if (state->stroke != NFSB_PLOT_OPTYPE_TRANSP) 
+	 { struct svgtiny_shape *shape;
+  		svgtiny_transform_path(p, n, state);
 
-		shape = svgtiny_add_shape(state);
-		if (!shape) {
-			free(p);
-			return svgtiny_OUT_OF_MEMORY;
-		}
-		shape->path = p;
-		shape->path_length = n;
-		shape->fill = svgtiny_TRANSPARENT;
-		state->diagram->shape_count++;
-	} else {
-		free(p);
-	}
+		  shape = svgtiny_add_shape(state);
+		
+  		if (!shape) 
+		  {
+			   free(p);
+  			 return svgtiny_OUT_OF_MEMORY;
+		  }
+		  
+  		shape->path = p;
+		  shape->path_length = n;
+  		shape->fill = NFSB_PLOT_OPTYPE_TRANSP;
+		  state->diagram->shape_count++;
+  } 
+  else 
+  { free(p);
+	 }
 
 	svgtiny_list_free(pts);
 
@@ -699,46 +718,52 @@ svgtiny_code svgtiny_add_path_linear_gradient( float *p
  * Get the bounding box of path.
  */
 
-void svgtiny_path_bbox(float *p, unsigned int n,
-		float *x0, float *y0, float *x1, float *y1)
+void svgtiny_path_bbox( float *p, unsigned int n
+                      ,	float *x0, float *y0
+                      , float *x1, float *y1 )
 {
 	unsigned int j;
 
 	*x0 = *x1 = p[1];
 	*y0 = *y1 = p[2];
 
-	for (j = 0; j != n; ) {
-		unsigned int points = 0;
-		unsigned int k;
-		switch ((int) p[j]) {
-		case svgtiny_PATH_MOVE:
-		case svgtiny_PATH_LINE:
-			points = 1;
-			break;
-		case svgtiny_PATH_CLOSE:
-			points = 0;
-			break;
-		case svgtiny_PATH_BEZIER:
-			points = 3;
-			break;
-		default:
-			assert(0);
+	for ( j = 0
+	    ; j < n; ) 
+	{ unsigned int points = 0;
+		 unsigned int k;
+		
+		 switch ((int) p[j]) 
+		 { case NFSB_PLOT_PATHOP_MOVE:
+   		case NFSB_PLOT_PATHOP_LINE:
+			    points = 1;
+  			break;
+  			
+	   	case NFSB_PLOT_PATHOP_CLOSE:
+    			points = 0;
+  			break;
+  			
+		   case NFSB_PLOT_PATHOP_QUAD:
+    			points = 3;
+  			break;
+  			
+		   default: assert(0);
 		}
 		j++;
-		for (k = 0; k != points; k++) {
-			float x = p[j], y = p[j + 1];
-			if (x < *x0)
-				*x0 = x;
-			else if (*x1 < x)
-				*x1 = x;
-			if (y < *y0)
-				*y0 = y;
-			else if (*y1 < y)
-				*y1 = y;
+		
+		for ( k = 0
+		    ; k != points
+		    ; k++ ) 
+		{ float x = p[j], y = p[j + 1];
+			 if (x < *x0)
+				  *x0 = x;
+		  else if (*x1 < x)
+				  *x1 = x;
+		 	if (y < *y0)
+			  	*y0 = y;
+			 else if (*y1 < y)
+				  *y1 = y;
 			j += 2;
-		}
-	}
-}
+}	} }
 
 
 /**
@@ -747,11 +772,11 @@ void svgtiny_path_bbox(float *p, unsigned int n,
 void svgtiny_invert_matrix(float *m, float *inv)
 {
 	float determinant = m[0]*m[3] - m[1]*m[2];
-	inv[0] = m[3] / determinant;
-	inv[1] = -m[1] / determinant;
-	inv[2] = -m[2] / determinant;
-	inv[3] = m[0] / determinant;
-	inv[4] = (m[2]*m[5] - m[3]*m[4]) / determinant;
-	inv[5] = (m[1]*m[4] - m[0]*m[5]) / determinant;
+	inv[0] =  m[ 3 ] / determinant;
+	inv[1] = -m[ 1 ] / determinant;
+	inv[2] = -m[ 2 ] / determinant;
+	inv[3] =  m[ 0 ] / determinant;
+	inv[4] = (m[ 2 ]*m[ 5 ] - m[ 3 ]*m[ 4 ]) / determinant;
+	inv[5] = (m[ 1 ]*m[ 4 ] - m[ 0 ]*m[ 5 ]) / determinant;
 }
 
