@@ -105,43 +105,26 @@ typedef struct DeviceImageRec_s
  *  From icons.c
  *
  */
- DeviceImageRec * openIcoFromData2
-                  ( int           deep       /* Histogram          */
-                  , int pics, int cols       /* Numbero of images  */
-                  , int wDst, int hDst       /* desired width and height  */
-                  , int wOrg, int hOrg       /* stored  width and height  */
-                  , unsigned char * picture  /* Image data         */
-                  , ImgPalette    * pal );   /* Returns image mask */
+ANSIC DeviceImageRec * openIco( IcoRec * ico );
 
-DeviceImageRec * openIcoFromData1
-                  ( unsigned char * picture    /* Image data               */
-                  , int wDst, int hDst         /* desired width and height */
-                  , int wOrg, int hOrg         /* stored  width and height */
-                  , int pics, int pals         /* Numbero of palettes      *//* Number of pictures       */
-                  , ImgPalette    * palette ); /* Returns image mask       */
-
-
-  DeviceImageRec * openIco
-                  ( IcoRec * src, int deep  /* Histogram              */
-                  , int wDst, int hDst );   /* IN ->  Icon size       */
 
 
 /*  From images.c
  */
 
-  DeviceImageRec * LoadPng ( const char * fName );
-  DeviceImageRec * LoadJfif( const char * fName );
-  DeviceImageRec * LoadImg ( const char * fName );
+ANSIC DeviceImageRec * LoadPng ( const char * fName );
+ANSIC DeviceImageRec * LoadJfif( const char * fName );
+ANSIC DeviceImageRec * LoadImg ( const char * fName );
 
 /*
  * from resource.c
  */
 
-  DeviceImageRec * LoadICO
-                   ( unsigned char       * data    /* Carga de icono de tamaño dado */
-                   , int        * sz  );
+ANSIC DeviceImageRec * LoadICO
+                   ( unsigned char * file    /* Carga de icono de tamaño dado */
+                   , int           * sz  );
 
-  DeviceImageRec * LoadXBM
+ANSIC DeviceImageRec * LoadXBM
                    ( unsigned char       * data    /* Carga un bitmap a un tamaño */
                    , int        * szx
                    , int        * szy
@@ -153,7 +136,7 @@ DeviceImageRec * openIcoFromData1
 /*  From parsec.c
  */
 
-  int parseColorName( const char * name
+ANSIC int parseColorName( const char * name
                     , unsigned char * r
                     , unsigned char * g
                     , unsigned char * b );
@@ -166,26 +149,26 @@ DeviceImageRec * openIcoFromData1
  *  From dither.c
  */
 
-  int getHistDeep      ( const HistRec * hist );
-  int getHistPad       ( const HistRec * hist );
-  int getHistWide       ( const HistRec * hist );
-  void * getHistDevice    ( const HistRec * hist );
-  unsigned long  getHistBackground( const HistRec * hist );
+ANSIC  int getHistDeep      ( const HistRec * hist );
+ANSIC int getHistPad       ( const HistRec * hist );
+ANSIC int getHistWide       ( const HistRec * hist );
+ANSIC void * getHistDevice    ( const HistRec * hist );
+ANSIC unsigned long  getHistBackground( const HistRec * hist );
 
-  dword   HistColor( HistRec * hist
+ANSIC dword   HistColor( HistRec * hist
                    , dword  c0
                    , dword  c1
                    , dword  c2 );
 
-   void  HistogramColor( HistRec * hist
+ANSIC  void  HistogramColor( HistRec * hist
                        , dword index
                        , unsigned char * c0
                        , unsigned char * c1
                        , unsigned char * c2 );
 
-  ANSIC HistRec * NewHistogram( int planes              /* Fabrica un nuevo histograma */
+ANSIC HistRec * NewHistogram( int planes              /* Fabrica un nuevo histograma */
                                 );         /* Extra space */
-  void ChangeImageAddRGB( ChangerRec * changerArr[]
+ANSIC  void ChangeImageAddRGB( ChangerRec * changerArr[]
                          ,       unsigned char * src  );
 
 
@@ -193,24 +176,24 @@ DeviceImageRec * openIcoFromData1
  * From resize.c
  */
 
-int changerSize( int wd, int pl );
-void * changerLine( ChangerRec * changer );   /* Process info               */
+ANSIC int changerSize( int wd, int pl );
+ANSIC void * changerLine( ChangerRec * changer );   /* Process info               */
 
 #define allocChanger( pl, wd ) alloca( changerSize( wd, pl ))
 
-void * getAlpha( unsigned char * mask
+ANSIC void * getAlpha( unsigned char * mask
                , int w, int h, int coef
                , unsigned char * alpha );
 
-void * getCol16( unsigned short * image
+ANSIC void * getCol16( unsigned short * image
                , int w, int h
                , unsigned char * array );
 
-void * getCol32( dword * image
+ANSIC void * getCol32( dword * image
                , int w, int h
                , unsigned char * array );
 
-void AddHistogram( HistRec * hist
+ANSIC void AddHistogram( HistRec * hist
                  , unsigned char R
                  , unsigned char G
                  , unsigned char B );  // Fabrica un nuevo histograma

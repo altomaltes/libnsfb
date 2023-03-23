@@ -10,18 +10,21 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "libnsfb_plot.h"
+#include "nsfb.h"
+#include "nsfbPlot.h"
+#include "libnsfb_plot_util.h"
 #include "nsfb.h"
 #include "surface.h"
+#include "img/images.h"
 
 /* exported interface documented in libnsfb.h
  */
-PUBLIC bool nsfb_dump(nsfb_t *nsfb, int fd)
+ANSIC bool nsfbDump(Nsfb *nsfb, int fd)
 { FILE *outf;
   int x, y;
 
   outf = fdopen(dup(fd), "w");
-  if (outf == NULL)
+  if (!outf )
   { return false;
   }
 
@@ -47,6 +50,29 @@ PUBLIC bool nsfb_dump(nsfb_t *nsfb, int fd)
 
   return true;
 }
+
+/*
+ *
+ImgPalette * find( NSFBCOLOUR hue )
+{ static HuePalette * first;
+
+  HuePalette * ptr;
+
+  for( ptr= first
+     ; ptr
+     ; ptr= ptr->next )
+  { if ( ptr->hue == hue )
+    { return( ptr->palette );
+  } }
+
+  ptr= new HuePalette( hue );
+
+
+  return( ptr->palette );
+}
+ */
+
+/* -------- */
 
 /*
  * Local variables:

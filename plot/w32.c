@@ -65,7 +65,7 @@
  *  @brief Win32 window driver internal elements.                             *
  *                                                                            *
 \* ========================================================================= **/
-static int setForeColor( struct w32List * win32, COLORREF clr )
+static int setForeColor( struct w32List * win32, NSFBCOLOUR clr )
 { //clr &=  0x00FFFFFF;           // Strip alpha channel info
 
  /*byte width= GET_BYTE( clr, 3 );           // Strip off the width
@@ -92,7 +92,7 @@ static int setForeColor( struct w32List * win32, COLORREF clr )
   return( SetDCPenColor( win32->theGC, clr & 0x00FFFFFF ));
 }
 
-static int setBackColor(  struct w32List * win32, COLORREF clr )
+static int setBackColor(  struct w32List * win32, NSFBCOLOUR clr )
 {  byte r= clr; clr >>= 8;
   byte g= clr; clr >>= 8;
   byte b= clr; clr >>= 8;
@@ -105,7 +105,7 @@ static int setBackColor(  struct w32List * win32, COLORREF clr )
 }
 
 
-static int setTextColor( struct w32List * win32, COLORREF fg, COLORREF bg )
+static int setTextColor( struct w32List * win32, NSFBCOLOUR fg, NSFBCOLOUR bg )
 { return(( ( fg != NOCOLOR ) ? SetTextColor( win32->theGC, fg ) == CLR_INVALID : 0 )
         |( ( bg != NOCOLOR ) ? SetBkColor(   win32->theGC, bg ) == CLR_INVALID : 0 ));
 }
@@ -158,7 +158,7 @@ static bool win32GetClip( struct w32List  * nsfb
 
 static bool win32Polygon( struct w32List   * win32
                         , const int * points, unsigned int npt
-                        , NsfbColour fill)
+                        , NSFBCOLOUR fill)
 { if ( fill != NOCOLOR )        // Has speficied the color
   { setForeColor( win32, fill );
     setBackColor( win32, fill );
@@ -189,7 +189,7 @@ static bool win32Polylines( struct w32List  * win32
  */
 static bool win32Point( struct w32List  * win32
                       , int x, int y
-                      , NsfbColour fore )
+                      , NSFBCOLOUR fore )
 { return( SetPixel
           ( win32->theGC
           , x, y
@@ -202,7 +202,7 @@ static bool win32Point( struct w32List  * win32
  */
 static bool win32Arc( struct w32List * win32
                     , int x, int y, int radius
-                    , int angle1, int angle2, NsfbColour c )
+                    , int angle1, int angle2, NSFBCOLOUR c )
 { setForeColor( win32, c );
 
   return( AngleArc( win32->theGC
@@ -218,7 +218,7 @@ static bool win32Arc( struct w32List * win32
  */
 static bool win32Ellipse( struct w32List * win32
                         , NsfbBbox       * ellipse
-                        , NsfbColour fore )
+                        , NSFBCOLOUR fore )
 { setForeColor( win32, fore );
 
   return( Ellipse( win32->theGC
@@ -236,7 +236,7 @@ static bool win32Ellipse( struct w32List * win32
  */
 static bool win32EllipseFill( struct w32List * win32
                             , NsfbBbox       * ellipse
-                            , NsfbColour fore )
+                            , NSFBCOLOUR fore )
 { setForeColor( win32, fore );
 
   return( Ellipse( win32->theGC
@@ -249,7 +249,7 @@ static bool win32EllipseFill( struct w32List * win32
 
 static bool win32Rectangle( struct w32List * win32
                           , NsfbBbox       * rect
-                          , int lineWidth, NsfbColour fore, bool dotted, bool dashed )
+                          , int lineWidth, NSFBCOLOUR fore, bool dotted, bool dashed )
 { setForeColor( win32, fore );
 
   return( Rectangle( win32->theGC
@@ -263,7 +263,7 @@ static bool win32Rectangle( struct w32List * win32
  */
 static bool win32Fill( struct w32List * win32
                      , NsfbBbox       * rect
-                     , NsfbColour back )
+                     , NSFBCOLOUR back )
 { byte r= back; back >>= 8;
   byte g= back; back >>= 8;
   byte b= back; back >>= 8;
@@ -288,7 +288,7 @@ static bool win32Fill( struct w32List * win32
  */
 static bool win32Bitmap( struct w32List  * nsfb
                        , const NsfbBbox   * loc
-                       , const NsfbColour * pixel
+                       , const NSFBCOLOUR * pixel
                        , int bmpWidth, int bmpHeight, int bmp_stride
                        , int alpha )
 
@@ -301,7 +301,7 @@ static bool win32Bitmap( struct w32List  * nsfb
 static bool win32BitmapTiles( struct w32List  * nsfb
                           , const NsfbBbox *box
                           , int tiles_x, int tiles_y
-                          , const NsfbColour *pixel
+                          , const NSFBCOLOUR *pixel
                           , int bmpWidth, int bmpHeight, int bmp_stride
                           , int alpha )
 { puts("TO TILES");
@@ -327,7 +327,7 @@ static bool win32Copy( struct w32List  * nsfb
 static bool win32Glyph8( struct w32List  * nsfb
                      , NsfbBbox *loc
                      , const byte *pixel, int pitch
-                     , NsfbColour c, NsfbColour b )
+                     , NSFBCOLOUR c, NSFBCOLOUR b )
 { puts("TO G8");
   return( false );
 }
@@ -337,7 +337,7 @@ static bool win32Glyph8( struct w32List  * nsfb
  */
 static bool win32Glyph1( struct w32List  * nsfb
                        , NsfbBbox *loc, const byte *pixel
-                       , int pitch, NsfbColour c )
+                       , int pitch, NSFBCOLOUR c )
 { puts("TO G1");
   return( false );
 }
@@ -346,7 +346,7 @@ static bool win32Glyph1( struct w32List  * nsfb
  */
 static bool win32Readrect( struct w32List    * nsfb
                        , NsfbBbox   * rect
-                       , NsfbColour * buffer )
+                       , NSFBCOLOUR * buffer )
 { puts("TO >RRE");
   return( false );
 }
@@ -365,18 +365,6 @@ static int win32Moverect( struct w32List  * drv
   return( InvalidateRect( drv->theWindow, &rgn, 1 ));
 }
 
- //XCopyArea( drv->theDisplay
-    //       , drv->theSurface, drv->theWindow
-      //     , drv->theGC
-        //   , x, y
-          // , w, h
-         //  , x, y ) ;
- // XFlush( drv->theDisplay );
-
-
-
-//  return( true );
-//}
 
 /** Plots a line using a given pen.
  */
@@ -401,7 +389,7 @@ static bool win32Line( struct w32List  * w32, int linec
 static bool PixmapFill( struct w32List * nsfb
                       , ImageMap       * img
                       , int x, int y, int offy, int capy
-                      , COLORREF back )
+                      , NSFBCOLOUR back )
 { if ( !img )
   { return( false );
   }

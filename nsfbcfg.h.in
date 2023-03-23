@@ -15,6 +15,9 @@
 /* Define if you have drm. */
 #undef HAVE_DRM
 
+/* Define if you have gif support. */
+#undef HAVE_GIF
+
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
@@ -93,13 +96,13 @@
 # endif
 #endif
 
-/* Define to `unsigned char' if <sys/types.h> does not define. */
+/* Define to `unsigned char ' if <sys/types.h> does not define. */
 #undef byte
 
 /* Define to empty if `const' does not conform to ANSI C. */
 #undef const
 
-/* Define to `unsigned int' if <sys/types.h> does not define. */
+/* Define to `unsigned int ' if <sys/types.h> does not define. */
 #undef dword
 
 /* Define to `__inline__' or `__inline' if that's what the C compiler

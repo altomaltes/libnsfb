@@ -31,6 +31,8 @@
 #include FT_GLYPH_H
 
 #include "../libnsfb.h"
+#include "../surface.h"
+#include "../plot.h"
 
 #define byte  unsigned char
 #define dword unsigned int
@@ -74,8 +76,8 @@ static TypesRec types[]=
 ,{ .fontIdx=               0, .fontName= NULL                 , .face= NULL, .pitch= 0 }};
 
 
-typedef struct
-{ struct FontColorRec * next;
+typedef struct FontColorRecSt
+{ struct FontColorRecSt * next;
 
   FT_Face face;
 
@@ -89,12 +91,12 @@ typedef struct
   dword fr; dword fg; dword fb;
   dword br; dword bg; dword bb;
 
-  byte * chars[ 256 ];   /* Chars */
+  dword * chars[ 256 ];   /* char bitmaps */
 
 } FontColorRec;
 
-typedef struct
-{ struct FontListRec * next;
+typedef struct FontListRecSt
+{ struct FontListRecSt * next;
 
   TypesRec           * font;   /* Static properties  */
   int                  pitch;
@@ -102,20 +104,18 @@ typedef struct
 
 } FontListRec;
 
-//  static FT_Stroker stroker;
   static FT_Library ftLib= NULL;
 
 /** ================================================= [ JACS, 10/01/2012 ] == *\
  *                                                                            *
  *   JASC 2012                                                                *
  *                                                                            *
- *  METHOD Win32::fillString                                                  *
- *         Win32::drawString                                                  *
+ *  FUNCTION getFreeFont                                                      *
  *                                                                            *
- *  @brief draws a backgrounded string                                        *
+ *  @brief gets an styled font renderer                                       *
  *                                                                            *
 \* ========================================================================= **/
-void * getFreeFont( int fontIdx
+FontListRec * getFreeFont( int fontIdx
                          , int w, int h )
 { static FontListRec * seed= NULL;
 
@@ -167,7 +167,7 @@ void * getFreeFont( int fontIdx
 
 /* Create and link list
  */
-      ptr= (FontListRec*) calloc( 1, sizeof(*ptr));
+      ptr= (FontListRec*) calloc( 10, sizeof(*ptr));
       ptr->next= (struct FontListRec*)seed;
       seed= ptr;
 
@@ -180,18 +180,24 @@ void * getFreeFont( int fontIdx
       { //return( NULL );
       }
 
-
       return( ptr );
   } }
 
   return( NULL );
 }
 
-void * getFreeRender( void * seed0
-                    , dword fore, dword back /*, dword outline */ )
-{ FontListRec * seed= (FontListRec *)seed0;
-
-  if ( !seed )
+/** ================================================= [ JACS, 10/01/2012 ] == *\
+ *                                                                            *
+ *   JASC 2012                                                                *
+ *                                                                            *
+ *  FUNCTION getFreeFont                                                      *
+ *                                                                            *
+ *  @brief gets an stored colored version of the render                       *
+ *                                                                            *
+\* ========================================================================= **/
+FontColorRec * getFreeRender( FontListRec * seed
+                            , dword fore, dword back /*, dword outline */ )
+{ if ( !seed )
   { return( NULL );
   }
 
@@ -203,7 +209,7 @@ void * getFreeRender( void * seed0
       { return( item );          /* Yet creaetd */
     } }
 
-    item= item->next;
+    item= (FontColorRec *)item->next;
   }
 
 
@@ -231,93 +237,167 @@ void * getFreeRender( void * seed0
     item->bg= ( back >>  8 ) & 0xFF;
     item->bb= ( back >> 16 ) & 0xFF;
 
-    item->next= seed->list;
+    item->next= ( FontColorRec *)seed->list;
     seed->list= item;
   }
+
   return( item );
 }
 
 
-void ** getChar( void * item0, byte idx )
-{ FT_Glyph glyph;
-  int sz, x, y;
-  byte  * row;
-  void  ** alloc;
-  FT_BitmapGlyph bitmapg;
+/** ================================================= [ JACS, 10/05/2014 ] == *\
+ *                                                                            *
+ *   JASC 2014                                                                *
+ *                                                                            *
+ *  METHOD nsfbGetChar                                                        *
+ *                                                                            *
+ *  @brief returns a chas as a 32 bit aligned bitmap                          *
+ *                                                                            *
+\* ========================================================================= **/
+dword * nsfbGetChar( FontColorRec * item, byte idx )
+{ if ( item )
+  { dword  * bmap= item->chars[ idx ];
 
-  FontColorRec * item= (FontColorRec *) item0;
+    if ( ! bmap )     /* Not loaded, load it */
+    { FT_Glyph glyph;
+      int sz, x, y;
+      byte   * row;
+      FT_BitmapGlyph bitmapg;
 
-  if ( !item )
-  { return( NULL );
-  }
+      if ((  FT_Load_Char( item->face, idx, FT_LOAD_RENDER )))
+      { return( NULL );
+      }
 
-  dword * bmap=  item->chars[ idx ];
+      if (( FT_Get_Glyph( item->face->glyph, &glyph )))
+      { return( NULL );
+      }
 
-  if ( bmap )
-  { return( bmap );
-  }
-
-  if ((  FT_Load_Char( item->face, idx, FT_LOAD_RENDER )))
-  { return( NULL );
-  }
-
-  if (( FT_Get_Glyph( item->face->glyph, &glyph )))
-  { return( NULL );
-  }
-
-  if ( FT_Glyph_To_Bitmap( &glyph
-                         , FT_RENDER_MODE_NORMAL, NULL, 1 ))
-  { FT_Done_Glyph( glyph );
-    return( NULL );
-  }
-  bitmapg= (FT_BitmapGlyph)glyph;
+      if ( FT_Glyph_To_Bitmap( &glyph
+                             , FT_RENDER_MODE_NORMAL, NULL, 1 ))
+      { FT_Done_Glyph( glyph );
+        return( NULL );
+      }
+      bitmapg= (FT_BitmapGlyph)glyph;
 
 
 /* Get and clear a work area
  */
-  sz= item->s;
+      sz= item->s;
 
-  if ( alloc= (void**)calloc(( sz * sizeof( dword ))
-                            +(  2 * sizeof( void* )), 50 ))                 // Two extra pointers
-  { bmap= (dword*)(alloc+2);
-
-    alloc[ 1 ]= bmap; // Enroll
-
-    while( sz-- )
-    { bmap[ sz ]= item->back;
-    }
-
-    bmap +=            bitmapg->left;
-    bmap += ( item->h- bitmapg->top -2 ) * item->w;
-    row= bitmapg->bitmap.buffer;
-
-    y= bitmapg->bitmap.rows;
-
-    while( y-- )
-    { for( x= 0
-         ; x < bitmapg->bitmap.width
-         ; x++ )
-      { dword color,alpha;
-
-        if ( bitmapg->bitmap.num_grays > 1 )
-        { dword color= row[ x ];
-          alpha= 255-color;
-
-          dword r= item->fr * color + item->br * alpha; r >>= 8; r &= 0x0000FF;
-          dword g= item->fg * color + item->bg * alpha;          g &= 0x00FF00;
-          dword b= item->fb * color + item->bb * alpha; b <<= 8; b &= 0xFF0000;
-
-          bmap[ x ]= r | g | b;
+      if ( bmap= item->chars[ idx ]= (dword*)calloc( sz, sizeof( dword ) * 2 ) )  // Two extra pointers
+      { while( sz-- )
+        { bmap[ sz ]= item->back;           /* Clear background */
         }
-        else
-        { bmap[ x ]= ( row[ x >> 0x3 ] & ( 128 >> (x & 0x7 )))
-                   ? item->fore : item->back;
+
+        bmap +=            bitmapg->left;
+        bmap += ( item->h- bitmapg->top -2 ) * item->w;
+        row= bitmapg->bitmap.buffer;
+
+        y= bitmapg->bitmap.rows;
+
+        while( y-- )
+        { for( x= 0
+             ; x < bitmapg->bitmap.width
+             ; x++ )
+          { dword color,alpha;
+
+            if ( bitmapg->bitmap.num_grays > 1 )
+            { dword color= row[ x ];
+              alpha= 255-color;
+
+              dword r= item->fr * color + item->br * alpha; r >>= 8; r &= 0x0000FF;
+              dword g= item->fg * color + item->bg * alpha;          g &= 0x00FF00;
+              dword b= item->fb * color + item->bb * alpha; b <<= 8; b &= 0xFF0000;
+
+              bmap[ x ]= r | g | b;
+            }
+            else
+            { bmap[ x ]= ( row[ x >> 0x3 ] & ( 128 >> (x & 0x7 )))
+                       ? item->fore : item->back;
+          } }
+          row  += bitmapg->bitmap.pitch;
+          bmap += item->w;
       } }
-      row  += bitmapg->bitmap.pitch;
-      bmap += item->w;
+
+    FT_Done_Glyph( glyph );
+    }
+    return( item->chars[ idx ] );
+  }
+  return( NULL );
+}
+
+
+/** ================================================= [ JACS, 10/05/2014 ] == *\
+ *                                                                            *
+ *   JASC 2014                                                                *
+ *                                                                            *
+ *  FUNCTION nsfbFillString                                                     *
+ *                                                                            *
+ *  @brief                                                                    *
+ *                                                                            *
+\* ========================================================================= **/
+#define MAX_CHARS 256
+
+typedef struct RenderListSt
+{ struct RendeListSt * next;
+
+  FontColorRec * render;
+  ImageMap charImages[ MAX_CHARS ];
+} RenderList;
+
+ANSIC int nsfbFillString( Nsfb        * nsfb
+                        , FontListRec * font
+                        , const int x, const int y      // Draws "chess" text
+                        , const char * str
+                        , NSFBCOLOUR fore
+                        , NSFBCOLOUR back
+                        , NSFBCOLOUR outline  )
+{ int step= x;
+  int ok= 0;
+
+  FontColorRec * render= getFreeRender( font
+                                      , fore
+                                      , back     /* , outline  */);
+  if ( render )   /* Able to get a new or recicled rendor */
+  { RenderList * next;
+
+    for( next= nsfb->surfaceRtns->renderList /* Search for an old one */
+       ; next
+       ; next= next->next )
+    { if ( next->render == render )          /* Found !! */
+      { break;
     } }
 
-  FT_Done_Glyph( glyph );
-  return( item->chars[ idx ]= alloc );
+    if ( !next )                                    /* A new one must be registered */
+    { next= nsfb->surfaceRtns->renderList;  /* Old one */
+      nsfb->surfaceRtns->renderList= (RenderList*)calloc( sizeof( *next), 1 ); /* Create a new one */
+      nsfb->surfaceRtns->renderList->next= next;      /* linkit */
+      nsfb->surfaceRtns->renderList->render= render;  /* assign hardware font */
+      next= nsfb->surfaceRtns->renderList;            /* Use from now */
+    }
+
+    if ( next )
+    { while( *str )
+      { if ( !next->charImages[ *str ].image )     /* Not previosly registered */
+        { nsfb->surfaceRtns->pixmap( nsfb->surfaceRtns
+                                   , next->charImages + *str
+                                   , nsfbGetChar( render, *str )
+                                   , NULL
+                                   , render->w, render->h );
+        }
+
+        if ( next->charImages[ *str ].image )  /* Created or found image */
+        { nsfb->plotterFns->pixmapFill( nsfb
+                                      , next->charImages + *str
+                                      , step, y
+                                      , 0,0, NOCOLOR );
+          ok++;
+        }
+        step += render->w; str++;
+  } } }
+
+  return( 0 );
 }
+
+
 

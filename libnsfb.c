@@ -6,30 +6,60 @@
  *                http://www.opensource.org/licenses/mit-license.php
  */
 
+
 #include <stdlib.h>
 #include <string.h>
 
-#include "libnsfb_plot.h"
+#include "nsfb.h"
+#include "nsfbPlot.h"
+
 #include "cursor.h"
 #include "palette.h"
 #include "surface.h"
 
+#define PATH_SIZE 256
 
-PUBLIC nsfb_t * nsfbNew( const enum nsfb_type_e surface_type )
-{ nsfb_t * newfb;
-  newfb = calloc(1, sizeof(nsfb_t));
 
-  if ( newfb )
-  { newfb->surface_rtns= nsfbSurfaceGetRtns( surface_type );   /* obtain surface routines */
+/*
+ * Allocs a new surface
+ */
+static int voidClient( struct NomadEvent * evt, void * userData )
+{ return( 0 );
+}
 
-    if ( newfb->surface_rtns )
-    { newfb->surface_rtns->defaults(newfb);
+ANSIC Nsfb * nsfbNew( const enum NsfbType surfaceType )
+{ NsfbSurfaceRtns * ptr= nsfbFindSurface( surfaceType );
+
+  if ( ptr )
+  { Nsfb * newfb= CALLOC( ptr->dataSize*2 );
+
+    if ( newfb )
+    { newfb->next= ptr->clients; ptr->clients= newfb;  /* Link on list */
+
+      nsfbSurfaceDefaultRtns( newfb->surfaceRtns= ptr );
+
+      newfb->theGeo= newfb->surfaceRtns->theGeo;       /* Default rotation */
+      newfb->toClient= voidClient;
+
       return( newfb );
-    }
-    free( newfb );
-  }
+  } }
 
   return( NULL );
+}
+
+/*
+ * altomaltes, config friendly initializer
+ */
+
+Nsfb * nsfbOpenAscii( const char * fename )
+{ enum NsfbType fetype= nsfbTypeFromName( fename );
+
+  if ( fetype == NSFB_SURFACE_NONE )
+  { fprintf(stderr, "Unable to convert \"%s\" to nsfb surface type\n", fename);
+    return( NULL );
+  }
+
+  return( nsfbNewConsole( fetype, fename ));
 }
 
 
@@ -44,146 +74,104 @@ PUBLIC nsfb_t * nsfbNew( const enum nsfb_type_e surface_type )
  * fists one sucessfull
  */
 
-nsfb_t * nsfbOpen( const char * mode )
-{ nsfb_t * newfb= calloc(1, sizeof(nsfb_t));
+/* exported interface documented in libnsfb.h
+ */
+ANSIC int nsfbInit( Nsfb * nsfb )
+{ nsfb->surfaceRtns->panType= 1;   // Default copy pan
 
-  if ( newfb )
-  { newfb->width=
-    newfb->height= -1;
-    newfb->bpp= 32;  /* bpp has default value */
-    newfb->rotate= NSFB_ROTATE_NORTH;
-    char * mk;
-
-    char * driver= (char *)alloca( strlen(mode)+1); strcpy( driver, mode ); /* variabilize string */
-
-    if (( mk= strchr( driver, '#' )))     /* Resolution specified */
-    { *mk++= 0;                           /* Terminate driver     */
-      mode= "*";
-
-       sscanf( mk, "%dx%dx%d"
-             , &newfb->width, &newfb->height, &newfb->bpp );
-    }
-    else
-    { mk= driver;
-    }
-
-    if (( mk= strchr( mk, '.' )))
-    { *mk++= 0; switch( *mk )     /* Resolution specified */
-      { case 'N': case 'n': newfb->rotate= NSFB_ROTATE_NORTH; break;
-        case 'S': case 's': newfb->rotate= NSFB_ROTATE_SOUTH; break;
-        case 'E': case 'e': newfb->rotate= NSFB_ROTATE_EAST;  break;
-        case 'W': case 'w': newfb->rotate= NSFB_ROTATE_WEST;  break;
-    } }
-
-    mk= driver; while( *driver )
-    { while( *mk != ',' && *mk ) { mk++; }  /* tap next item */
-      *mk++= 0;                                 /* Close item    */
-
-      enum nsfb_type_e type= nsfbTypeFromName( driver ); driver= mk;
-
-      if ( type != NSFB_SURFACE_NONE )
-      { newfb->surface_rtns;   /* obtain surface routines */
-
-        if (( newfb->surface_rtns= nsfbSurfaceGetRtns( type )))
-        { //newfb->surface_rtns->defaults( newfb );
-          if ( newfb->surface_rtns->initialise( newfb ) >= 0 )
-          { return( newfb );
-    } } } }
-
-    free( newfb );
-  }
-
-  return( NULL );
+  return( nsfb->surfaceRtns->initialise( nsfb ));
 }
 
 /* exported interface documented in libnsfb.h
  */
-PUBLIC int nsfbInit( nsfb_t * nsfb )
-{ int code= nsfb->surface_rtns->initialise( nsfb );
-  nsfb->rotate= NSFB_ROTATE_NORTH;
-
-  return( code );
-}
-
-/* exported interface documented in libnsfb.h */
-PUBLIC int nsfbFree( nsfb_t * nsfb )
+ANSIC int nsfbFree( Nsfb * nsfb )
 { int ret;
 
-  if ( nsfb->palette     )   nsfb_palette_free( nsfb->palette     );
-  if ( nsfb->plotter_fns )                free( nsfb->plotter_fns );
-  if ( nsfb->cursor      ) nsfbCursor_destroy( nsfb->cursor      );
+  if ( nsfb->palette ) nsfbPaletteFree(   nsfb->palette );
+ // !! if ( nsfb->cursor  ) nsfbCursorDestroy( nsfb->cursor  );
 
-  ret= nsfb->surface_rtns->finalise( nsfb );
+  ret= nsfb->surfaceRtns->finalise( nsfb );
 
-  free( nsfb->surface_rtns );
-  free( nsfb );
+  FREE( nsfb );
 
   return ret;
 }
 
 /* exported interface documented in libnsfb.h
  */
-PUBLIC bool nsfb_event( nsfb_t *nsfb
-                      , nsfb_event_t *event
-                      , int timeout )
-{ return nsfb->surface_rtns->input(nsfb, event, timeout);
+ANSIC int nsfbClaim(Nsfb *nsfb, NsfbBbox *box)
+{ return nsfb->surfaceRtns->claim(nsfb, box);
 }
 
 /* exported interface documented in libnsfb.h
  */
-PUBLIC int nsfbClaim(nsfb_t *nsfb, nsfb_bbox_t *box)
-{ return nsfb->surface_rtns->claim(nsfb, box);
+ANSIC int nsfbUpdate( Nsfb *nsfb, NsfbBbox *box )
+{ return nsfb->surfaceRtns->update( nsfb, box );
 }
 
 /* exported interface documented in libnsfb.h
  */
-PUBLIC int nsfb_update( nsfb_t *nsfb, nsfb_bbox_t *box )
-{ return nsfb->surface_rtns->update( nsfb, box );
+ANSIC int nsfbSetPosition( Nsfb * nsfb
+                         , int x, int y, int geo )
+{ switch( geo )     /* Resolution specified */
+  { case 'S': case 's': nsfb->theGeo= NSFB_ROTATE_SOUTH; break;
+    case 'E': case 'e': nsfb->theGeo= NSFB_ROTATE_EAST;  break;
+    case 'W': case 'w': nsfb->theGeo= NSFB_ROTATE_WEST;  break;
+    case 'N': case 'n': nsfb->theGeo= NSFB_ROTATE_NORTH; break;
+    default:            nsfb->theGeo= nsfb->surfaceRtns->theGeo; break;
+  }
+
+  nsfb->offx= x;
+  nsfb->offy= y;
+
+  return( 0 );
+}
+
+ANSIC const char * nsfbSetAttrib( Nsfb * nsfb
+                                 , const char * title )
+{ const char * tmp= nsfb->theTitle;
+
+  nsfb->theTitle= title;
+
+  return( tmp );
 }
 
 /* exported interface documented in libnsfb.h
  */
-PUBLIC int  nsfbSetGeometry( nsfb_t * nsfb
-                           , int width, int height
-                           , enum nsfb_format_e format )
+ANSIC int  nsfbSetGeometry( Nsfb * nsfb
+                          , int width, int height
+                          , enum NsfbFormat format )
 { int fmt= format & NSFB_FMT_MASK;
 
   if ( width  <= 0         ) { width = nsfb->width;  }
   if ( height <= 0         ) { height= nsfb->height; }
   if ( fmt == NSFB_FMT_ANY ) { format= nsfb->format; }
 
-  return( nsfb->surface_rtns->geometry( nsfb, width, height, format ));
+/*  Default clip
+ */
+  nsfb->clip.x0= nsfb->clip.y0= 0;
+  nsfb->clip.x1= width + 1;
+  nsfb->clip.y1= height+ 1;
+
+  return( nsfb->surfaceRtns->geometry( nsfb
+                                     , width, height
+                                     , format ));
 }
-
-PUBLIC int  nsfb_set_pan( nsfb_t * nsfb, int type )
-{ return( nsfb->surface_rtns->pan( nsfb, type ) );
-}
-
-
 
 /* exported interface documented in libnsfb.h
  */
-PUBLIC int nsfb_set_parameters(nsfb_t *nsfb, const char *parameters)
-{ if ( parameters )
-  { if (*parameters )
-    { if ( nsfb->parameters )
-     { free(nsfb->parameters);
-     }
-
-     nsfb->parameters= strdup( parameters );
-
-    return( nsfb->surface_rtns->parameters(nsfb, parameters ));
- } }
-
- return( -1 );
+ANSIC int  nsfbSetPan( Nsfb * nsfb, int type )
+{ return( nsfb->surfaceRtns->pan( nsfb, type ) );
 }
 
-/* exported interface documented in libnsfb.h
-*/
-PUBLIC void * nsfbGetGeometry( nsfb_t * nsfb
-                             , int    * width
-                             , int    * height
-                             , enum nsfb_format_e * format)
+
+
+/* exported interface documented in libnsfb.h ( foreground )
+ */
+ANSIC void * nsfbGetGeometry( Nsfb * nsfb
+                            , int  * width
+                            , int  * height
+                            , enum NsfbFormat * format)
 
 { if ( width  ) { *width = nsfb->width;  }
   if ( height ) { *height= nsfb->height; }
@@ -192,11 +180,35 @@ PUBLIC void * nsfbGetGeometry( nsfb_t * nsfb
   return( nsfb->loc );
 }
 
+ANSIC int nsfbGetStride( Nsfb * nsfb )
+{ return( nsfb ? nsfb->loclen >> 2 : -1 );
+}
+
+
+ANSIC int nsfbGetSurfGeo( Nsfb * nsfb )
+{ return( nsfb->surfaceRtns->theGeo );
+}
+
+/* exported interface documented in libnsfb.h ( background )
+ */
+ANSIC void * nsfbGetBackStore( Nsfb * nsfb
+                             , int  * width
+                             , int  * height
+                             , enum NsfbFormat * format)
+
+{ if ( width  ) { *width = nsfb->width;  }
+  if ( height ) { *height= nsfb->height; }
+  if ( format ) { *format= nsfb->format; }
+
+  return( nsfb->loc );
+}
+
+
 /* exported interface documented in libnsfb.h
  */
-PUBLIC int nsfb_get_buffer( nsfb_t * nsfb
-                          , byte  ** ptr
-                          , int    * linelen )
+ANSIC int nsfbGetBuffer( Nsfb  * nsfb
+                        , byte ** ptr
+                        , int   * linelen )
 { if (ptr)
   { *ptr = nsfb->loc;
   }
@@ -205,8 +217,50 @@ PUBLIC int nsfb_get_buffer( nsfb_t * nsfb
   { *linelen = nsfb->loclen;
   }
 
-  return 0;
+  return( 0 );
 }
+
+
+/* To interface to multiplexer ( select or poll )
+ */
+
+ANSIC NsfbSurfacefnEvents nsfbGetEventCursor(  NsfbSurfaceRtns * surf )
+{ return( surf ? surf->cursor : NULL );
+}
+
+ANSIC NsfbSurfacefnEvents nsfbGetEventSinker(  NsfbSurfaceRtns * surf )
+{ return( surf ? surf->events : NULL );
+}
+
+ANSIC int                 nsfbGetEventHandler(  NsfbSurfaceRtns * surf )
+{ return( surf ? surf->fd     : -1 );
+}
+
+ANSIC int                 nsfbGetDepth(       NsfbSurfaceRtns * surf )
+{ return( surf ? surf->theDepth: -1 );
+}
+
+ANSIC int                 nsfbGetWidth(       NsfbSurfaceRtns * surf )
+{ return( surf ? surf->width : -1 );
+}
+
+ANSIC int                 nsfbGetHard(        NsfbSurfaceRtns * surf )
+{ return( surf ? surf->initialise( NULL ) : -1 );
+}
+
+ANSIC int                 nsfbGetHeight(      NsfbSurfaceRtns * surf )
+{ return( surf ? surf->height : -1 );
+}
+
+
+ANSIC void *  nsfbSetEventSourcer( Nsfb * nsfb, void * code, void * data )
+{ ToClientFun old= (ToClientFun)nsfb->toClient;
+
+  nsfb->toData= data;
+  nsfb->toClient= code;
+  return( old );
+}
+
 
 
 /*

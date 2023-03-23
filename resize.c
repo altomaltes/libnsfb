@@ -33,10 +33,10 @@ static char * ident="Kannon";
 #include <stdlib.h>
 #include <string.h>
 
-//#include "../include/config.h"
-//#include "../include/images.h"
+#include "libnsfb_plot_util.h"
 
 #define dword unsigned long
+#define  word unsigned short
 
 
 int sign( w ) { return( w == 0 ? 0 : w  < 0 ? -1 : 1 ); }

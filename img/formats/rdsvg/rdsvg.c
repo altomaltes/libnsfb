@@ -17,7 +17,7 @@
  *  gcc -g -W -Wall -o svgtiny_display_x11 svgtiny_display_x11.c \
  *          `pkg-config --cflags --libs libsvgtiny nfsb` -lX11
  */
-                                                                                      
+
 
 #include <libgen.h>
 #include <math.h>
@@ -59,74 +59,49 @@
 \* ========================================================================= **/
 ANSIC VectorRec * loadVectors( const char * name
                              , int wtarget, int htarget )
-{ struct stat sb;
-  VectorRec * diagram;
-  
-	 FILE * fd= fopen( name, "rb");
-	 if ( !fd ) 
-	 { perror( name );
-		  return 1;
- 	} 
+{ FILE * fd= fopen( name, "rb");
 
- 	 if (stat(name, &sb)) 
- 	 { perror( name );
-		   return 1;
-	  }
- 	 int size = sb.st_size;
+  if ( fd )
+  { struct stat sb;
 
- 	 char * buffer = malloc(size);
-	  if ( !buffer ) 
-	  { fprintf(stderr, "Unable to allocate %lld bytes\n"
-	                 ,	(long long) size );
-   		return 1;
-	  }
+    if ( !stat( name, &sb ))
+    { int size = sb.st_size;
 
-	  int n= fread(buffer, 1, size, fd);
-	  if (n != size) 
-	  { perror(name);
-   		return 1;
-	  }
+      char * buffer= alloca( size );
 
-	  fclose( fd );
+      if ( !buffer )
+      { close( fd );
+        return( NULL );
+      }
 
-/* create svgtiny object
-*/
-	  diagram = svgtinyCreate();
-   if (! diagram )
-   { fprintf(stderr, "svgtinyCreate failed\n");
-   		return( NULL );
-	  }
+       int n= fread( buffer
+                    , 1
+                    , size, fd );
+       close( fd );
 
-	/* parse
-	 */
+       if ( n == size)
+       { VectorRec * diagram= svgtinyCreate();
 
-	  int code= svgtiny_parse( diagram, buffer, size, name
-	                         , wtarget, htarget );
+         if ( diagram ) /* create svgtiny object */
+         { int code= svgtiny_parse( diagram, buffer, size, name /* parse */
+                                  , wtarget, htarget );
+           switch ( code )
+           { case svgtiny_OK: return( diagram );
 
-	  if (code != svgtiny_OK)
-	  { fprintf(stderr, "svgtiny_parse failed: ");
-	  
-   		switch (code) 
-   		{ case svgtiny_OUT_OF_MEMORY:	fprintf( stderr, "svgtiny_OUT_OF_MEMORY");			break;
-     		case svgtiny_LIBXML_ERROR:		fprintf( stderr, "svgtiny_LIBXML_ERROR" );			break;
-		     case svgtiny_NOT_SVG:			    fprintf( stderr, "svgtiny_NOT_SVG"      );			break;
-  		   case svgtiny_SVG_ERROR:		  	fprintf( stderr, "svgtiny_SVG_ERROR: line %i: %s"
-		                                                ,	diagram->error_line
-		                                                ,	diagram->error_message );
-      	break;
+	            case svgtiny_NOT_SVG:	      fprintf( stderr, "svgtiny_NOT_SVG\n"      ); break;
+  		         case svgtiny_OUT_OF_MEMORY: fprintf( stderr, "svgtiny_OUT_OF_MEMORY\n"); break;
+      	      case svgtiny_LIBXML_ERROR:  fprintf( stderr, "svgtiny_LIBXML_ERROR\n" ); break;
+  	 	        case svgtiny_SVG_ERROR:     fprintf( stderr, "svgtiny_SVG_ERROR: line %i: %s\n"
+                                                , diagram->error_line
+                                                , diagram->error_message );
+             break;
 
-		     default:
-			      fprintf(stderr, "unknown svgtiny_code %i", code);
-		    	break;
-		  }
-		  fprintf(stderr, "\n");
-	  }
+             default: fprintf(stderr, "unknown svgtiny_code %i", code);
+       } }
+       VectorsFree( diagram );
+  } } }
 
-	  free( buffer );
-
-	 // VectorsFree( diagram );
-
-	  return( diagram );
+  return( NULL );
 }
 
 

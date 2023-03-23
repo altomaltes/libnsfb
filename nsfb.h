@@ -13,52 +13,67 @@
 
 #include <stdint.h>
 
+#ifdef HAVE_CONFIG_H
+  #include "nsfbcfg.h"
+#endif
+
+#define word  unsigned short
+#define dword unsigned int
+#define byte  unsigned char
+
+#include "libnsfb.h"
+
+
 #define ENABLE_24_BPP
 
 #define DO_ALPHA_BLEND   1
 #define DO_FRONT_RENDER  2
 
+/* input related
+ */
+typedef int (*ToClientFun)( struct NomadEvent * evt, void * userData );
+
+
 /** NS Framebuffer context
  */
-struct nsfb_s
-{ int fd;                         /** device handler  */
+struct NsfbSt
+{ struct NsfbSt            * next;        /** Next window (altomaltes) */
 
-  int width;                      /**< Visible width.  */
-  int height;                     /**< Visible height. */
+  struct NsfbSurfaceRtnsSt * surfaceRtns; /**< surface routines. ( inherited, up )  */
+  struct NsfbPlotterFns    * plotterFns;  /** Plotter methods   */
 
-  enum nsfb_rotate_e rotate;      /** Rotate canvas    */
+  const char * theTitle;
 
-  char * parameters;
 
-  enum nsfb_format_e format;       /** Framebuffer format */
+  int offx;                           /** Panel offset */
+  int offy;                           /** Panel offset */
 
-  int  bpp;                        /** Bits per pixel - distinct from format */
+  int width;                          /** Visible width.  */
+  int height;                         /** Visible height. */
 
-  byte * loc;                      /** Base of working video memory. */
-  byte * pan;                      /** Panned video memory. */
+  enum NsfbFormat format;             /** Framebuffer format */
+  enum NsfbRotate theGeo;             /** Rotate canvas    */
 
-  int    loclen;                   /** length of a video line. */
-  int    panlen;                   /** length of a video line. */
-  int    buflen;                   /** frame buffer size       */
-  int    panCount;                 /** doublebuffer switch counter */
+  int    bpp;                         /** Bits per pixel - distinct from format */
 
-  struct NsfbPalette * palette;              /** palette for index modes */
-  nsfbCursor_t      * cursor;               /** cursor                  */
+  byte * loc;                         /** Base of working video memory. */
+  byte * pan;                         /** Panned video memory. */
 
-  struct  nsfb_surface_rtns_s *surface_rtns; /**< surface routines. */
-  void  * surface_priv;                      /** surface opaque data. */
+  int    loclen;                      /** length of a video line. */
+  int    panlen;                      /** length of a video line. */
+  int    buflen;                      /** frame buffer size       */
+  int    panCount;                    /** doublebuffer switch counter */
 
-  nsfb_bbox_t clip;                          /** current clipping rectangle for plotters */
-  int active1;                                /** Framebuffer outputing                   */
-  struct nsfb_plotter_fns_s *plotter_fns;    /** Plotter methods                         */
+  struct NsfbPalette * palette;       /** palette for index modes */
+
+  NsfbBbox clip;                      /** current clipping rectangle for plotters */
+
+  ToClientFun     toClient;           /** client sourcer          */
+  void          * toData;             /** client sourcer data     */
+
 
 };
 
-
-
-int drmFinalise(   nsfb_t * );
-int drmInitialize( nsfb_t * );
-int drmPan(        nsfb_t * , int type );
 
 
 #endif

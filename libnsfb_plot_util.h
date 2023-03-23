@@ -11,12 +11,15 @@
 #ifndef _LIBNSFB_PLOT_UTIL_H
 #define _LIBNSFB_PLOT_UTIL_H 1
 
-#include "libnsfb_plot.h"
+#include "nsfb.h"
+#include "nsfbPlot.h"
+
+struct HistRecStruct;
 
 /* alpha blend two pixels together
  */
-static inline nsfb_colour_t nsfbPlotAblend( nsfb_colour_t pixel
-                                          , nsfb_colour_t scrpixel )
+static inline NSFBCOLOUR nsfbPlotAblend( NSFBCOLOUR pixel
+                                       , NSFBCOLOUR scrpixel )
 { int opacity= pixel >> 24;
   int transp = 0x100 - opacity;
 
@@ -30,17 +33,26 @@ static inline nsfb_colour_t nsfbPlotAblend( nsfb_colour_t pixel
 
 #define restrict
 
-PUBLIC bool nsfbPlot_clip(      const nsfb_bbox_t *, nsfb_bbox_t * restrict rect );
-PUBLIC bool nsfbPlot_clip_ctx(             nsfb_t *, nsfb_bbox_t * restrict rect );
-PUBLIC bool nsfbPlot_clip_line( const nsfb_bbox_t *, nsfb_bbox_t * restrict line );
-PUBLIC bool nsfbPlot_clip_line_ctx(        nsfb_t *, nsfb_bbox_t * restrict line );
+ANSIC bool nsfbPlotClip(      const NsfbBbox *, NsfbBbox * restrict rect );
+ANSIC bool nsfbPlotClipCtx(             Nsfb *, NsfbBbox * restrict rect );
+ANSIC bool nsfbPlotClipLine(  const NsfbBbox *, NsfbBbox * restrict line );
+ANSIC bool nsfbPlotClipLineCtx(         Nsfb *, NsfbBbox * restrict line );
 
 /** Obtain a bounding box which is the superset of two source boxes.
  *
  */
-PUBLIC bool nsfbPlot_add_rect(const nsfb_bbox_t *box1, const nsfb_bbox_t *box2, nsfb_bbox_t *result);
+//ANSIC bool nsfbPlot_add_rect(const NsfbBbox *box1, const NsfbBbox *box2, NsfbBbox *result);
 
 /** Find if two boxes intersect. */
-PUBLIC bool nsfbPlot_bbox_intersect(const nsfb_bbox_t *box1, const nsfb_bbox_t *box2);
+//ANSIC bool nsfbPlot_bbox_intersect(const NsfbBbox *box1, const NsfbBbox *box2);
+
+/* JACS, (altomaltes)
+ *
+ * from resize.c
+ */
+
+typedef struct ChangerRecStruct ChangerRec;
+
+
 
 #endif /* _LIBNSFB_PLOT_UTIL_H */

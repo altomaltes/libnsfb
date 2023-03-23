@@ -119,7 +119,7 @@ static int initShaders( struct utermVideo *video )
   return( 0 );
 }
 
-void utermDrm3d_deinit_shaders(struct utermVideo *video)
+void utermDrm3d_deinit_shaders( struct utermVideo *video )
 { struct utermDrm3d_video *v3d = utermDrmVideoGetData(video);
 
   if (v3d->sinit == 0)
@@ -222,9 +222,11 @@ int utermDrm3dDisplayBlit( struct utermDisplay *disp
     GL_BGRA_EXT, GL_UNSIGNED_BYTE, buf->data);
   }
   else
-  { packed = malloc(width * height);
+  { packed = CALLOC( width * height);
+
     if (!packed)
-      return -ENOMEM;
+    { return -ENOMEM;
+    }
 
     src = buf->data;
     dst = packed;
@@ -238,7 +240,7 @@ int utermDrm3dDisplayBlit( struct utermDisplay *disp
                 , width, height, 0
                 , GL_BGRA_EXT, GL_UNSIGNED_BYTE, packed );
 
-    free(packed);
+    FREE( packed );
   }
 
   glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
@@ -303,35 +305,46 @@ static int displayBlend( struct utermDisplay *disp
   bgcol[0] = br / 255.0; bgcol[1] = bg / 255.0;	bgcol[2] = bb / 255.0;
 
   tmp = x + buf->width;
-if (tmp < x || x >= sw)
-	return ( -EINVAL );
-if (tmp > sw)
-	width = sw - x;
-else
-width = buf->width;
+
+  if (tmp < x || x >= sw)
+	 { return ( -EINVAL );
+  } 
+
+  if (tmp > sw)
+	 { width = sw - x;
+  }
+  else
+  { width = buf->width;
+  }
 
   tmp = y + buf->height;
+
   if (tmp < y || y >= sh)
-	return ( -EINVAL );
-if (tmp > sh)
-	height = sh - y;
-else
-	height = buf->height;
+	 { return ( -EINVAL );
+  } 
 
-  glViewport(x, sh - y - height, width, height);
-  glDisable(GLBlend);
+  if (tmp > sh)
+ 	{ height = sh - y;
+  }
+  else
+	 { height = buf->height;
+  }
 
-  gl_shader_use(v3d->blend_shader);
+  glViewport( x, sh - y - height
+            , width, height );
+  glDisable( GLBlend );
 
-  gl_m4_identity(mat);
-  glUniformMatrix4fv(v3d->uniBlend_proj, 1, GL_FALSE, mat);
+  gl_shader_use( v3d->blend_shader );
 
-  glUniform3fv(v3d->uniBlend_fgcol, 1, fgcol);
-  glUniform3fv(v3d->uniBlend_bgcol, 1, bgcol);
+  gl_m4_identity( mat );
+  glUniformMatrix4fv( v3d->uniBlend_proj, 1, GL_FALSE, mat );
 
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, v3d->tex);
-  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+  glUniform3fv( v3d->uniBlend_fgcol, 1, fgcol );
+  glUniform3fv( v3d->uniBlend_bgcol, 1, bgcol );
+
+  glActiveTexture( GL_TEXTURE0 );
+  glBindTexture(   GL_TEXTURE_2D, v3d->tex);
+  glPixelStorei(   GL_UNPACK_ALIGNMENT, 1);
 
   if (v3d->supports_rowlen)
   { glPixelStorei( GL_UNPACK_ROW_LENGTH, buf->stride);
@@ -340,19 +353,24 @@ else
                 , GL_ALPHA, GL_UNSIGNED_BYTE, buf->data );
     glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
   }
-  else if (buf->stride == width)
+  else if ( buf->stride == width )
   { glTexImage2D( GL_TEXTURE_2D, 0, GL_ALPHA
                 , width, height, 0
                 , GL_ALPHA, GL_UNSIGNED_BYTE, buf->data );
   }
   else
-  { packed = malloc(width * height);
+  { packed = CALLOC( width *  height);
+
     if (!packed)
-        return -ENOMEM;
+    { return -ENOMEM;
+    }
 
     src = buf->data;
     dst = packed;
-    for (i = 0; i < height; ++i)
+
+    for ( i = 0
+        ; i < height
+        ; ++i )
     { memcpy(dst, src, width);
       dst += width;
       src += buf->stride;
@@ -362,7 +380,7 @@ else
                 , GL_ALPHA, width, height, 0
                 , GL_ALPHA, GL_UNSIGNED_BYTE
                 , packed );
-    free(packed);
+    FREE( packed );
   }
 
   glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
@@ -395,7 +413,7 @@ int utermDrm3dDisplayFakeBlendv( struct utermDisplay *disp
 
  for (i = 0; i < num; ++i, ++req)
  { if (!req->buf)
- { continue;
+   { continue;
    }
 
   ret= displayBlend( disp, req->buf
@@ -403,8 +421,8 @@ int utermDrm3dDisplayFakeBlendv( struct utermDisplay *disp
                    , req->fr, req->fg, req->fb
                    , req->br, req->bg, req->bb );
   if (ret)
-			return ret;
-	}
+		{	return ret;
+	} }
 
   return 0;
 }
@@ -448,14 +466,19 @@ int utermDrm3dDisplayFill( struct utermDisplay *disp
 
   tmp = x + width;
   if (tmp < x || x >= sw)
- 	return ( -EINVAL );
+ 	{ return ( -EINVAL );
+  } 
+
   if (tmp > sw)
-  	width = sw - x;
+  {	width = sw - x;
+  }
   tmp = y + height;
   if (tmp < y || y >= sh)
-	return ( -EINVAL );
+	 { return ( -EINVAL );
+  } 
   if (tmp > sh)
-	height = sh - y;
+	 { height = sh - y;
+  } 
 
   glViewport(x, y, width, height);
   glDisable(GLBlend);

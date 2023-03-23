@@ -9,34 +9,33 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "../libnsfb_plot.h"
-
 #include "../nsfb.h"
+#include "../nsfbPlot.h"
 #include "../surface.h"
 #include "../plot.h"
 
-static int ram_defaults(nsfb_t *nsfb)
-{ nsfb->width = 0;
-  nsfb->height = 0;
-  nsfb->format = NSFB_FMT_ABGR8888;
-
-  select_plotters(nsfb);     /* select default sw plotters for bpp */
-  return 0;
-}
-
-
-static int ram_initialise( nsfb_t *nsfb )
+static int ramInitialise( Nsfb *nsfb )
 { size_t size = (nsfb->width * nsfb->height * nsfb->bpp) / 8;
 
-  nsfb->loc   = realloc( nsfb->loc, size);
+  if ( size )
+  { if ( nsfb->loc )
+    { nsfb->loc= realloc( nsfb->loc, size);
+    }
+    else
+    { nsfb->loc= CALLOC( size );
+  } }
+  else
+  { FREE( nsfb->loc );
+  }
+
   nsfb->panlen= (nsfb->width * nsfb->bpp) / 8;
 
   return 0;
 }
 
-static int ram_set_geometry( nsfb_t * nsfb
-                           , int width, int height
-                           , enum nsfb_format_e format )
+static int ramSetGeometry( Nsfb * nsfb
+                         , int width, int height
+                         , enum NsfbFormat format )
 { int startsize;
   int endsize;
   format &= NSFB_FMT_MASK; // JACS
@@ -44,44 +43,47 @@ static int ram_set_geometry( nsfb_t * nsfb
   startsize = (nsfb->width * nsfb->height * nsfb->bpp) / 8;
 
   if ( width  > 0 )  { nsfb->width = width;  }
-  if ( height > 0 )  { nsfb->height = height;  }
-  if (format != NSFB_FMT_ANY)  { nsfb->format = format;  }
+  if ( height > 0 )  { nsfb->height= height;  }
 
-  select_plotters( nsfb );     /* select soft plotters appropriate for format */
+  if (format != NSFB_FMT_ANY)
+  { nsfb->format= format;
+  }
+
+  selectPlotters( nsfb );     /* select soft plotters appropriate for format */
 
   endsize = (nsfb->width * nsfb->height * nsfb->bpp) / 8;
-  if ((nsfb->loc)
-   && (startsize != endsize))
-  { nsfb->loc = realloc(nsfb->loc, endsize);
+
+  if ( startsize != endsize )
+  { nsfb->loc= nsfb->loc ? CALLOC( endsize )
+                         : realloc( nsfb->loc, endsize );
   }
   nsfb->panlen = (nsfb->width * nsfb->bpp) / 8;
 
+  return( 0 );
+}
+
+
+static int ramFinalise(Nsfb *nsfb)
+{ FREE( nsfb->loc );
+
   return 0;
 }
 
+NsfbSurfaceRtns ramRtns =
+{ .type=  NSFB_SURFACE_RAM
+, .name= "ram"
 
-static int ram_finalise(nsfb_t *nsfb)
-{ free(nsfb->loc);
+, .initialise= ramInitialise
+, .finalise  = ramFinalise
+, .geometry  = ramSetGeometry
+, .cursor    = NULL
 
-  return 0;
-}
 
-static bool ram_input(nsfb_t *nsfb, nsfb_event_t *event, int timeout)
-{ UNUSED( nsfb    );
-  UNUSED( event   );
-  UNUSED( timeout );
-  return false;
-}
 
-const nsfb_surface_rtns_t ram_rtns =
-{ .defaults  = ram_defaults
-, .initialise= ram_initialise
-, .finalise  = ram_finalise
-, .input     = ram_input
-, .geometry  = ram_set_geometry
+, .dataSize  = sizeof( ramRtns )
 };
 
-NSFB_SURFACE_DEF(ram, NSFB_SURFACE_RAM, &ram_rtns)
+NSFB_SURFACE_DEF( ramRtns )
 
 /*
  * Local variables:

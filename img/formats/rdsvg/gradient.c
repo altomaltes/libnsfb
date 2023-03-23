@@ -195,7 +195,7 @@ svgtiny_code svgtinyParseLinearGradient(dom_element *linear,
 		for (stopnr = 0; stopnr < listlen; ++stopnr) {
 			dom_element *stop;
 			float offset = -1;
-			NsfbColour color = NFSB_PLOT_OPTYPE_TRANSP;
+			NSFBCOLOUR color = NFSB_PLOT_OPTYPE_TRANSP;
 			exc = dom_nodelist_item(stops, stopnr,
 						(dom_node **) (void *) &stop);
 			if (exc != DOM_NO_ERR)
@@ -412,52 +412,52 @@ svgtiny_code svgtinyAddPathLinearGradient( float *p
 		struct grad_point *point;
 		unsigned int z;
 
-		if (segment_type == NFSB_PLOT_PATHOP_MOVE) 
+		if (segment_type == NFSB_PLOT_PATHOP_MOVE)
 		{ x0 = p[j + 1];
 			 y0 = p[j + 2];
 			 j += 3;
 			 continue;
 		}
 
-		assert( segment_type == NFSB_PLOT_PATHOP_CLOSE 
-		     ||	segment_type == NFSB_PLOT_PATHOP_LINE 
+		assert( segment_type == NFSB_PLOT_PATHOP_CLOSE
+		     ||	segment_type == NFSB_PLOT_PATHOP_LINE
 		     ||	segment_type == NFSB_PLOT_PATHOP_QUAD );
 
 		/* start point (x0, y0) */
 		x0_trans = trans[0]*x0 + trans[2]*y0 + trans[4];
 		y0_trans = trans[1]*x0 + trans[3]*y0 + trans[5];
-		
+
 		r0 = ((x0_trans - gradient_x0) * gradient_dx +		(y0_trans - gradient_y0) * gradient_dy) /		gradient_norm_squared;
-		
+
 		point= svgtiny_list_push( pts );
-		if (!point) 
+		if (!point)
 		{ svgtiny_list_free(pts);
 			 return( svgtiny_OUT_OF_MEMORY );
 		}
 		point->x = x0;
 		point->y = y0;
 		point->r = r0;
-		
-		if (r0 < min_r) 
+
+		if (r0 < min_r)
 		{
 			 min_r = r0;
 			 min_pt = svgtiny_list_size(pts) - 1;
 		}
 
 		/* end point (x1, y1) */
-		if (segment_type == NFSB_PLOT_PATHOP_LINE) 
+		if (segment_type == NFSB_PLOT_PATHOP_LINE)
 		{
 		 	x1 = p[j + 1];
 			 y1 = p[j + 2];
 			 j += 3;
-		} 
-		else if (segment_type == NFSB_PLOT_PATHOP_CLOSE) 
+		}
+		else if (segment_type == NFSB_PLOT_PATHOP_CLOSE)
 		{
 			 x1 = p[1];
 			 y1 = p[2];
 			 j++;
-		} 
-		else /* NFSB_PLOT_PATHOP_QUAD */ 
+		}
+		else /* NFSB_PLOT_PATHOP_QUAD */
 		{
 			 c0x = p[j + 1];
 			 c0y = p[j + 2];
@@ -467,7 +467,7 @@ svgtiny_code svgtinyAddPathLinearGradient( float *p
 			 y1 = p[j + 6];
 			 j += 7;
 		}
-		
+
 		x1_trans = trans[0]*x1 + trans[2]*y1 + trans[4];
 		y1_trans = trans[1]*x1 + trans[3]*y1 + trans[5];
 		r1 = ((x1_trans - gradient_x0) * gradient_dx +
@@ -476,11 +476,11 @@ svgtiny_code svgtinyAddPathLinearGradient( float *p
 
 		/* determine steps from change in r */
 
-		if(isnan(r0) || isnan(r1)) 
+		if(isnan(r0) || isnan(r1))
 		{
 			steps = 1;
-		} 
-		else 
+		}
+		else
 		{
 			steps = ceilf(fabsf(r1 - r0) / 0.05);
 		}
@@ -495,44 +495,44 @@ svgtiny_code svgtinyAddPathLinearGradient( float *p
 		/* loop through intermediate points */
 		for ( z = 1
 		    ; z != steps
-		    ; z++ ) 
+		    ; z++ )
 		{ float t, x, y, x_trans, y_trans, r;
 			 struct grad_point *point;
 			 t = (float) z / (float) steps;
-			 
-			 if (segment_type == NFSB_PLOT_PATHOP_QUAD) 
-			 { x = (1-t) * (1-t) * (1-t) * x0 
-			     +					3 * t * (1-t) * (1-t) * c0x 
-			     +					3 * t * t * (1-t) * c1x 
+
+			 if (segment_type == NFSB_PLOT_PATHOP_QUAD)
+			 { x = (1-t) * (1-t) * (1-t) * x0
+			     +					3 * t * (1-t) * (1-t) * c0x
+			     +					3 * t * t * (1-t) * c1x
 			     +		t * t * t * x1;
-			     
-  				y = (1-t) * (1-t) * (1-t) * y0 
-  				  +	3 * t * (1-t) * (1-t) * c0y 
-  				  +	3 * t * t * (1-t) * c1y 
+
+  				y = (1-t) * (1-t) * (1-t) * y0
+  				  +	3 * t * (1-t) * (1-t) * c0y
+  				  +	3 * t * t * (1-t) * c1y
   				  +	t * t * t * y1;
-			 } 
-			 else 
+			 }
+			 else
 			 {	x = (1-t) * x0 + t * x1;
 				  y = (1-t) * y0 + t * y1;
 			 }
-			 
+
 			 x_trans = trans[0]*x + trans[2]*y + trans[4];
 			 y_trans = trans[1]*x + trans[3]*y + trans[5];
-			 
-			 r = ((x_trans - gradient_x0) * gradient_dx 
+
+			 r = ((x_trans - gradient_x0) * gradient_dx
 			   +		(y_trans - gradient_y0) * gradient_dy) /	gradient_norm_squared;
 			#ifdef GRADIENT_DEBUG
 			fprintf(stderr, "(%g %g [%g]) ", x, y, r);
 			#endif
   		point = svgtiny_list_push(pts);
-		 	if ( !point ) 
+		 	if ( !point )
 		 	{ svgtiny_list_free(pts);
 				  return svgtiny_OUT_OF_MEMORY;
 			 }
  			point->x = x;
 	 		point->y = y;
 		 	point->r = r;
-			 if (r < min_r) 
+			 if (r < min_r)
 			 { min_r = r;
 			  	min_pt = svgtiny_list_size(pts) - 1;
 		}	}
@@ -561,8 +561,8 @@ svgtiny_code svgtinyAddPathLinearGradient( float *p
 	t = min_pt;
 	a = (min_pt + 1) % svgtiny_list_size(pts);
 	b = min_pt == 0 ? svgtiny_list_size(pts) - 1 : min_pt - 1;
-	
-	while (a != b) 
+
+	while (a != b)
 	{ struct grad_point *point_t = svgtiny_list_get(pts, t);
 		 struct grad_point *point_a = svgtiny_list_get(pts, a);
 		 struct grad_point *point_b = svgtiny_list_get(pts, b);
@@ -573,7 +573,7 @@ svgtiny_code svgtinyAddPathLinearGradient( float *p
 				"mean_r %.3f\n",
 				t, pts[t].r, a, pts[a].r, b, pts[b].r,
 				mean_r);*/
-		 while (current_stop != stop_count && current_stop_r < mean_r) 
+		 while (current_stop != stop_count && current_stop_r < mean_r)
 		 { current_stop++;
 			  if (current_stop == stop_count)
 				   break;
@@ -599,10 +599,10 @@ svgtiny_code svgtinyAddPathLinearGradient( float *p
 		 p[ 7 ] = point_b->x;
 		 p[ 8 ] = point_b->y;
 		 p[ 9 ] = NFSB_PLOT_PATHOP_CLOSE;
-		 
+
 		 svgtiny_transform_path(p, 10, state);
 		 shape = svgtiny_add_shape(state);
-		 if (!shape) 
+		 if (!shape)
 		 { free(p);
 		  	return svgtiny_OUT_OF_MEMORY;
 		 }
@@ -615,9 +615,9 @@ svgtiny_code svgtinyAddPathLinearGradient( float *p
  		else if (current_stop == stop_count)
 	 	{
 			  shape->fill = state->gradient_stop[stop_count - 1].color;
-		 }	
-	 	else 
-		 { float stop_r = (mean_r - last_stop_r) 
+		 }
+	 	else
+		 { float stop_r = (mean_r - last_stop_r)
 		                /	(current_stop_r - last_stop_r);
  			shape->fill= svgtiny_RGB( (int) ((1 - stop_r) * red0 + stop_r * red1)
  			                        , (int) ((1 - stop_r) * green0 + stop_r * green1)
@@ -628,11 +628,11 @@ svgtiny_code svgtinyAddPathLinearGradient( float *p
 		shape->stroke = svgtiny_RGB(0, 0, 0xff);
 		#endif
 		state->diagram->shape_count++;
-		if (point_a->r < point_b->r) 
+		if (point_a->r < point_b->r)
 		{ t = a;
 		 	a = (a + 1) % svgtiny_list_size(pts);
-		} 
-		else 
+		}
+		else
 		{ t = b;
 			 b = b == 0 ? svgtiny_list_size(pts) - 1 : b - 1;
 		} }
@@ -687,24 +687,24 @@ svgtiny_code svgtinyAddPathLinearGradient( float *p
 	#endif
 
 	/* plot actual path outline */
-	 if (state->stroke != NFSB_PLOT_OPTYPE_TRANSP) 
+	 if (state->stroke != NFSB_PLOT_OPTYPE_TRANSP)
 	 { struct svgtiny_shape *shape;
   		svgtiny_transform_path(p, n, state);
 
 		  shape = svgtiny_add_shape(state);
-		
-  		if (!shape) 
+
+  		if (!shape)
 		  {
 			   free(p);
   			 return svgtiny_OUT_OF_MEMORY;
 		  }
-		  
+
   		shape->path = p;
 		  shape->path_length = n;
   		shape->fill = NFSB_PLOT_OPTYPE_TRANSP;
 		  state->diagram->shape_count++;
-  } 
-  else 
+  }
+  else
   { free(p);
 	 }
 
@@ -728,31 +728,31 @@ void svgtiny_path_bbox( float *p, unsigned int n
 	*y0 = *y1 = p[2];
 
 	for ( j = 0
-	    ; j < n; ) 
+	    ; j < n; )
 	{ unsigned int points = 0;
 		 unsigned int k;
-		
-		 switch ((int) p[j]) 
+
+		 switch ((int) p[j])
 		 { case NFSB_PLOT_PATHOP_MOVE:
    		case NFSB_PLOT_PATHOP_LINE:
 			    points = 1;
   			break;
-  			
+
 	   	case NFSB_PLOT_PATHOP_CLOSE:
     			points = 0;
   			break;
-  			
+
 		   case NFSB_PLOT_PATHOP_QUAD:
     			points = 3;
   			break;
-  			
+
 		   default: assert(0);
 		}
 		j++;
-		
+
 		for ( k = 0
 		    ; k != points
-		    ; k++ ) 
+		    ; k++ )
 		{ float x = p[j], y = p[j + 1];
 			 if (x < *x0)
 				  *x0 = x;

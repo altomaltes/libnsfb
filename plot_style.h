@@ -103,34 +103,34 @@ typedef dword colour;
 /**
  * Type of plot operation
  */
-typedef enum {
-	PLOT_OP_TYPE_NONE = 0, /**< No operation */
-	PLOT_OP_TYPE_SOLID, /**< Solid colour */
-	PLOT_OP_TYPE_DOT, /**< Dotted plot */
-	PLOT_OP_TYPE_DASH, /**< Dashed plot */
+typedef enum 
+{ PLOT_OP_TYPE_NONE = 0, /**< No operation */
+,	PLOT_OP_TYPE_SOLID     /**< Solid colour */
+,	PLOT_OP_TYPE_DOT       /**< Dotted plot */
+,	PLOT_OP_TYPE_DASH      /**< Dashed plot */
 } plot_operation_type_t;
 
 /**
  * Plot style for stroke/fill plotters
  */
-typedef struct {
-	plot_operation_type_t stroke_type; /**< Stroke plot type */
-	int stroke_width; /**< Width of stroke, in pixels */
-	colour stroke_colour; /**< Colour of stroke */
-	plot_operation_type_t fill_type; /**< Fill plot type */
-	colour fill_colour; /**< Colour of fill */
-} plot_style_t;
+typedef struct 
+{ plot_operation_type_t strokeType; /**< Stroke plot type */
+  int strokeWidth;                  /**< Width of stroke, in pixels */
+	 colour strokeColour;              /**< Colour of stroke */
+	 plot_operation_type_t fillType;   /**< Fill plot type */
+	 colour fillColour;                /**< Colour of fill */
+} PlotStyle;
 
 /**
  * Generic font family type
  */
-typedef enum {
-	PLOT_FONT_FAMILY_SANS_SERIF = 0,
-	PLOT_FONT_FAMILY_SERIF,
-	PLOT_FONT_FAMILY_MONOSPACE,
-	PLOT_FONT_FAMILY_CURSIVE,
-	PLOT_FONT_FAMILY_FANTASY,
-	PLOT_FONT_FAMILY_COUNT /**< Number of generic families */
+typedef enum 
+{ PLOT_FONT_FAMILY_SANS_SERIF = 0
+,	PLOT_FONT_FAMILY_SERIF
+,	PLOT_FONT_FAMILY_MONOSPACE
+,	PLOT_FONT_FAMILY_CURSIVE
+,	PLOT_FONT_FAMILY_FANTASY
+,	PLOT_FONT_FAMILY_COUNT       /**< Number of generic families */
 } plot_font_generic_family_t;
 
 /**
@@ -150,43 +150,48 @@ typedef unsigned long plot_font_flags_t;
 /**
  * Font style for plotting
  */
-typedef struct {
-	plot_font_generic_family_t family; /**< Generic family to plot with */
-	int size; /**< Font size, in points * FONT_SIZE_SCALE */
-	int weight; /**< Font weight: value in range [100,900] as per CSS */
-	plot_font_flags_t flags; /**< Font flags */
-	colour background; /**< Background colour to blend to, if appropriate */
-	colour foreground; /**< Colour of text */
+typedef struct 
+{ plot_font_generic_family_t family; /**< Generic family to plot with */
+ 	int size;                          /**< Font size, in points * FONT_SIZE_SCALE */
+ 	int weight;                        /**< Font weight: value in range [100,900] as per CSS */
+ 	plot_font_flags_t flags;           /**< Font flags */
+ 	colour background;                 /**< Background colour to blend to, if appropriate */
+ 	colour foreground;                 /**< Colour of text */
 } plot_font_style_t;
 
-/* global fill styles */
-extern plot_style_t *plot_style_fill_white;
-extern plot_style_t *plot_style_fill_red;
-extern plot_style_t *plot_style_fill_black;
+/* global fill styles 
+ */
+extern PlotStyle *PlotStyle_fill_white;
+extern PlotStyle *PlotStyle_fill_red;
+extern PlotStyle *PlotStyle_fill_black;
 
-/* Box model debug outline styles for content, padding and margin edges */
-extern plot_style_t const * const plot_style_content_edge;
-extern plot_style_t const * const plot_style_padding_edge;
-extern plot_style_t const * const plot_style_margin_edge;
+/* Box model debug outline styles for content, padding and margin edges 
+ */
+extern PlotStyle const * const PlotStyle_content_edge;
+extern PlotStyle const * const PlotStyle_padding_edge;
+extern PlotStyle const * const PlotStyle_margin_edge;
 
-/* Broken object replacement styles */
-extern plot_style_t const * const plot_style_broken_object;
+/* Broken object replacement styles 
+ */
+extern PlotStyle const * const PlotStyle_broken_object;
 extern plot_font_style_t const * const plot_fstyle_broken_object;
 
 
-/* other styles */
-extern plot_style_t *plot_style_caret;
-extern plot_style_t *plot_style_stroke_history;
-extern plot_style_t *plot_style_fill_wbasec;
-extern plot_style_t *plot_style_fill_darkwbasec;
-extern plot_style_t *plot_style_fill_lightwbasec;
-extern plot_style_t *plot_style_fill_wblobc;
-extern plot_style_t *plot_style_stroke_wblobc;
-extern plot_style_t *plot_style_stroke_darkwbasec;
-extern plot_style_t *plot_style_stroke_lightwbasec;
+/* other styles 
+ */
+extern PlotStyle * PlotStyle_caret;
+extern PlotStyle * PlotStyle_stroke_history;
+extern PlotStyle * PlotStyle_fill_wbasec;
+extern PlotStyle * PlotStyle_fill_darkwbasec;
+extern PlotStyle * PlotStyle_fill_lightwbasec;
+extern PlotStyle * PlotStyle_fill_wblobc;
+extern PlotStyle * PlotStyle_stroke_wblobc;
+extern PlotStyle * PlotStyle_stroke_darkwbasec;
+extern PlotStyle * PlotStyle_stroke_lightwbasec;
 
-/* Default font style */
-extern plot_font_style_t const * const plot_style_font;
+/* Default font style 
+ */
+extern plot_font_style_t const * const PlotStyle_font;
 
 #ifndef HISTORY_COLOUR_SELECTED
 #define HISTORY_COLOUR_SELECTED 0xFF0000

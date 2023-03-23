@@ -1,64 +1,108 @@
 /* libnsfb framebuffer surface support */
 
-#include "libnsfb.h"
-#include "libnsfb_plot.h"
+#include "nsfb.h"
 
-/* surface default options */
-typedef int (nsfb_surfacefn_defaults_t)( nsfb_t * );
+#include "nsfbPlot.h"
+#include "img/images.h"
 
-/* surface init */
-typedef int (nsfb_surfacefn_init_t)(nsfb_t * );
+/* surface default options
+ */
+typedef int (NsfbSurfacefnDefaults)( Nsfb * );
 
-/* surface finalise */
-typedef int (nsfb_surfacefn_fini_t)(nsfb_t * );
+/* surface init
+ */
+typedef int (NsfbSurfacefnInit)( Nsfb * );
 
-/* surface set geometry */
-typedef int (nsfb_surfacefn_geometry_t)( nsfb_t *
-                                       , int width, int height
-                                       , enum nsfb_format_e format );
+/* surface finalise
+ */
+typedef int (NsfbSurfacefnFini)( Nsfb * );
 
-/* surface set parameters */
-typedef int (nsfb_surfacefn_parameters_t)(nsfb_t *, const char *parameters);
+/* surface set geometry
+ */
+typedef int (NsfbSurfacefnGeometry)( Nsfb *
+                                   , int width, int height
+                                   , enum NsfbFormat format );
 
-/* surface input */
-typedef bool (nsfb_surfacefn_input_t)(nsfb_t *, nsfb_event_t *event, int timeout);
+/* surface set parameters
+ */
+typedef int (NsfbSurfacefnParameters)(Nsfb *, const char *parameters);
 
-/* surface area claim */
-typedef int (nsfb_surfacefn_claim_t)(nsfb_t *, nsfb_bbox_t *box);
+/* surface area claim
+ */
+typedef int (NsfbSurfacefnClaim)(Nsfb *, NsfbBbox * );
 
-/* surface area update */
-typedef int (nsfb_surfacefn_update_t)(nsfb_t *, nsfb_bbox_t *box);
+/* surface area update
+ */
+typedef int (NsfbSurfacefnUpdate)(Nsfb *, NsfbBbox * );
 
-/* surface cursor display */
-typedef int (nsfb_surfacefn_cursor_t)(nsfb_t *, struct nsfbCursor_s *cursor);
+/* surface cursor display
+ */
+typedef int (NsfbSurfacefnCursor)( struct NsfbSurfaceRtnsSt * );
 
-/* surface finalise */
-typedef int (nsfb_surfacefn_pan_t)(nsfb_t *, int type );
+/* surface finalise
+ */
+typedef int (NsfbSurfacefnPan)(Nsfb *, int type );
 
-typedef struct nsfb_surface_rtns_s
-{ nsfb_surfacefn_defaults_t   * defaults;
-  nsfb_surfacefn_init_t       * initialise;
-  nsfb_surfacefn_fini_t       * finalise;
-  nsfb_surfacefn_geometry_t   * geometry;
-  nsfb_surfacefn_parameters_t * parameters;
-  nsfb_surfacefn_input_t      * input;
-  nsfb_surfacefn_claim_t      * claim;
-  nsfb_surfacefn_update_t     * update;
-  nsfb_surfacefn_cursor_t     * cursor;
-  nsfb_surfacefn_pan_t        * pan;
-} nsfb_surface_rtns_t;
+/** Create pixmapp
+ */
+typedef int( *NsfbPlotfnPixmap )( NsfbSurfaceRtns * surf
+                                , ImageMap  * map
+                                , void * img, void * msk
+                                , int w, int h  );
 
-PUBLIC void _nsfb_register_surface( const enum nsfb_type_e type
-                                  , const nsfb_surface_rtns_t *
-                                  , const char *name );
+
+
+typedef struct NsfbSurfaceRtnsSt
+{ struct NsfbSurfaceRtnsSt * next;       /** List of registered surfaces */
+  struct NsfbSt            * clients;    /** List of surface clients     */
+  struct RenderListSt      * renderList; /** Cache of fonts              */
+  struct NsfbCursorSt      * pointer;        /** cursor                  */
+
+  enum NsfbType   type;       /* JACS, octy 2022 */
+  const char    * name;
+  enum NsfbFormat format;     /** Native Framebuffer format */
+
+  int fd;                     /** device handler          */
+  int dataSize;               /** Variable allocated client data */
+
+  int panType;                /** Framebuffer outputing                   */
+
+  int    buffSize;
+  void * buffStart;
+
+  int stride, width, height
+    , theDepth, theGeo;
+
+
+/* Those available to caller
+ */
+  NsfbSurfacefnInit     * initialise;
+  NsfbSurfacefnFini     * finalise;
+  NsfbSurfacefnGeometry * geometry;
+  NsfbSurfacefnClaim    * claim;
+  NsfbSurfacefnUpdate   * update;
+  NsfbSurfacefnCursor   * cursor;
+  NsfbSurfacefnPan      * pan;
+
+  NsfbPlotfnPixmap      pixmap;
+
+
+/* Must be called by client on events
+ */
+
+  NsfbSurfacefnEvents     events;
+
+} NsfbSurfaceRtns;
+
+ANSIC void _nsfb_register_surface(  NsfbSurfaceRtns * );
 
 
 /* macro which adds a builtin command with no argument limits
  */
-#define NSFB_SURFACE_DEF( __name, __type, __rtns )                       \
-  static void __name##_register_surface(void) __attribute__((constructor)); \
-  void __name##_register_surface(void) {                              \
-      _nsfb_register_surface(__type, __rtns, #__name);               \
+#define NSFB_SURFACE_DEF( __rtns )                       \
+  static void __rtns##_register_surface(void) __attribute__((constructor)); \
+  void __rtns##_register_surface(  )      \
+  { _nsfb_register_surface( &__rtns );               \
   }
 
 /** Obtain routines for a surface
@@ -69,5 +113,5 @@ PUBLIC void _nsfb_register_surface( const enum nsfb_type_e type
  * @return A vtable of routines which teh caller must deallocate or
  *         NULL on error
  */
-nsfb_surface_rtns_t * nsfbSurfaceGetRtns( enum nsfb_type_e type );
+//NsfbSurfaceRtns * nsfbSurfaceGet Rtns( enum NsfbType type );
 

@@ -18,42 +18,42 @@
 
 struct svgtiny_gradient_stop {
 	float offset;
-	NsfbColour color;
+	NSFBCOLOUR color;
 };
 
 #define svgtiny_MAX_STOPS 10
 
-struct svgtinyParseState 
+struct svgtinyParseState
 { VectorRec * diagram;
-	
+
 	 dom_document *document;
 
 	 float viewport_width;
 	 float viewport_height;
 
 	/* current transformation matrix */
-	 struct 
+	 struct
 	 { float a, b, c, d, e, f;
   } ctm;
 
 	/*struct css_style style;*/
 
-	/* paint attributes 
+	/* paint attributes
 	 */
-	NsfbColour fill;
-	NsfbColour stroke;
+	NSFBCOLOUR fill;
+	NSFBCOLOUR stroke;
 	// int stroke_width;
 	float stroke_width;
 
-	/* gradients 
+	/* gradients
 	 */
-	 
+
 	unsigned int linear_gradient_stop_count;
 	dom_string *gradient_x1, *gradient_y1, *gradient_x2, *gradient_y2;
 	struct svgtiny_gradient_stop gradient_stop[svgtiny_MAX_STOPS];
 	bool gradient_user_space_on_use;
-	
-	struct 
+
+	struct
 	{ float a, b, c, d, e, f;
 	} gradient_transform;
 
@@ -66,18 +66,18 @@ struct svgtinyParseState
 
 struct svgtiny_list;
 
-/* svgtiny.c 
+/* svgtiny.c
  */
 float svgtiny_parse_length( dom_string *s
                           , int viewport_size
                           ,	const struct svgtinyParseState state );
-		
-void svgtinyParseColor( dom_string *s, NsfbColour *c
+
+void svgtinyParseColor( dom_string *s, NSFBCOLOUR *c
                       ,	struct svgtinyParseState *state );
-		
+
 void svgtinyParseTransform( char *s, float *ma, float *mb
                           ,	float *mc, float *md, float *me, float *mf);
-		
+
 struct svgtiny_shape * svgtiny_add_shape(struct svgtinyParseState *state);
 
 void svgtiny_transform_path(float *p, unsigned int n,

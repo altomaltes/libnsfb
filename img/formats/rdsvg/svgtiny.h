@@ -14,7 +14,7 @@
 #include "../../../libnsfb.h"
 #include "../../../nsfbPlot.h"
 
-typedef unsigned int NsfbColour;
+typedef unsigned int NSFBCOLOUR;
 
 #ifdef __riscos__
   #define svgtiny_RGB(r, g, b) (0xff << 24 | (b) << 16 | (g) << 8 | (r))
@@ -41,14 +41,14 @@ struct svgtiny_shape
 	 unsigned int path_length;
 	 char  * text;
 	 float text_x, text_y;
-	 NsfbColour fill;
-	 NsfbColour stroke;
+	 NSFBCOLOUR fill;
+	 NSFBCOLOUR stroke;
 	 float stroke_width;
-	 
+
 //  void *_internal_extensions;  // TODO: if non-NULL, points to an allocated on the heap extension block. (gradients, fonts)
 };
 
-typedef enum 
+typedef enum
 { svgtiny_OK
 , svgtiny_OUT_OF_MEMORY
 ,	svgtiny_LIBDOM_ERROR
@@ -58,17 +58,17 @@ typedef enum
 } svgtiny_code;
 
 /*
-enum 
+enum
 { NFSB_PLOT_PATHOP_MOVE
 ,	NFSB_PLOT_PATHOP_CLOSE
 ,	NFSB_PLOT_PATHOP_LINE
 ,	NFSB_PLOT_PATHOP_QUAD
 };
   */
-struct svgtiny_named_color 
+struct svgtiny_named_color
 {
  	const char *name;
-	 NsfbColour color;
+	 NSFBCOLOUR color;
 };
 
 

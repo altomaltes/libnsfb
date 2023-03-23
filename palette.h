@@ -14,56 +14,57 @@
 #include <stdint.h>
 #include <limits.h>
 
-#include "libnsfb_plot.h"
+#include "nsfb.h"
+#include "nsfbPlot.h"
 
-enum nsfb_palette_type_e
+enum NsfbPaletteType
 { NSFB_PALETTE_EMPTY       /**< empty palette object */
 , NSFB_PALETTE_NSFB_8BPP   /**< libnsfb's own 8bpp palette */
 , NSFB_PALETTE_OTHER       /**< any other palette  */
 };
 
 struct NsfbPalette
-{ enum nsfb_palette_type_e type; /**< Palette type */
+{ enum NsfbPaletteType type; /**< Palette type */
   byte last; /**< Last used palette index */
-  nsfb_colour_t data[256]; /**< Palette for index modes */
+  NSFBCOLOUR data[256]; /**< Palette for index modes */
 
   bool dither; /**< Whether error diffusion was requested */
 
   struct
   { int width;    /**< Length of error value buffer ring*/
-	int current;  /**< Current pos in ring buffer*/
-	int *data;    /**< Ring buffer error values */
-	int data_len; /**< Max size of ring */
-  } dither_ctx;
+   	int current;  /**< Current pos in ring buffer*/
+   	int *data;    /**< Ring buffer error values */
+   	int data_len; /**< Max size of ring */
+  } ditherCtx;
 };
 
 
 /** Create an empty palette object. */
-PUBLIC bool nsfb_palette_new(struct NsfbPalette **palette, int width);
+ANSIC bool nsfb_palette_new(struct NsfbPalette **palette, int width);
 
 /** Free a palette object. */
-PUBLIC void nsfb_palette_free(struct NsfbPalette *palette);
+ANSIC void nsfbPaletteFree(struct NsfbPalette *palette);
 
 /** Init error diffusion for a plot. */
-PUBLIC void nsfb_palette_dither_init(struct NsfbPalette *palette, int width);
+ANSIC void nsfbPaletteDitherInit(struct NsfbPalette *palette, int width);
 
 /** Finalise error diffusion after a plot. */
-PUBLIC void nsfb_palette_dither_fini(struct NsfbPalette *palette);
+ANSIC void nsfb_palette_dither_fini(struct NsfbPalette *palette);
 
 /** Generate libnsfb 8bpp default palette. */
-PUBLIC void nsfb_palette_generate_nsfb_8bpp(struct NsfbPalette *palette);
+ANSIC void nsfb_palette_generate_nsfb_8bpp(struct NsfbPalette *palette);
 
-static inline bool nsfb_palette_dithering_on(struct NsfbPalette *palette)
-{ return palette->dither;
+static inline bool nsfbPaletteDitheringOn( struct NsfbPalette *palette )
+{ return( palette->dither );
 }
 
 /** Find best palette match for given colour. */
 static inline byte nsfb_palette_best_match( struct NsfbPalette *palette
-                                             , nsfb_colour_t c
+                                             , NSFBCOLOUR c
                                              , int *r_error, int *g_error, int *b_error )
 { byte best_col = 0;
 
-  nsfb_colour_t palent;
+  NSFBCOLOUR palent;
   int col;
   int dr, dg, db; /* delta red, green blue values */
 
@@ -136,22 +137,24 @@ static inline byte nsfb_palette_best_match( struct NsfbPalette *palette
         return best_col;
 }
 
-/** Find best palette match for given colour, with error diffusion. */
-static inline byte nsfb_palette_best_match_dither( struct NsfbPalette *palette, nsfb_colour_t c )
+/** Find best palette match for given colour, with error diffusion.
+ */
+static inline byte nsfb_palette_best_match_dither( struct NsfbPalette *palette, NSFBCOLOUR c )
 { int r, g, b;
   int current;
   int error;
-  int width = palette->dither_ctx.width;
-  int *data = palette->dither_ctx.data;
+  int width = palette->ditherCtx.width;
+  int *data = palette->ditherCtx.data;
   byte best_col_index;
 
-	if (palette == NULL)
-		return 0;
+	 if ( !palette )
+		{ return 0;
+		}
 
 	if (palette->dither == false)
 		return nsfb_palette_best_match(palette, c, &r, &g, &b);
 
-	current = palette->dither_ctx.current;
+	current = palette->ditherCtx.current;
 
 	/* Get RGB components of colour, and apply error */
 	r = ( c        & 0xFF) + data[current    ];
@@ -181,7 +184,7 @@ static inline byte nsfb_palette_best_match_dither( struct NsfbPalette *palette, 
 	current += 3;
 	if (current >= width)
 		current = 0;
-	palette->dither_ctx.current = current;
+	palette->ditherCtx.current = current;
 
 	/* Save errors
 	 *

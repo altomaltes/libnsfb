@@ -17,6 +17,7 @@
 #include <limits.h>
 #include <string.h>
 
+
 #include "../palette.h"
 #include "../libnsfb_plot_util.h"
 #include "../nsfb.h"
@@ -35,9 +36,27 @@
  *  @brief                                                                    *
  *                                                                            *
 \* ========================================================================= **/
+static int setLineWidth( struct x11List * x11, int width )
+{ return( XSetLineAttributes( x11->theDisplay, x11->theGC
+                            , width
+                            , LineSolid, CapButt
+                            , JoinBevel  ));
+}
 
-static int setBackColor( struct x11List * x11, COLORREF c ) { if ( c != NOCOLOR ) return( XSetBackground( x11->theDisplay, x11->theGC, c )); return( 1 ); }
-static int setForeColor( struct x11List * x11, COLORREF c ) { if ( c != NOCOLOR ) return( XSetForeground( x11->theDisplay, x11->theGC, c )); return( 1 ); }
+
+static int setBackColor( struct x11List * x11, NSFBCOLOUR c )
+{ if ( c != NOCOLOR ) return( XSetBackground( x11->theDisplay, x11->theGC, c ));
+  return( 1 );
+}
+
+static int setForeColor( struct x11List * x11, NSFBCOLOUR c )
+{ if (( c & ALPHACOLOR ) == ALPHACOLOR )                       /* Absolute background, includes NOCOLOR */
+  { return( 0 );
+  }
+
+  XSetForeground( x11->theDisplay, x11->theGC, c );
+  return( 1 );
+}
 
 
 /** Plots a filled rectangle. Top left corner at (x0,y0), bottom
@@ -46,13 +65,18 @@ static int setForeColor( struct x11List * x11, COLORREF c ) { if ( c != NOCOLOR 
  */
 static bool x11Fill( struct x11List  * nsfb
                    , NsfbBbox * rect
-                   , NsfbColour c)
-{ setForeColor( nsfb, c );
+                   , NSFBCOLOUR c)
+{ if ( setForeColor( nsfb, c ) > 0 )
+  { int x= rect->x0;
+    int y= rect->y0;
+    int w= rect->x1 - rect->x0;
+    int h= rect->y1 - rect->y0;
 
-  XFillRectangle( nsfb->theDisplay, nsfb->theSurface, nsfb->theGC
-                , rect->x0, rect->y0
-                , rect->x1 - rect->x0 + 1
-                , rect->y1 - rect->y0 + 1 );
+    XFillRectangle( nsfb->theDisplay, nsfb->theSurface, nsfb->theGC
+                  , x, y
+                  , w + 1
+                  , h + 1 );
+  }
 
   return( true );
 }
@@ -63,7 +87,7 @@ static bool x11Fill( struct x11List  * nsfb
  */
 static bool x11Rectangle( struct x11List  * nsfb
                         , NsfbBbox * rect
-                        , int line_width, NsfbColour c
+                        , int line_width, NSFBCOLOUR c
                         , bool dotted, bool dashed)
 { puts("TO RECT");
   return( false );
@@ -73,11 +97,15 @@ static bool x11Rectangle( struct x11List  * nsfb
  */
 static bool x11Line( struct x11List  * nsfb, int linec
                    , NsfbBbox * line, NsfbPlotpen * pen )
-{ setForeColor( nsfb, pen->strokeColour );
+{ if ( setForeColor( nsfb,  pen->strokeColour ) > 0 )
+  { setLineWidth( nsfb, 1 );
 
-  return( !XDrawLine( nsfb->theDisplay, nsfb->theSurface, nsfb->theGC
-                    , line->x0, line->y0
-                    , line->x1, line->y1 ));
+    return( !XDrawLine( nsfb->theDisplay, nsfb->theSurface, nsfb->theGC
+                      , line->x0, line->y0
+                      , line->x1, line->y1 ));
+  }
+
+  return( true  );
 }
 
 /** Plots a filled polygon with straight lines between points.
@@ -86,51 +114,54 @@ static bool x11Line( struct x11List  * nsfb, int linec
  */
 static bool x11Polygon( struct x11List   * nsfb
                       , const int * points, unsigned int npt
-                      , NsfbColour fill)
-{ XPoint * poly;   // Beggining of poly to draw
-  XPoint *   pt;   // polygon iterator
+                      , NSFBCOLOUR fill )
+{ if ( setForeColor( nsfb, fill ) > 0 )
+  { XPoint * poly;   // Beggining of poly to draw
+    XPoint *   pt;   // polygon iterator
 
-  poly= pt= (XPoint *) alloca( npt * sizeof( XPoint )); // Get workspace
+    poly= pt= (XPoint *) alloca( npt * sizeof( XPoint )); // Get workspace
 
-  while( npt )
-  { pt->x= *points++;
-    pt->y= *points++;
-    pt++; npt--;
+    while( npt )
+    { pt->x= *points++;
+      pt->y= *points++;
+      pt++; npt--;
+    }
+
+    XFillPolygon( nsfb->theDisplay, nsfb->theSurface, nsfb->theGC
+                , poly
+                , pt-poly
+                , Nonconvex              // Simplest filling
+                , CoordModeOrigin );
   }
 
-  setForeColor( nsfb, fill );
-
-  XFillPolygon( nsfb->theDisplay, nsfb->theSurface, nsfb->theGC
-              , poly
-              , pt-poly
-              , Nonconvex              // Simplest filling
-              , CoordModeOrigin );
   return( true );
 }
 
 static bool x11Polylines( struct x11List  * nsfb
                         , int npt, const NsfbPoint * points
                         , NsfbPlotpen * pen )
-{ XPoint * poly;   // Beggining of poly to draw
-  XPoint *   pt;   // polygon iterator
+{ if ( setForeColor( nsfb, pen->strokeColour ) > 0 )
+  { XPoint * poly;   // Beggining of poly to draw
+    XPoint *   pt;   // polygon iterator
 
-  poly= pt= (XPoint *) alloca( npt * sizeof( XPoint )); // Get workspace
+    poly= pt= (XPoint *) alloca( npt * sizeof( XPoint )); // Get workspace
 
-  const NsfbPoint first= *points;
+    const NsfbPoint first= *points;
 
-  while( npt )
-  { pt->x= points->x;
-    pt->y= points->y;
-    pt++; npt--; points++;
+    while( npt )
+    { pt->x= points->x;
+      pt->y= points->y;
+      pt++; npt--; points++;
+    }
+    pt->x= first.x; pt->y= first.y; pt++;
+
+    setLineWidth( nsfb, pen->strokeWidth );
+    XDrawLines( nsfb->theDisplay, nsfb->theSurface, nsfb->theGC
+              , poly
+              , pt-poly
+              , CoordModeOrigin );
   }
-  pt->x= first.x; pt->y= first.y; pt++;
 
-  setForeColor( nsfb, pen->strokeColour );
-
-  XDrawLines( nsfb->theDisplay, nsfb->theSurface, nsfb->theGC
-            , poly
-            , pt-poly
-            , CoordModeOrigin );
   return( true );
 }
 
@@ -156,7 +187,7 @@ static bool x11SetClip( struct x11List  * nsfb
  */
 static bool x11Arc( struct x11List  * nsfb
                   , int x, int y, int radius
-                  , int angle1, int angle2, NsfbColour c)
+                  , int angle1, int angle2, NSFBCOLOUR c)
 { puts("TO ARC");
   return( false );
 }
@@ -167,11 +198,12 @@ static bool x11Arc( struct x11List  * nsfb
  */
 static bool x11Point( struct x11List  * nsfb
                     , int x, int y
-                    , NsfbColour c )
-{ setForeColor( nsfb, c );
+                    , NSFBCOLOUR c )
+{ if ( setForeColor( nsfb, c ) > 0 )
+  { XDrawPoint( nsfb->theDisplay, nsfb->theSurface, nsfb->theGC
+               , x, y );
+  }
 
-  XDrawPoint( nsfb->theDisplay, nsfb->theSurface, nsfb->theGC
-            , x, y );
   return( true );
 }
 
@@ -182,10 +214,12 @@ static bool x11Point( struct x11List  * nsfb
  */
 static bool x11Ellipse( struct x11List  * nsfb
                       , NsfbBbox *ellipse
-                      , NsfbColour c)
-{
+                      , NSFBCOLOUR c)
+{ if ( setForeColor( nsfb, c ) > 0 )
+  {
 
-  puts("TO ELLIP");
+    puts("TO ELLIP");
+  }
   return( false );
 }
 
@@ -196,26 +230,18 @@ static bool x11Ellipse( struct x11List  * nsfb
  */
 static bool x11EllipseFill( struct x11List  * nsfb
                           , NsfbBbox *ellipse
-                          , NsfbColour c)
-{
-
+                          , NSFBCOLOUR c)
+{ if ( setForeColor( nsfb, c ) > 0 )
+  {
   puts("TO EFILL");
+  }
   return( false );
 }
 
 
-/** Plot bitmap
- */
-static bool x11Pixmap( struct x11List  * nsfb
-                     , int bmpWidth, int bmpHeight
-                     , const NsfbColour * pixel
-                     , NsfbFormat format )
-{
-}
-
 static bool x11Bitmap( struct x11List   * nsfb
                      , const NsfbBbox   * loc
-                     , const NsfbColour * pixel
+                     , const NSFBCOLOUR * pixel
                      , int bmpWidth, int bmpHeight, int bmp_stride
                      , int alpha )
 { XImage * img;
@@ -264,7 +290,7 @@ static bool x11Bitmap( struct x11List   * nsfb
 
 /* Enable error diffusion for paletted screens, if not already on
  */
-  if ( nsfb->seed.palette != NULL
+  if ( nsfb->seed.palette
   && nsfbPaletteDitheringOn( nsfb->seed.palette ) == false )
   { nsfbPaletteDitherInit(nsfb->seed.palette, width);
     setDither = true;
@@ -289,7 +315,7 @@ static bool x11Bitmap( struct x11List   * nsfb
  *  Anybody thiks the "clevest" mandatory free of XDestroyImage is a good idea?
  */
 
-  int sz= bmpWidth * height * sizeof(  NsfbColour );
+  int sz= bmpWidth * height * sizeof(  NSFBCOLOUR );
   char * fakeMem= malloc( sz );
   memcpy( fakeMem, pixel, sz );
 
@@ -300,9 +326,9 @@ static bool x11Bitmap( struct x11List   * nsfb
     case  8: break;
 
     case 16: img=
-      XCreateImage( x11->theDisplay
+      XCreateImage(          x11->theDisplay
                   , (Visual*)x11->theVisual
-                  ,  x11->rtns.theDepth
+                  ,          x11->rtns.theDepth
                   , ZPixmap, 0
                   , (char *)GETCOL16( bmpWidth, height, fakeMem )
                   , bmpWidth, height
@@ -330,7 +356,7 @@ static bool x11Bitmap( struct x11List   * nsfb
     default: return( -1 );
   }
 
-  if ( img )
+  if ( img  )
   { XSetClipOrigin( x11->theDisplay, nsfb->theGC
                   , loc->x0, loc->y0 );
 
@@ -360,7 +386,7 @@ static bool x11Bitmap( struct x11List   * nsfb
 static bool x11BitmapTiles( struct x11List  * nsfb
                           , const NsfbBbox *box
                           , int tiles_x, int tiles_y
-                          , const NsfbColour *pixel
+                          , const NSFBCOLOUR *pixel
                           , int bmpWidth, int bmpHeight, int bmp_stride
                           , int alpha )
 {
@@ -388,7 +414,7 @@ static bool x11Copy( struct x11List  * nsfb
 static bool x11Glyph8( struct x11List  * nsfb
                      , NsfbBbox *loc
                      , const byte *pixel, int pitch
-                     , NsfbColour c, NsfbColour b )
+                     , NSFBCOLOUR c, NSFBCOLOUR b )
 {
 
   puts("TO G8");
@@ -400,7 +426,7 @@ static bool x11Glyph8( struct x11List  * nsfb
  */
 static bool x11Glyph1( struct x11List  * nsfb
                      , NsfbBbox *loc, const byte *pixel
-                     , int pitch, NsfbColour c )
+                     , int pitch, NSFBCOLOUR c )
 {
 
   puts("TO G1");
@@ -411,7 +437,7 @@ static bool x11Glyph1( struct x11List  * nsfb
  */
 static bool x11Readrect( struct x11List    * nsfb
                        , NsfbBbox   * rect
-                       , NsfbColour * buffer )
+                       , NSFBCOLOUR * buffer )
 {
 
   puts("TO >RRE");
@@ -434,12 +460,71 @@ static int x11Moverect( struct x11List  * drv
   return( true );
 }
 
+static  bool x11Clg( struct x11List  * drv, NSFBCOLOUR c )
+{ return( plotClg( drv, drv->theBackground= c & 0xFFFFFF ));   /* Strip alpha channel */
+
+/*  XSetWindowBackground( drv->theDisplay
+                      , drv->theWindow
+                      , drv->theBackground= c & 0xFFFFFF );
+
+  XClearWindow( drv->theDisplay
+              , drv->theWindow );
+  XFlush( drv->theDisplay );
+
+  return( true ); */
+}
+
+
+
+/** Plot bitmap
+ */
+static bool x11PixmapFill( struct x11List * drv
+                         , ImageMap       * img
+                         , int x, int y, int offy, int capy
+                         , NSFBCOLOUR back )
+{ if ( img )
+  { int bmpWidth=  ((XImage * )img->image)->width;
+    int bmpHeight= ((XImage * )img->image)->height;
+
+    if ( capy )                                // Only redraw a section
+    { bmpHeight= capy;
+    }
+
+    if ( img->mask )
+    { XSetClipOrigin( drv->theDisplay, drv->theGC
+                    , x, y - offy );
+
+      XSetClipMask  ( drv->theDisplay, drv->theGC
+                    , (Pixmap)(img->mask));
+    }
+    else
+    { XSetClipMask( drv->theDisplay, drv->theGC
+                  , None );
+    }
+//    if (  bmpWidth > 1000 )
+  //  printf("putimage %d %d %d size %d %d\n", offy, x, y, bmpWidth, bmpHeight );
+
+
+    XPutImage(  drv->theDisplay, drv->theSurface, drv->theGC
+             , (XImage*)img->image
+             , 0, offy
+             , x,    y
+             , bmpWidth, bmpHeight );
+    XFlush( drv->theDisplay );
+
+    if ( img->mask )
+    { XSetClipMask( drv->theDisplay, drv->theGC
+                  , None );
+  } }
+
+  return( true );
+}
 
 /* set X11 plotters
  */
 struct NsfbPlotterFns x11PlottersAddr=
-{ clg        : ( NsfbPlotfnClg         ) surfaceClg      // NsfbPlotfnClg
-, pan        : ( NsfbPlotfnPan         ) surfacePan      // NsfbPlotfnPan
+{ clg        : ( NsfbPlotfnClg         ) x11Clg          // NsfbPlotfnClg
+, pan        : ( NsfbPlotfnPan         ) plotPan         // NsfbPlotfnPan
 , rectangle  : ( NsfbPlotfnRectangle   ) x11Rectangle    // NsfbPlotfnRectangle
 , line       : ( nsfbPlotfnLine        ) x11Line         // nsfbPlotfnLine
 , polygon    : ( NsfbPlotfnPolygon     ) x11Polygon      // NsfbPlotfnPolygon
@@ -448,19 +533,19 @@ struct NsfbPlotterFns x11PlottersAddr=
 , setClip    : ( NsfbPlotfnClip        ) x11SetClip      // NsfbPlotfnClip
 , ellipse    : ( NsfbPlotfnEllipse     ) x11Ellipse      // NsfbPlotfnEllipse
 , ellipseFill: ( NsfbPlotfnEllipseFill ) x11EllipseFill  // NsfbPlotfnEllipseFill
+, pixmapFill : ( NsfbPlotfnPutPixmap   ) x11PixmapFill   // NsfbPlotfnBitmap
 , arc        : ( NsfbPlotfnArc         ) x11Arc          // NsfbPlotfnArc
 , bitmap     : ( NsfbPlotfnBitmap      ) x11Bitmap       // NsfbPlotfnBitmap
 , bitmapTiles: ( NsfbPlotfnBitmapTiles ) x11BitmapTiles  // NsfbPlotfnBitmapTiles
-, pixmapFill : ( NsfbPlotfnPutPixmap   ) PixmapFill        // NsfbPlotfnBitmap
 , point      : ( NsfbPlotfnPoint       ) x11Point        // NsfbPlotfnPoint
 , copy       : ( NsfbPlotfnCopy        ) x11Copy         // NsfbPlotfnCopy
 , glyph8     : ( NsfbPlotfnGlyph8      ) x11Glyph8       // NsfbPlotfnGlyph8
 , glyph1     : ( NsfbPlotfnGlyph1      ) x11Glyph1       // NsfbPlotfnGlyph1
 , readrect   : ( NsfbPlotfnReadrect    ) x11Readrect     // NsfbPlotfnReadrect
 , moverect   : ( NsfbPlotfnMoverect    ) x11Moverect     // NsfbPlotfnMoverect
-, quadratic  : ( NsfbPlotfnQuadratic   ) plotQuadratic     // NsfbPlotfnQuadratic
-, cubic      : ( NsfbPlotfnCubicBezier ) plotCubic         // NsfbPlotfnCubicBezier
-, path       : ( nsfbPlotfnPath        ) plotPath          // nsfbPlotfnPath
+, quadratic  : ( NsfbPlotfnQuadratic   ) plotQuadratic   // NsfbPlotfnQuadratic
+, cubic      : ( NsfbPlotfnCubicBezier ) plotCubic       // NsfbPlotfnCubicBezier
+, path       : ( nsfbPlotfnPath        ) plotPath        // nsfbPlotfnPath
 , polylines  : ( NsfbPlotfnPolylines   ) x11Polylines    // NsfbPlotfnPolylines
 };
 

@@ -11,15 +11,15 @@
 #include "../nsfb.h"
 #include "../plot.h"
 
-static inline void * get_xy_loc( nsfb_t * nsfb, int x, int y)
+static inline void * getXYloc( Nsfb * nsfb, int x, int y)
 { return( nsfb->loc + (y * nsfb->loclen) + ( x << 1 ) );
 }
 
-static inline void * get_xy_pan( nsfb_t * nsfb, int x, int y)
+static inline void * getXYpan( Nsfb * nsfb, int x, int y)
 { return( nsfb->pan + (y * nsfb->panlen) + ( x << 1 ) );
 }
 
-static inline nsfb_colour_t PIXEL_TO_COLOR( void * p, int idx )
+static inline NSFBCOLOUR PIXEL_TO_COLOR( void * p, int idx )
 { word * ptr= (word *)p;
   word   pixel= ptr[ idx ];
 
@@ -28,7 +28,7 @@ static inline nsfb_colour_t PIXEL_TO_COLOR( void * p, int idx )
         |(( pixel & 0xF800 ) >>  8 ));
 }
 
-static inline void COLOR_TO_PIXEL( void * p, int idx, nsfb_colour_t c )
+static inline void COLOR_TO_PIXEL( void * p, int idx, NSFBCOLOUR c )
 { word * ptr= ( word *)p;
 
   ptr[ idx ]=(( c & 0x0000F8) <<  8 )
@@ -40,12 +40,15 @@ static inline void COLOR_TO_PIXEL( void * p, int idx, nsfb_colour_t c )
 #define PLOT_TYPE word
 #define PLOT_LINELEN( ll ) ((ll) >> 1)
 
+#define surfaceAlphaBitmap surfaceAlphaBitmap16
+#define surfaceBitmap surfaceBitmap16
+
 #include "common.c"
 
 
-static bool fill( nsfb_t      *nsfb
-                , nsfb_bbox_t *rect
-                , nsfb_colour_t c )
+static bool fill( Nsfb        * nsfb
+                , NsfbBbox * rect
+                , NSFBCOLOUR c )
 { int w;
   word *pvid16;
   word ent16;
@@ -55,7 +58,7 @@ static bool fill( nsfb_t      *nsfb
   dword width;
   dword height;
 
-  if (!nsfbPlotclip_ctx(nsfb, rect))
+  if (!nsfbPlotClipCtx(nsfb, rect))
   { return true; /* fill lies outside current clipping region */
   }
 
@@ -63,7 +66,7 @@ static bool fill( nsfb_t      *nsfb
   width = rect->x1 - rect->x0;
   height = rect->y1 - rect->y0;
 
-  pvid16= get_xy_loc( nsfb, rect->x0, rect->y0 );
+  pvid16= getXYloc( nsfb, rect->x0, rect->y0 );
 
   if (((rect->x0 & 1) == 0) && ((width & 1) == 0))   /* aligned to 32bit value and width is even */
   { width = width >> 1;
@@ -110,18 +113,55 @@ static bool fill( nsfb_t      *nsfb
   return true;
 }
 
-const nsfb_plotter_fns_t _nsfb_16bpp_plotters =
-{ .line        = line
-, .fill        = fill
-, .point       = point
-, .bitmap      = bitmap
-, .bitmap_tiles= bitmap_tiles
-, .glyph8      = glyph8
-, .glyph1      = glyph1
-, .readrect    = readrect
-, .moverect    = moverect
-};
+/*
+ *
+ */
+static bool pixmapFill( Nsfb    * nsfb
+                     , ImageMap * img
+                     , int x, int y
+                     , int offy, int capy
+                     , NSFBCOLOUR back )
+{ if ( img )
+  { int overload= (int)img->mask;
 
+    int bmpWidth=  overload &  0xFFFF;    // Unproperly packed
+    int bmpHeight= overload >> 16;
+
+    if ( capy )                            // Only redraw a section
+    { bmpHeight= capy;
+  } }
+
+
+
+}
+
+const nsfbPlotterFns _nsfb_16bpp_plotters =
+{ .line       = line
+, .fill       = fill
+, .point      = point
+, .bitmap     = bitmap
+, .glyph8     = glyph8
+, .glyph1     = glyph1
+, .readrect   = readrect
+, .moverect   = moverect
+, .rectangle  = rectangle
+, .ellipse    = ellipse
+, .ellipseFill= ellipseFill
+, .copy       = copy
+, .arc        = arc
+, .quadratic  = plotQuadratic
+, .cubic      = plotCubic
+, .path       = plotPath
+, .polylines  = polylines
+, .polygon    = polygon
+, .bitmapTiles= bitmapTilesCommon
+, .clg        = clg
+, .setClip    = setClip
+, .getClip    = getClip
+
+, .pixmapFill = pixmapFill  // NsfbPlotfnBitmap
+
+};
 /*
  * Local Variables:
  * c-basic-offset:8

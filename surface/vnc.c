@@ -11,11 +11,11 @@
 #include "../plot.h"
 #include "../cursor.h"
 
-static nsfb_event_t *gevent;
+static nsfb _event_t *gevent;
 
 /* vnc special set codes 
  */
-static enum nsfb_key_code_e vnc_nsfb_map[ 256 ] =
+static enum nsfb _key_code_e vncNsfbMap[ 256 ] =
 { NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN
 , NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN
 , NSFB_KEY_BACKSPACE, NSFB_KEY_TAB    , NSFB_KEY_LF     , NSFB_KEY_CLEAR    /* 0x08 */
@@ -75,66 +75,46 @@ static enum nsfb_key_code_e vnc_nsfb_map[ 256 ] =
 
 
  /* 0x78 */
-, NSFB_KEY_UNKNOWN,    NSFB_KEY_UNKNOWN,    NSFB_KEY_UNKNOWN,    NSFB_KEY_UNKNOWN
-, NSFB_KEY_UNKNOWN,    NSFB_KEY_MODE,    NSFB_KEY_NUMLOCK,    NSFB_KEY_UNKNOWN
+, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN
+, NSFB_KEY_UNKNOWN, NSFB_KEY_MODE   , NSFB_KEY_NUMLOCK, NSFB_KEY_UNKNOWN
 
  /* 0x80 */
-, NSFB_KEY_UNKNOWN,    NSFB_KEY_UNKNOWN,    NSFB_KEY_UNKNOWN,    NSFB_KEY_UNKNOWN
-, NSFB_KEY_UNKNOWN,
-    NSFB_KEY_UNKNOWN,
-    NSFB_KEY_UNKNOWN,
-    NSFB_KEY_UNKNOWN, /* 0x88 */
-    NSFB_KEY_UNKNOWN,
-    NSFB_KEY_UNKNOWN,
-    NSFB_KEY_UNKNOWN,
-    NSFB_KEY_UNKNOWN,
-    NSFB_KEY_KP_ENTER,
-    NSFB_KEY_UNKNOWN,
-    NSFB_KEY_UNKNOWN,
-    NSFB_KEY_UNKNOWN, /* 0x90 */
-    NSFB_KEY_UNKNOWN,
-    NSFB_KEY_UNKNOWN,
-    NSFB_KEY_UNKNOWN,
-    NSFB_KEY_UNKNOWN,
-    NSFB_KEY_UNKNOWN,
-    NSFB_KEY_UNKNOWN,
-    NSFB_KEY_UNKNOWN,
-    NSFB_KEY_UNKNOWN, /* 0x98 */
-    NSFB_KEY_UNKNOWN,
-    NSFB_KEY_UNKNOWN,
-    NSFB_KEY_UNKNOWN,
-    NSFB_KEY_UNKNOWN,
-    NSFB_KEY_UNKNOWN,
-    NSFB_KEY_UNKNOWN,
-    NSFB_KEY_UNKNOWN,
-    NSFB_KEY_UNKNOWN, /* 0xA0 */
-    NSFB_KEY_UNKNOWN,
-    NSFB_KEY_UNKNOWN,
-    NSFB_KEY_UNKNOWN,
-    NSFB_KEY_UNKNOWN,
-    NSFB_KEY_UNKNOWN,
-    NSFB_KEY_UNKNOWN,
-    NSFB_KEY_UNKNOWN,
-    NSFB_KEY_UNKNOWN, /* 0xA8 */
-    NSFB_KEY_UNKNOWN,
-    NSFB_KEY_KP_MULTIPLY,
-    NSFB_KEY_KP_PLUS,
-    NSFB_KEY_UNKNOWN,
-    NSFB_KEY_KP_MINUS,
-    NSFB_KEY_KP_PERIOD,
-    NSFB_KEY_KP_DIVIDE,
-    NSFB_KEY_KP0
-     /* 0xB0 */
+, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN
+, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN 
+
+/* 0x88 */
+, NSFB_KEY_UNKNOWN , NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN
+, NSFB_KEY_KP_ENTER, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN 
+
+/* 0x90 */
+, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN
+, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN 
+
+/* 0x98 */
+, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN
+, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN 
+
+/* 0xA0 */
+, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN
+, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN 
+
+/* 0xA8 */
+, NSFB_KEY_UNKNOWN , NSFB_KEY_KP_MULTIPLY, NSFB_KEY_KP_PLUS, NSFB_KEY_UNKNOWN
+, NSFB_KEY_KP_MINUS, NSFB_KEY_KP_PERIOD, NSFB_KEY_KP_DIVIDE, NSFB_KEY_KP0
+
+/* 0xB0 */
 ,  NSFB_KEY_KP1,    NSFB_KEY_KP2,    NSFB_KEY_KP3,    NSFB_KEY_KP4
 ,  NSFB_KEY_KP5,    NSFB_KEY_KP6,    NSFB_KEY_KP7,    NSFB_KEY_KP8
 
- /* 0xB8 */
-,    NSFB_KEY_KP9,    NSFB_KEY_UNKNOWN,    NSFB_KEY_UNKNOWN,    NSFB_KEY_UNKNOWN
-,    NSFB_KEY_KP_EQUALS,    NSFB_KEY_F1,    NSFB_KEY_F2,    NSFB_KEY_F3
+/* 0xB8 */
+, NSFB_KEY_KP9      , NSFB_KEY_UNKNOWN,    NSFB_KEY_UNKNOWN,    NSFB_KEY_UNKNOWN
+, NSFB_KEY_KP_EQUALS
+
+, NSFB_KEY_F1, NSFB_KEY_F2, NSFB_KEY_F3
 
  /* 0xC0 */
-,    NSFB_KEY_F4,    NSFB_KEY_F5,,   NSFB_KEY_F6,,    NSFB_KEY_F7
-,,    NSFB_KEY_F8,,    NSFB_KEY_F9,,    NSFB_KEY_F10,,    NSFB_KEY_F11
+, NSFB_KEY_F4, NSFB_KEY_F5, NSFB_KEY_F6,  NSFB_KEY_F7
+, NSFB_KEY_F8, NSFB_KEY_F9, NSFB_KEY_F10, NSFB_KEY_F11
 
 /* 0xC8 */
 , NSFB_KEY_F12,    NSFB_KEY_F13,    NSFB_KEY_F14,    NSFB_KEY_F15
@@ -142,59 +122,34 @@ static enum nsfb_key_code_e vnc_nsfb_map[ 256 ] =
 , NSFB_KEY_UNKNOWN
 
 , /* 0xD0 */
-,    NSFB_KEY_UNKNOWN,
-,    NSFB_KEY_UNKNOWN,
-,    NSFB_KEY_UNKNOWN,
-,    NSFB_KEY_UNKNOWN,
-,    NSFB_KEY_UNKNOWN,
-,    NSFB_KEY_UNKNOWN,
-,    NSFB_KEY_UNKNOWN,
-,    NSFB_KEY_UNKNOWN, /* 0xD8 */
-,    NSFB_KEY_UNKNOWN,
-,    NSFB_KEY_UNKNOWN,
-,    NSFB_KEY_UNKNOWN,
-,    NSFB_KEY_UNKNOWN,
-,    NSFB_KEY_UNKNOWN,
-,    NSFB_KEY_UNKNOWN,
-,    NSFB_KEY_UNKNOWN,
-,    NSFB_KEY_UNKNOWN, /* 0xE0 */
-,    NSFB_KEY_LSHIFT,
-,    NSFB_KEY_RSHIFT,
-,    NSFB_KEY_LCTRL,
-,    NSFB_KEY_RCTRL,
-,    NSFB_KEY_CAPSLOCK,
-,    NSFB_KEY_SCROLLOCK,
-,    NSFB_KEY_LMETA,
-,    NSFB_KEY_RMETA, /* 0xE8 */
-,    NSFB_KEY_LALT,
-,    NSFB_KEY_RALT,
-,    NSFB_KEY_LSUPER,
-,    NSFB_KEY_RSUPER,
-,    NSFB_KEY_UNKNOWN,
-,    NSFB_KEY_UNKNOWN,
-,    NSFB_KEY_UNKNOWN,
-,    NSFB_KEY_UNKNOWN, /* 0xF0 */
-,    NSFB_KEY_UNKNOWN,
-,    NSFB_KEY_UNKNOWN,
-,    NSFB_KEY_UNKNOWN,
-,    NSFB_KEY_UNKNOWN,
-,    NSFB_KEY_UNKNOWN,
-,    NSFB_KEY_UNKNOWN,
-,    NSFB_KEY_UNKNOWN,
-,    NSFB_KEY_UNKNOWN, /* 0xF8 */
-,    NSFB_KEY_UNKNOWN,
-,  NSFB_KEY_UNKNOWN,
-,   NSFB_KEY_UNKNOWN,
-,    NSFB_KEY_UNKNOWN,
-,    NSFB_KEY_UNKNOWN,
-,    NSFB_KEY_UNKNOWN
+, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN
+, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN /* 0xD8 */
+, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN
+, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN /* 0xE0 */
+
+, NSFB_KEY_LSHIFT,  NSFB_KEY_RSHIFT,  NSFB_KEY_LCTRL  , NSFB_KEY_RCTRL
+, NSFB_KEY_CAPSLOCK
+, NSFB_KEY_SCROLLOCK
+, NSFB_KEY_LMETA
+, NSFB_KEY_RMETA /* 0xE8 */
+, NSFB_KEY_LALT
+, NSFB_KEY_RALT
+, NSFB_KEY_LSUPER
+, NSFB_KEY_RSUPER
+
+, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN /* 0xF0 */
+, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN
+, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN /* 0xF8 */
+, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN
+, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN
+
 , NSFB_KEY_DELETE
 };
 
 
-static void vnc_doptr( int buttonMask
-                     , int x,int y
-                     , rfbClientPtr cl )
+static void vncDoptr( int buttonMask
+                    , int x,int y
+                    , rfbClientPtr cl )
 { static int prevbuttonMask = 0;
 
   UNUSED(cl);
@@ -231,10 +186,10 @@ static void vnc_doptr( int buttonMask
   else if (((prevbuttonMask ^ buttonMask) & 0x08) == 0x08)
   { if ((buttonMask & 0x01) == 0x01)
     { gevent->type = NSFB_EVENT_KEY_DOWN;
-	  }
+	   }
     else
     { gevent->type = NSFB_EVENT_KEY_UP;
-	  }
+	   }
 	  gevent->value.keycode = NSFB_KEY_MOUSE_4;
 	}
   else if (((prevbuttonMask ^ buttonMask) & 0x10) == 0x10)
@@ -243,10 +198,10 @@ static void vnc_doptr( int buttonMask
 	  }
     else
     { gevent->type = NSFB_EVENT_KEY_UP;
-	  }
-	  gevent->value.keycode = NSFB_KEY_MOUSE_5;
-	}
-	prevbuttonMask = buttonMask;
+	   }
+	    gevent->value.keycode = NSFB_KEY_MOUSE_5;
+	   }
+	   prevbuttonMask = buttonMask;
   }
   else
   { gevent->type = NSFB_EVENT_MOVE_ABSOLUTE;
@@ -256,8 +211,8 @@ static void vnc_doptr( int buttonMask
 } }
 
 
-static void vnc_dokey(rfbBool down, rfbKeySym key, rfbClientPtr cl)
-{ enum nsfb_key_code_e keycode = NSFB_KEY_UNKNOWN;
+static void vncDokey(rfbBool down, rfbKeySym key, rfbClientPtr cl)
+{ enum nsfb_ key_code_e keycode = NSFB_KEY_UNKNOWN;
 
   UNUSED(cl);
 
@@ -266,7 +221,7 @@ static void vnc_dokey(rfbBool down, rfbKeySym key, rfbClientPtr cl)
   {	keycode = key; /* ascii codes line up */
   }
   else if ((key & 0xff00) == 0xff00) /* bottom 8bits of keysyms in this range map via table */
-  { keycode = vnc_nsfb_map[(key & 0xff)];
+  { keycode = vncNsfbMap[(key & 0xff)];
   }
 
   if (down == 0)/* key up */
@@ -279,12 +234,12 @@ static void vnc_dokey(rfbBool down, rfbKeySym key, rfbClientPtr cl)
 }
 
 
-static int vnc_set_geometry( nsfb_t *nsfb
+static int vncSetGeometry( Nsfb *nsfb
                            , int width, int height
-                           , enum nsfb_format_e format )
+                           , enum NsfbFormat format )
 { format &= NSFB_FMT_MASK;
 
-  if ( nsfb->surface_priv )
+  if ( nsfb->surfacePriv )
   { return -1; /* fail if surface already initialised */
   }
 
@@ -301,22 +256,24 @@ static int vnc_set_geometry( nsfb_t *nsfb
   }
 
     /* select soft plotters appropriate for format */
-  select_plotters( nsfb );
+  selectPlotters( nsfb );
 
   return 0;
 }
 
-static int vnc_initialise(nsfb_t *nsfb)
+static int vncInitialise(Nsfb *nsfb)
 { rfbScreenInfoPtr vncscreen;
   int argc = 0;
   char **argv = NULL;
 
-  if (nsfb->surface_priv != NULL)
-        return -1; /* fail if surface already initialised */
+  if ( nsfb->surfacePriv  )  /* fail if surface already initialised */
+  { return -1;
+  }
 
-    /* sanity checked depth. */
-  if (nsfb->bpp != 32)
-      return -1;
+
+  if (nsfb->bpp != 32)     /* sanity checked depth. */
+  { return -1;
+  } 
 
 /*
  *   create vnc screen with 8bits per sample, three samples per
@@ -353,83 +310,83 @@ static int vnc_initialise(nsfb_t *nsfb)
       vncscreen->serverFormat.redMax = 31;
       vncscreen->serverFormat.greenMax = 63;
       vncscreen->serverFormat.blueMax = 31;
-	break;
+  	 break;
 
     case 32:
       vncscreen->serverFormat.trueColour=TRUE;
       vncscreen->serverFormat.redShift = 16;
       vncscreen->serverFormat.greenShift = 8;
       vncscreen->serverFormat.blueShift = 0;
-	break;
+   	break;
   }
 
   vncscreen->alwaysShared = TRUE;
   vncscreen->autoPort = 1;
-  vncscreen->ptrAddEvent = vnc_doptr;
-  vncscreen->kbdAddEvent = vnc_dokey;
+  vncscreen->ptrAddEvent = vncDoptr;
+  vncscreen->kbdAddEvent = vncDokey;
 
   rfbInitServer(vncscreen);
 
     /* keep parameters */
-  nsfb->surface_priv = vncscreen;
+  nsfb->surfacePriv = vncscreen;
   nsfb->ptr = (byte *)vncscreen->frameBuffer;
   nsfb->linelen = (nsfb->width * nsfb->bpp) / 8;
 
   return 0;
 }
 
-static int vnc_finalise(nsfb_t *nsfb)
-{ rfbScreenInfoPtr vncscreen = nsfb->surface_priv;
+static int vncFinalise(Nsfb *nsfb)
+{ rfbScreenInfoPtr vncscreen= nsfb->surfacePriv;
 
-  if (vncscreen != NULL)
-  { rfbScreenCleanup(vncscreen);
+  if ( vncscreen )
+  { rfbScreenCleanup( vncscreen );
   }
-
-    return 0;
-}
-
-
-static int vnc_update(nsfb_t *nsfb, nsfb_bbox_t *box)
-{ rfbScreenInfoPtr vncscreen= nsfb->surface_priv;
-
-  rfbMarkRectAsModified(vncscreen, box->x0, box->y0, box->x1, box->y1);
 
   return 0;
 }
 
 
-static bool vnc_input( nsfb_t *nsfb, nsfb_event_t *event, int timeout )
-{ rfbScreenInfoPtr vncscreen = nsfb->surface_priv;
-  int ret;
+static int vncUpdate(Nsfb *nsfb, NsfbBbox *box)
+{ rfbScreenInfoPtr vncscreen= nsfb->surfacePriv;
 
-  if (vncscreen != NULL) {
+  rfbMarkRectAsModified( vncscreen, box->x0, box->y0, box->x1, box->y1 );
 
-	 gevent = event; /* blergh - have to use global state to pass data */
-
-	/* set default to timeout */
-	 event->type = NSFB_EVENT_CONTROL;
-	 event->value.controlcode = NSFB_CONTROL_TIMEOUT;
-
-	 ret = rfbProcessEvents(vncscreen, timeout * 1000);
-
-	 if (ret == 0)  /* valid event */
-	 { return true;
-  }
-
-	/* connection error occurred */
-  }
-
-    return false;
+  return 0;
 }
 
-static int vnc_cursor( nsfb_t *nsfb
-                     , struct nsfbCursor_s *cursor )
-{ rfbScreenInfoPtr vncscreen= nsfb->surface_priv;
+
+//static bool vncInput( Nsfb *nsfb, nsfb/_event_t *event, int timeout )
+//{ rfbScreenInfoPtr vncscreen = nsfb->surfacePriv;
+//  int ret;
+//
+//  if ( vncscreen  ) 
+//  { gevent = event; /* blergh - have to use global state to pass data */
+
+/* set default to timeout 
+ */
+//  	 event->type             = NSFB_EVENT_CONTROL;
+//	   event->value.controlcode= NSFB_CONTROL_TIMEOUT;
+//
+//  	 ret = rfbProcessEvents(vncscreen, timeout * 1000);
+//
+//	   if (ret == 0)  /* valid event */
+//  	 { return true;
+//    }
+
+	/* connection error occurred */
+//  }
+
+ // return false;
+//}
+
+static int vncCursor( Nsfb *nsfb
+                    , struct nsfbCursor_s *cursor )
+{ rfbScreenInfoPtr vncscreen= nsfb->surfacePriv;
   rfbCursorPtr     vnccursor= calloc(1,sizeof(rfbCursor));
   int rwidth; /* rounded width */
   int row;
   int col;
-  const nsfb_colour_t *pixel;
+  const NsfbColour *pixel;
   byte bit;
 
   rwidth = (cursor->bmp_width + 7) / 8;
@@ -444,7 +401,9 @@ static int vnc_cursor( nsfb_t *nsfb
   vnccursor->mask = calloc(rwidth, vnccursor->height);
   vnccursor->cleanupMask = 1; /* rfb lib will free this allocation */
 
-  for (row = 0, pixel = cursor->pixel; row < vnccursor->height; row++)
+  for ( row = 0, pixel = cursor->pixel
+      ; row < vnccursor->height
+      ; row++)
   { for( col = 0, bit = 0x80
        ; col < vnccursor->width
        ; col++, bit = (bit & 1)? 0x80 : bit>>1, pixel++ ) 	    /* pixel luminance more than 50% */
@@ -461,16 +420,17 @@ static int vnc_cursor( nsfb_t *nsfb
   return true;
 }
 
-const nsfb_surface_rtns_t vnc_rtns =
-{ .initialise= vnc_initialise
-, .finalise  = vnc_finalise
-, .input     = vnc_input
-, .update    = vnc_update
-, .cursor    = vnc_cursor
-, .geometry  = vnc_set_geometry
+const NsfbSurfaceRtns vncRtns =
+{ .type=     NSFB_SURFACE_VNC
+
+, .initialise= vncInitialise
+, .finalise  = vncFinalise
+, .update    = vncUpdate
+, .cursor    = vncCursor
+, .geometry  = vncSetGeometry
 };
 
-NSFB_SURFACE_DEF( vnc, NSFB_SURFACE_VNC, &vnc_rtns )
+NSFB_SURFACE_DEF( &vncRtns )
 
 /*
  * Local variables:

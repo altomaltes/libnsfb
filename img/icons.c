@@ -41,12 +41,12 @@
  *                                                                    *
  *   JASC 2012                                                        *
  *                                                                    *
- *  FUNCTION openIcoFromData2                                          *
+ *  FUNCTION openIcoFromData222222                                          *
  *                                                                    *
  *  @brief                                                            *
  *                                                                    *
 \* ================================================================= **/
-DeviceImageRec * openIcoFromData2
+DeviceImageRec * openIcoFromData222222
                  ( int          deep            /* Histogram          */
                  , int pics, int cls            /* Numbero of images (pals)  */
                  , int wDst, int hDst           /* desired width and height */
@@ -117,7 +117,7 @@ DeviceImageRec * openIcoFromData2
 }
 
 
-static DeviceImageRec * openIcoFromData123
+static DeviceImageRec * openIcoFromData
                   ( unsigned char * picture  /* Image data               */
                   , int wDst, int hDst       /* desired width and height */
                   , int wOrg, int hOrg       /* stored  width and height */
@@ -218,16 +218,23 @@ static DeviceImageRec * openIcoFromData123
   return( image );
 }
 
-
 /** ========================================= [ JACS, 10/01/2012 ] == *\
  *                                                                    *
  *   JASC 2012                                                        *
  *                                                                    *
  *  FUNCTION openIco                                                  *
  *                                                                    *
- *  @brief                                                            *
+ *  @brief explodes a hardcoded icon                                  *
  *                                                                    *
 \* ================================================================= **/
+ANSIC DeviceImageRec * openIco( IcoRec * ico )
+{ return( openIcoFromData( ico->pic             /* image data               */
+                         , ico->wNat, ico->hNat /* desired width and height */
+                         , ico->wNat, ico->hNat /* stored  width and height */
+                         , ico->pics, ico->nCol /* Keep palette            */
+                         , ico->pal ));         /* color list               */
+}
+
 
 typedef IcoRec         *  (*LoadIcoCode) ( const char * fname, int w, int h  );
 typedef DeviceImageRec *  (*LoadImgCode) ( const char * fname, int w, int h  );
@@ -352,7 +359,7 @@ int nsfbGetImageGeometry( DeviceImageRec * img
 
 DeviceImageRec * getIconImage( NsfbSurfaceRtns * surf
                              , IcoRec          * ico
-                             , COLORREF1         hue )
+                             , NSFBCOLOUR         hue )
 { static DeviceImageRec * seed= NULL;                   /* Linked list storing */
 
   if ( ico )
@@ -383,11 +390,11 @@ DeviceImageRec * getIconImage( NsfbSurfaceRtns * surf
     } }
 
 
-    iter= openIcoFromData123( ico->pic             /* image data               */
-                          , ico->wNat, ico->hNat /* desired width and height */
-                          , ico->wNat, ico->hNat /* stored  width and height */
-                          , ico->pics, ico->nCol /* Keep palette            */
-                          , ico->pal );          /* color list               */
+    iter= openIcoFromData( ico->pic             /* image data               */
+                         , ico->wNat, ico->hNat /* desired width and height */
+                         , ico->wNat, ico->hNat /* stored  width and height */
+                         , ico->pics, ico->nCol /* Keep palette            */
+                         , ico->pal );          /* color list               */
 
     int bmpWidth=  iter->width
       , bmpHeight= iter->height * iter->pics;
@@ -402,11 +409,11 @@ DeviceImageRec * getIconImage( NsfbSurfaceRtns * surf
                 , bmpHeight  ); /* Register new image */
 
   //  iter->hist= theHistogram;
-  iter->iden= ico;
-  iter->next= seed; seed= iter;  // Link list
+    iter->iden= ico;
+    iter->next= seed; seed= iter;  // Link list
 
-  return( iter );
-    }
+    return( iter );
+  }
 
   return( NULL );
 }

@@ -7,17 +7,16 @@
  *                http://www.opensource.org/licenses/mit-license.php
  */
 
-
 #define PLOT_TYPE dword
-#define PLOT_LINELEN(ll) ((ll) >> 2)
+#define PLOT_LINELEN(ll) ((ll) >> 2 )
 
 
 
-static inline void *get_xy_loc( nsfb_t *nsfb, int x, int y)
+static inline void *getXYloc( Nsfb *nsfb, int x, int y)
 { return( nsfb->loc + ( y * nsfb->loclen ) + (x << 2));
 }
 
-static inline void *get_xy_pan( nsfb_t *nsfb, int x, int y)
+static inline void *getXYpan( Nsfb *nsfb, int x, int y)
 { return( nsfb->pan + ( y * nsfb->panlen ) + (x << 2));
 }
 
@@ -25,9 +24,9 @@ static inline void *get_xy_pan( nsfb_t *nsfb, int x, int y)
 #include "common.c"
 
 
-static bool xorFill( nsfb_t *nsfb, nsfb_bbox_t *rect, dword ent )
+static bool xorFill( Nsfb *nsfb, NsfbBbox *rect, dword ent )
 { int w;
-  dword *pvid;
+  PLOT_TYPE *pvid;
   dword llen;
   dword width;
   dword height;
@@ -37,7 +36,7 @@ static bool xorFill( nsfb_t *nsfb, nsfb_bbox_t *rect, dword ent )
   height= rect->y1 - rect->y0;
   llen  = (nsfb->loclen >> 2) - width;
 
-  pvid = get_xy_loc( nsfb, rect->x0, rect->y0 );
+  pvid = getXYloc( nsfb, rect->x0, rect->y0 );
 
   while (height-- > 0)
   { w = width;
@@ -50,18 +49,18 @@ static bool xorFill( nsfb_t *nsfb, nsfb_bbox_t *rect, dword ent )
   return true;
 }
 
-static bool fill( nsfb_t *nsfb
-                , nsfb_bbox_t * ln
-                , nsfb_colour_t c )
+static bool fill( Nsfb     * nsfb
+                , NsfbBbox * ln
+                , NSFBCOLOUR c )
 { int   w;
-  dword *pvid;
+  PLOT_TYPE *pvid;
   dword ent;
   dword llen;
   dword width;
   dword height;
-  nsfb_bbox_t rect= *ln;
+  NsfbBbox rect= *ln;
 
-  if ( !nsfbPlotclip_ctx( nsfb, &rect ) )
+  if ( !nsfbPlotClipCtx( nsfb, &rect ) )
   { return( true ); /* fill lies outside current clipping region */
   }
 
@@ -73,14 +72,16 @@ static bool fill( nsfb_t *nsfb
 
   width = rect.x1 - rect.x0;
   height= rect.y1 - rect.y0;
-  llen  = ( nsfb->loclen >> 2 ) - width;
+  llen  = PLOT_LINELEN( nsfb->loclen ) - width;
 
-  pvid= get_xy_loc( nsfb, rect.x0, rect.y0 );
+  pvid= getXYloc( nsfb, rect.x0, rect.y0 );
+
+  PLOT_TYPE *last= (PLOT_TYPE *)nsfb->loc;
 
   while ( height-- > 0)
   { w = width;
 
-    while (w >= 16)
+   while (w >= 16)
     { *pvid++ = ent; *pvid++ = ent; *pvid++ = ent; *pvid++ = ent;
       *pvid++ = ent; *pvid++ = ent; *pvid++ = ent; *pvid++ = ent;
       *pvid++ = ent; *pvid++ = ent; *pvid++ = ent; *pvid++ = ent;
@@ -93,7 +94,7 @@ static bool fill( nsfb_t *nsfb
        w-=4;
     }
 
-    while (w > 0)
+    while ( w )
     { *pvid++ = ent; w--;
     }
     pvid += llen;
@@ -101,6 +102,47 @@ static bool fill( nsfb_t *nsfb
 
   return true;
 }
+
+/*
+ *
+ */
+static bool pixmapFill( Nsfb    * nsfb
+                     , ImageMap * img
+                     , int x, int y
+                     , int offy, int capy
+                     , NSFBCOLOUR back )
+{ if ( img )
+  { int overload= (int)img->mask;
+
+    dword * image= img->image;
+
+    int bmpWidth=  overload &  0xFFFF;    // Unproperly packed
+    int bmpHeight= overload >> 16;
+
+    if ( capy )                           // Only redraw a section
+    { bmpHeight= capy;
+    }
+
+    NsfbBbox loc;
+
+    loc.x0= x; loc.x1= loc.x0 + bmpWidth;
+    loc.y0= y; loc.y1= loc.y0 + bmpHeight;
+
+    image += offy * bmpWidth;            /* Aply offset on mosaic */
+
+    return( bitmap( nsfb
+                  , &loc
+                  , image
+                  , bmpWidth, bmpHeight, bmpWidth
+                  , true ));
+  }
+
+  return( false );
+}
+
+
+
+
 
 /*
  * Local Variables:

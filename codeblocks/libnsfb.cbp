@@ -2,12 +2,12 @@
 <CodeBlocks_project_file>
 	<FileVersion major="1" minor="6" />
 	<Project>
-		<Option title="libnsfb" />
+		<Option title="nsfb-1.0.0" />
 		<Option pch_mode="2" />
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="Debug">
-				<Option output="bin/Debug/libnsfb" prefix_auto="1" extension_auto="1" />
+				<Option output="test" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
@@ -29,6 +29,78 @@
 			</Target>
 			<Target title="linux">
 				<Option platforms="Unix;" />
+				<Option output="/usr/local/lib/libnsfb.so" imp_lib="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).a" def_file="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).def" prefix_auto="0" extension_auto="0" />
+				<Option object_output="obj/$(PLATFORM)" />
+				<Option type="3" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+					<Add option="-O0" />
+				</Compiler>
+				<Linker>
+					<Add library="dl" />
+				</Linker>
+			</Target>
+			<Target title="polystar">
+				<Option output="/usr/local/lib/test" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="/usr/local/lib" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+				<Linker>
+					<Add option="-L/usr/local/lib" />
+					<Add library="$(PROJECT_NAME)" />
+				</Linker>
+			</Target>
+			<Target title="DLL">
+				<Option platforms="Windows;" />
+				<Option output="$(PROJECT_DIR)../../DLL/$(PROJECT_NAME).dll" imp_lib="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).a" def_file="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).def" prefix_auto="0" extension_auto="0" />
+				<Option working_dir="$(PROJECT_DIR)../../DLL" />
+				<Option object_output="obj/Debug/" />
+				<Option type="3" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Option createStaticLib="1" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+				<Linker>
+					<Add library="kernel32" />
+					<Add library="gdi32" />
+				</Linker>
+				<ExtraCommands>
+					<Add before='install -d   &quot;$(TARGET_COMPILER_DIR)/include/altomaltes&quot;' />
+					<Add before='install  $(PROJECT_DIR)../libnsfb.h &quot;$(TARGET_COMPILER_DIR)/include&quot;' />
+					<Add before='install  $(PROJECT_DIR)../nsfbPlot.h &quot;$(TARGET_COMPILER_DIR)/include&quot;' />
+					<Add before='install  $(PROJECT_DIR)../libnsfb_cursor.h &quot;$(TARGET_COMPILER_DIR)/include&quot;' />
+					<Mode after="always" />
+				</ExtraCommands>
+			</Target>
+			<Target title="nsfb-X11">
+				<Option platforms="Unix;" />
+				<Option output="nsfb-X11.so" imp_lib="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).a" def_file="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).def" prefix_auto="0" extension_auto="0" />
+				<Option object_output="obj/$(PLATFORM)" />
+				<Option type="3" />
+				<Option compiler="gcc" />
+				<Option projectCompilerOptionsRelation="2" />
+				<Compiler>
+					<Add option="-g" />
+					<Add option="-O0" />
+				</Compiler>
+				<Linker>
+					<Add library="X11" />
+					<Add library="dl" />
+				</Linker>
+				<ExtraCommands>
+					<Add after="$(CMD_MV) $(TARGET_OUTPUT_FILE) /usr/local/lib/$(TARGET_OUTPUT_FILE)" />
+					<Mode after="always" />
+				</ExtraCommands>
+			</Target>
+			<Target title="nsfb-drm">
+				<Option platforms="Unix;" />
 				<Option output="nsfb" imp_lib="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).a" def_file="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).def" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/$(PLATFORM)" />
 				<Option type="3" />
@@ -42,7 +114,22 @@
 					<Mode after="always" />
 				</ExtraCommands>
 			</Target>
-			<Target title="test">
+			<Target title="nsfb-egl">
+				<Option platforms="Unix;" />
+				<Option output="nsfb" imp_lib="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).a" def_file="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).def" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/$(PLATFORM)" />
+				<Option type="3" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+					<Add option="-O0" />
+				</Compiler>
+				<ExtraCommands>
+					<Add after="$(CMD_MV) $(TARGET_OUTPUT_FILE) /usr/local/lib/$(TARGET_OUTPUT_FILE)" />
+					<Mode after="always" />
+				</ExtraCommands>
+			</Target>
+			<Target title="polystar2">
 				<Option output="/usr/local/lib/test" prefix_auto="1" extension_auto="1" />
 				<Option working_dir="/usr/local/lib" />
 				<Option object_output="obj/Debug/" />
@@ -53,57 +140,93 @@
 				</Compiler>
 				<Linker>
 					<Add option="-L/usr/local/lib" />
-					<Add library="nsfb" />
-					<Add library="freetype" />
-					<Add library="m" />
+					<Add library="$(PROJECT_NAME)" />
 				</Linker>
 			</Target>
-			<Target title="DLL">
-				<Option output="$(PROJECT_DIR)../../DLL/$(PROJECT_NAME).dll" imp_lib="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).a" def_file="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).def" prefix_auto="0" extension_auto="0" />
-				<Option working_dir="$(PROJECT_DIR)../../DLL" />
+			<Target title="bitmap">
+				<Option output="/usr/local/lib/test" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="$(PROJECT_DIR)../arena" />
 				<Option object_output="obj/Debug/" />
-				<Option type="3" />
+				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-g" />
 				</Compiler>
-				<ExtraCommands>
-					<Add after='$(CMD_CP)  $(TARGET_OUTPUT_FILE)  [[if (PLATFORM == PLATFORM_MSW) print(_T(&quot;$(SystemRoot)\\system32&quot;)) else print(_T(&quot;/usr/local/lib&quot;));]]' />
-					<Mode after="always" />
-				</ExtraCommands>
+				<Linker>
+					<Add option="-L/usr/local/lib" />
+					<Add library="$(PROJECT_NAME)" />
+					<Add library="m" />
+				</Linker>
 			</Target>
+			<Target title="nsfb-w32-1.0.0">
+				<Option platforms="Windows;" />
+				<Option output="$(PROJECT_DIR)../../DLL/$(TARGET_NAME).dll" imp_lib="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).a" def_file="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).def" prefix_auto="0" extension_auto="0" />
+				<Option working_dir="$(PROJECT_DIR)../../DLL" />
+				<Option object_output="obj/$(PLATFORM)" />
+				<Option type="3" />
+				<Option compiler="gcc" />
+				<Option projectCompilerOptionsRelation="2" />
+				<Compiler>
+					<Add option="-g" />
+					<Add option="-O0" />
+				</Compiler>
+				<Linker>
+					<Add library="gdi32" />
+					<Add library="$(PROJECT_NAME)" />
+				</Linker>
+			</Target>
+			<Target title="nsfb-svg">
+				<Option platforms="Unix;" />
+				<Option output="/usr/local/bin/test" prefix_auto="0" extension_auto="0" />
+				<Option working_dir="$(PROJECT_DIR)../arena" />
+				<Option object_output="obj/$(PLATFORM)" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+					<Add option="-O0" />
+					<Add directory="/usr/include/libxml2" />
+				</Compiler>
+				<Linker>
+					<Add library="m" />
+					<Add library="xml2" />
+					<Add library="nsfb" />
+				</Linker>
+			</Target>
+			<Environment>
+				<Variable name="VERSION" value="1.0.0" />
+			</Environment>
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
 			<Add option="-fPIC" />
+			<Add option='-DVERSION=\&quot;1.0.0\&quot;' />
 		</Compiler>
-		<ExtraCommands>
-			<Add before='install -d   &quot;$(TARGET_COMPILER_DIR)/local/include/altomaltes&quot;' />
-			<Add before='install  $(PROJECT_DIR)../libnsfb.h &quot;$(TARGET_COMPILER_DIR)local/include/altomaltes&quot;' />
-			<Add before='install  $(PROJECT_DIR)../libnsfb_plot.h &quot;$(TARGET_COMPILER_DIR)local/include/altomaltes&quot;' />
-			<Add before='install  $(PROJECT_DIR)../libnsfb_cursor.h &quot;$(TARGET_COMPILER_DIR)local/include/altomaltes&quot;' />
-			<Mode after="always" />
-		</ExtraCommands>
+		<Linker>
+			<Add directory="$(PROJECT_DIR)../../DLL" />
+		</Linker>
+		<Unit filename="../Makefile.am" />
 		<Unit filename="../arena/bitmap.c">
 			<Option compilerVar="CC" />
-			<Option target="&lt;{~None~}&gt;" />
+			<Option target="bitmap" />
 		</Unit>
 		<Unit filename="../arena/nsglobe.c">
 			<Option compilerVar="CC" />
-			<Option target="&lt;{~None~}&gt;" />
+			<Option target="bitmap" />
 		</Unit>
 		<Unit filename="../arena/polystar.c">
 			<Option compilerVar="CC" />
-			<Option target="test" />
+			<Option target="polystar" />
 		</Unit>
 		<Unit filename="../arena/polystar2.c">
 			<Option compilerVar="CC" />
-			<Option target="&lt;{~None~}&gt;" />
+			<Option target="polystar2" />
 		</Unit>
 		<Unit filename="../arena/tspeed.c">
 			<Option compilerVar="CC" />
 			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
+		<Unit filename="../configure.ac" />
 		<Unit filename="../cursor.c">
 			<Option compilerVar="CC" />
 			<Option target="Debug" />
@@ -116,14 +239,15 @@
 			<Option target="Release" />
 			<Option target="linux" />
 			<Option target="DLL" />
-		</Unit>
-		<Unit filename="../drivers/x11.c">
-			<Option compilerVar="CC" />
-			<Option target="linux" />
+			<Option target="nsfb-X11" />
+			<Option target="nsfb-drm" />
+			<Option target="nsfb-egl" />
+			<Option target="nsfb-w32-1.0.0" />
+			<Option target="nsfb-svg" />
 		</Unit>
 		<Unit filename="../dump.c">
 			<Option compilerVar="CC" />
-			<Option target="&lt;{~None~}&gt;" />
+			<Option target="DLL" />
 		</Unit>
 		<Unit filename="../font_freetype.c">
 			<Option compilerVar="CC" />
@@ -134,6 +258,141 @@
 			<Option target="Release" />
 			<Option target="linux" />
 			<Option target="DLL" />
+		</Unit>
+		<Unit filename="../img/bfind.c">
+			<Option compilerVar="CC" />
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="DLL" />
+		</Unit>
+		<Unit filename="../img/dither.c">
+			<Option compilerVar="CC" />
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="linux" />
+			<Option target="DLL" />
+		</Unit>
+		<Unit filename="../img/formats/rdbmp.c">
+			<Option compilerVar="CC" />
+			<Option target="linux" />
+			<Option target="DLL" />
+		</Unit>
+		<Unit filename="../img/formats/rdgif.c">
+			<Option compilerVar="CC" />
+			<Option target="linux" />
+			<Option target="DLL" />
+		</Unit>
+		<Unit filename="../img/formats/rdico.c">
+			<Option compilerVar="CC" />
+			<Option target="linux" />
+			<Option target="DLL" />
+		</Unit>
+		<Unit filename="../img/formats/rdjpeg.c">
+			<Option compilerVar="CC" />
+			<Option target="linux" />
+			<Option target="DLL" />
+		</Unit>
+		<Unit filename="../img/formats/rdpng.c">
+			<Option compilerVar="CC" />
+			<Option target="linux" />
+			<Option target="DLL" />
+		</Unit>
+		<Unit filename="../img/formats/rdppm.c">
+			<Option compilerVar="CC" />
+			<Option target="linux" />
+			<Option target="DLL" />
+		</Unit>
+		<Unit filename="../img/formats/rdrle.c">
+			<Option compilerVar="CC" />
+			<Option target="linux" />
+			<Option target="DLL" />
+		</Unit>
+		<Unit filename="../img/formats/rdsvg/color2.c">
+			<Option compilerVar="CC" />
+			<Option target="nsfb-svg" />
+		</Unit>
+		<Unit filename="../img/formats/rdsvg/gradient.c">
+			<Option compilerVar="CC" />
+			<Option target="nsfb-svg" />
+		</Unit>
+		<Unit filename="../img/formats/rdsvg/list.c">
+			<Option compilerVar="CC" />
+			<Option target="nsfb-svg" />
+		</Unit>
+		<Unit filename="../img/formats/rdsvg/rdsvg.c">
+			<Option compilerVar="CC" />
+			<Option target="nsfb-svg" />
+		</Unit>
+		<Unit filename="../img/formats/rdsvg/svgtiny.c">
+			<Option compilerVar="CC" />
+			<Option target="nsfb-svg" />
+		</Unit>
+		<Unit filename="../img/formats/rdsvg/svgtiny.h">
+			<Option target="nsfb-svg" />
+		</Unit>
+		<Unit filename="../img/formats/rdsvg/svgtiny_internal.h">
+			<Option target="nsfb-svg" />
+		</Unit>
+		<Unit filename="../img/formats/rdsvg/svgtiny_strings.h">
+			<Option target="nsfb-svg" />
+		</Unit>
+		<Unit filename="../img/formats/rdsvg/xml2dom.c">
+			<Option compilerVar="CC" />
+			<Option target="nsfb-svg" />
+		</Unit>
+		<Unit filename="../img/formats/rdsvg/xml2dom.h">
+			<Option target="nsfb-svg" />
+		</Unit>
+		<Unit filename="../img/formats/rdtarga.c">
+			<Option compilerVar="CC" />
+			<Option target="linux" />
+			<Option target="DLL" />
+		</Unit>
+		<Unit filename="../img/formats/rdxpm.c">
+			<Option compilerVar="CC" />
+			<Option target="linux" />
+			<Option target="DLL" />
+		</Unit>
+		<Unit filename="../img/freetype.c">
+			<Option compilerVar="CC" />
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../img/icons.c">
+			<Option compilerVar="CC" />
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="linux" />
+			<Option target="DLL" />
+		</Unit>
+		<Unit filename="../img/images.h">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="linux" />
+			<Option target="DLL" />
+		</Unit>
+		<Unit filename="../img/parsec.c">
+			<Option compilerVar="CC" />
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="linux" />
+			<Option target="DLL" />
+		</Unit>
+		<Unit filename="../img/printer.c">
+			<Option compilerVar="CC" />
+			<Option target="DLL" />
+		</Unit>
+		<Unit filename="../img/resize.c">
+			<Option compilerVar="CC" />
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="linux" />
+			<Option target="DLL" />
+		</Unit>
+		<Unit filename="../img/vectors.c">
+			<Option compilerVar="CC" />
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="linux" />
 		</Unit>
 		<Unit filename="../libnsfb.c">
 			<Option compilerVar="CC" />
@@ -147,14 +406,13 @@
 			<Option target="Release" />
 			<Option target="linux" />
 			<Option target="DLL" />
+			<Option target="nsfb-X11" />
+			<Option target="nsfb-drm" />
+			<Option target="nsfb-egl" />
+			<Option target="nsfb-w32-1.0.0" />
+			<Option target="nsfb-svg" />
 		</Unit>
 		<Unit filename="../libnsfb_cursor.h">
-			<Option target="Debug" />
-			<Option target="Release" />
-			<Option target="linux" />
-			<Option target="DLL" />
-		</Unit>
-		<Unit filename="../libnsfb_plot.h">
 			<Option target="Debug" />
 			<Option target="Release" />
 			<Option target="linux" />
@@ -171,9 +429,24 @@
 			<Option target="Release" />
 			<Option target="linux" />
 			<Option target="DLL" />
+			<Option target="nsfb-X11" />
+			<Option target="nsfb-drm" />
+			<Option target="nsfb-egl" />
+			<Option target="nsfb-w32-1.0.0" />
+			<Option target="nsfb-svg" />
+		</Unit>
+		<Unit filename="../nsfbPlot.h">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="DLL" />
 		</Unit>
 		<Unit filename="../nsfbcfg.h.in">
 			<Option target="linux" />
+			<Option target="nsfb-X11" />
+			<Option target="nsfb-drm" />
+			<Option target="nsfb-egl" />
+			<Option target="nsfb-w32-1.0.0" />
+			<Option target="nsfb-svg" />
 		</Unit>
 		<Unit filename="../palette.c">
 			<Option compilerVar="CC" />
@@ -262,10 +535,22 @@
 			<Option target="linux" />
 			<Option target="DLL" />
 		</Unit>
+		<Unit filename="../plot/w32.c">
+			<Option compilerVar="CC" />
+			<Option target="nsfb-w32-1.0.0" />
+		</Unit>
+		<Unit filename="../plot/x11.c">
+			<Option compilerVar="CC" />
+			<Option target="nsfb-X11" />
+		</Unit>
 		<Unit filename="../plot_style.h">
 			<Option target="Debug" />
 			<Option target="Release" />
 			<Option target="linux" />
+			<Option target="DLL" />
+		</Unit>
+		<Unit filename="../src/pointers.c">
+			<Option compilerVar="CC" />
 			<Option target="DLL" />
 		</Unit>
 		<Unit filename="../surface.h">
@@ -273,10 +558,17 @@
 			<Option target="Release" />
 			<Option target="linux" />
 			<Option target="DLL" />
+			<Option target="nsfb-X11" />
+			<Option target="nsfb-drm" />
+			<Option target="nsfb-egl" />
+			<Option target="nsfb-w32-1.0.0" />
+			<Option target="nsfb-svg" />
 		</Unit>
 		<Unit filename="../surface/drm.c">
 			<Option compilerVar="CC" />
-			<Option target="linux" />
+			<Option compile="0" />
+			<Option link="0" />
+			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
 		<Unit filename="../surface/linux.c">
 			<Option compilerVar="CC" />
@@ -303,13 +595,9 @@
 		</Unit>
 		<Unit filename="../surface/uterm_drm3d_render.c">
 			<Option compilerVar="CC" />
-			<Option target="&lt;{~None~}&gt;" />
+			<Option target="Release" />
 		</Unit>
 		<Unit filename="../surface/uterm_drm3d_video.c">
-			<Option compilerVar="CC" />
-			<Option target="&lt;{~None~}&gt;" />
-		</Unit>
-		<Unit filename="../surface/vnc.c">
 			<Option compilerVar="CC" />
 			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
@@ -317,50 +605,25 @@
 			<Option compilerVar="CC" />
 			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
-		<Unit filename="libnsfb.h">
-			<Option target="Debug" />
-			<Option target="Release" />
-			<Option target="linux" />
-			<Option target="DLL" />
+		<Unit filename="../surface/w32.c">
+			<Option compilerVar="CC" />
+			<Option target="nsfb-w32-1.0.0" />
 		</Unit>
-		<Unit filename="libnsfb_cursor.h">
-			<Option target="Debug" />
-			<Option target="Release" />
-			<Option target="linux" />
-			<Option target="DLL" />
+		<Unit filename="../surface/x11.c">
+			<Option compilerVar="CC" />
+			<Option target="nsfb-X11" />
 		</Unit>
-		<Unit filename="libnsfb_plot.h">
-			<Option target="Debug" />
-			<Option target="Release" />
-			<Option target="linux" />
-			<Option target="DLL" />
+		<Unit filename="../w32.h">
+			<Option target="nsfb-w32-1.0.0" />
 		</Unit>
-		<Unit filename="libnsfb_plot_util.h">
-			<Option target="Debug" />
-			<Option target="Release" />
-			<Option target="linux" />
-			<Option target="DLL" />
-		</Unit>
-		<Unit filename="nsfb.h">
-			<Option target="Debug" />
-			<Option target="Release" />
-			<Option target="linux" />
-			<Option target="DLL" />
-		</Unit>
-		<Unit filename="palette.h">
-			<Option target="Debug" />
-			<Option target="Release" />
-			<Option target="linux" />
-			<Option target="DLL" />
-		</Unit>
-		<Unit filename="plot.h">
-			<Option target="Debug" />
-			<Option target="Release" />
-			<Option target="linux" />
-			<Option target="DLL" />
+		<Unit filename="../x11.h">
+			<Option target="nsfb-X11" />
 		</Unit>
 		<Extensions>
 			<lib_finder disable_auto="1" />
+			<envvars />
+			<code_completion />
+			<debugger />
 		</Extensions>
 	</Project>
 </CodeBlocks_project_file>

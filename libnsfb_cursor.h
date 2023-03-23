@@ -13,7 +13,7 @@
 
 /** Initialise the cursor.
  */
-PUBLIC bool nsfbCursorInit( nsfb_t * );
+ANSIC bool nsfbCursorInit( NsfbSurfaceRtns * );
 
 /** Set cursor parameters.
  *
@@ -32,32 +32,64 @@ PUBLIC bool nsfbCursorInit( nsfb_t * );
  * (hot_spot_x, hot_spot_y) is from top left.  (0, 0) means top left pixel of
  * cursor bitmap is to be rendered over the cursor location.
  */
-PUBLIC bool nsfbCursorSet( nsfb_t *nsfb, const nsfb_colour_t * pixel
-                         , int bmp_width, int bmp_height, int bmp_stride
-                         , int hotspot_x, int hotspot_y );
+
+ /** Input event, must match the head of nomad event (avoid dependencies)
+ */
+typedef struct NsfbEventStruct
+{ int guess;             /* type of device */
+  int type;              /* type of event */
+
+  unsigned long stamp;
+  unsigned long serial;
+  int           mod;
+
+  short x, y, z, but;    /* Linear              */
+  short a, b, g, key;
+
+} NsfbEvent;
+
+
+
+typedef struct NsfbCursorSt NsfbCursor;
+
+ANSIC bool nsfbCursorSet( NsfbSurfaceRtns * , IcoRec * );
+
+ANSIC int nsfbSpreadEvent( NsfbSurfaceRtns *
+                         , NsfbEvent       * );
 
 /** Set cursor location.
  *
  * @param nsfb The frambuffer context.
  * @param loc The location of the cursor
  */
-PUBLIC bool nsfbCursorLocSet( nsfb_t *nsfb, int x, int y );
+ANSIC NsfbPoint * nsfbCursorLocSet( NsfbSurfaceRtns *, int x, int y );
 
 /** get the cursor location
  */
-PUBLIC bool nsfbCursorLocGet( nsfb_t *nsfb, nsfb_bbox_t *loc);
+ANSIC NsfbPoint * nsfbCursorLocGet( NsfbSurfaceRtns * );
 
 /** Plot the cursor saving the image underneath.
  */
-PUBLIC bool nsfbCursorPlot( nsfb_t  * nsfb );
+ANSIC bool nsfbCursorPlot( NsfbSurfaceRtns * );
 
 /** Clear the cursor restoring the image underneath
  */
-PUBLIC bool nsfbCursorClear( nsfb_t * nsfb );
+ANSIC bool nsfbCursorClear( NsfbSurfaceRtns * );
+
+/** Hide the corsor from screeen
+ */
+ANSIC int nsfbCursorHide( NsfbSurfaceRtns * );
 
 /** Destroy the cursor
   */
-PUBLIC bool nsfbCursorDestroy(  struct nsfbCursor_s *cursor );
+ANSIC bool nsfbCursorDestroy( NsfbCursor * cursor );
+
+
+/** Hardcoded cursors
+  */
+extern IcoRec cursorDefault;
+
+
 
 
 

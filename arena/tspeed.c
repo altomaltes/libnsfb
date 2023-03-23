@@ -6,7 +6,8 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-#include "../libnsfb_plot.h"
+#include "../nsfb.h"
+#include "../nsfbPlot.h"
 
 #include <freetype2/ft2build.h>
 #include FT_FREETYPE_H
@@ -81,7 +82,7 @@ FT_Face loadFont( const char * font, int w, int h )
   return( face );
 }
 
-int textOut( nsfb_t     * nsfb
+int textOut( Nsfb     * nsfb
            , FT_FaceRec * face
            , int x, int y
            , const unsigned char * str )
@@ -90,7 +91,7 @@ int textOut( nsfb_t     * nsfb
 
   while( *str )
   { if ( !FT_Load_Char( face, *str++, FT_LOAD_RENDER ))  /* load glyph image into the slot (erase previous one) */
-    { nsfb_bbox_t box;
+    { NsfbBbox box;
       box.x1 = ( box.x0 = x - slot->bitmap_left + wide ) + slot->bitmap.width;
       box.y1 = ( box.y0 = y - slot->bitmap_top         ) + slot->bitmap.rows;
       nsfbPlotglyph8( nsfb
@@ -107,36 +108,41 @@ int textOut( nsfb_t     * nsfb
 
 int main(int argc, char **argv)
 { const char *fename;
-  enum nsfb_type_e fetype;
-  nsfb_t *nsfb;
+  enum NsfbType fetype;
+  Nsfb *nsfb;
 
-  nsfb_bbox_t box;
+  NsfbBbox box;
   byte *fbptr;
   int fbstride;
   int i;
   unsigned int x, y;
 
-  fename="linux";
+  if (argc < 2)
+  { fename= ":0.0#800x600x32.N@x11";
+  }
+  else
+  { fename= argv[1];
+  }
 
 
   FT_Face face= loadFont( "/usr/share/fonts/TTF/LiberationMono-Bold.ttf", 14, 0 );
 
-  fetype = nsfbTypeFromName(fename);
+  fetype= nsfbTypeFromName( fename );
   if (fetype == NSFB_SURFACE_NONE)
   { printf("Unable to convert \"%s\" to nsfb surface type\n",
 				fename);
 	   return EXIT_FAILURE;
   }
 
-  nsfb = nsfbNew(fetype);
-  if (nsfb == NULL)
+  nsfb = nsfbNew( fetype );
+  if ( !nsfb )
   { printf("Unable to allocate \"%s\" nsfb surface\n", fename);
 	   return EXIT_FAILURE;
   }
 
-  if (nsfbInit(nsfb) == -1)
+  if (nsfbInit(nsfb) < 0 )
   { printf("Unable to initialise nsfb surface\n");
-	   nsfbFree(nsfb);
+	   nsfbFree( nsfb );
 	   return EXIT_FAILURE;
   }
 
@@ -144,12 +150,13 @@ int main(int argc, char **argv)
   box.x0 = box.y0 = 0;
   nsfbGetGeometry(nsfb, &box.x1, &box.y1, NULL);
 
-  nsfb_get_buffer(nsfb, &fbptr, &fbstride);
+  nsfbGetBuffer(nsfb, &fbptr, &fbstride);
   nsfbClaim(nsfb, &box);
 
-	/* Clear to white */
-  nsfbPlotclg(nsfb, 0xffffffff);
-  nsfb_update(nsfb, &box);
+	/* Clear to white
+  */
+  nsfbPlotclg( nsfb, 0xffffffff );
+  nsfbUpdate( nsfb, &box );
 
 	/* test glyph plotting */
  // for (i = 0; i < 1000; i++)
@@ -158,11 +165,11 @@ int main(int argc, char **argv)
       { x += textOut( nsfb, face
                     , x, y
                     , "Hola" );
-        nsfb_update(nsfb, &box);
+        nsfbUpdate( nsfb, &box);
 
   } } }
 
-  nsfb_update(nsfb, &box);
+  nsfbUpdate(nsfb, &box);
   nsfbFree(nsfb);
 
   return 0;

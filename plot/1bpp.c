@@ -30,7 +30,7 @@ extern struct fb_info_s * fbinfo;
 
 static bool fb_1bpp_rectangle( int x0, int y0
                              , int width, int height
-                             , int line_width, nsfb_colour_t c
+                             , int line_width, NSFBCOLOUR c
                              , bool dotted, bool dashed )
 { LOG(("%s(%d, %d, %d, %d, %d, 0x%lx, %d, %d)\n"
       , __func__
@@ -38,26 +38,27 @@ static bool fb_1bpp_rectangle( int x0, int y0
       , width,height
       , line_width,c
       , dotted,dashed));
-	 return true;
+	 return( true );
 }
 
 static bool fb_1bpp_line( int x0, int y0
                         , int x1, int y1
-                        , int width,	nsfb_colour_t c
+                        , int width,	NSFBCOLOUR c
                         , bool dotted, bool dashed )
 { LOG(("%s(%d, %d, %d, %d, %d, 0x%lx, %d, %d)\n", __func__,
              x0,y0,x1,y1,width,c,dotted,dashed));
 
-	 return true;
+	 return( true );
 }
 
-static bool fb_1bpp_polygon(const int *p, unsigned int n, nsfb_colour_t fill)
+static bool fb_1bpp_polygon( const int *p, unsigned int n
+                           , NSFBCOLOUR fill )
 { LOG(("%s(%p, %d, 0x%lx)\n", __func__, p,n,fill));
-	 return true;
+	 return( true );
 }
 
 
-static bool fb_1bpp_fill(int x0, int y0, int x1, int y1, nsfb_colour_t c)
+static bool fb_1bpp_fill(int x0, int y0, int x1, int y1, NSFBCOLOUR c)
 { int x, y, pent;
 
   LOG(("%s(%d, %d, %d, %d, 0x%lx)\n", __func__,
@@ -70,10 +71,13 @@ static bool fb_1bpp_fill(int x0, int y0, int x1, int y1, nsfb_colour_t c)
 
   x = x1 - x0;
 
-  for (y = y0; y < y1; y++)
-  { memset( fb_plotters_get_xy_loc( x0, y, fbinfo), pent, x);
+  for ( y = y0
+      ; y < y1
+      ; y++ )
+  { memset( fb_plotters_getXYloc( x0, y, fbinfo), pent, x);
   }
-	return true;
+
+ 	return true;
 }
 
 static bool fb_1bpp_clg( colour c )
@@ -101,7 +105,7 @@ static bool fb_1bpp_text( int x, int y
              x,y,style,length,text,length,bg,c));
 
   for (chr=0; chr < length; chr++)
-  { video_char_start = fb_plotters_get_xy_loc(x + (chr * (fb_font->width)), y, fbinfo);
+  { video_char_start = fb_plotters_getXYloc(x + (chr * (fb_font->width)), y, fbinfo);
 
                 /* move our font-data to the correct position */
     font_data = fb_font->data + (text[chr] * fb_font->height);
@@ -135,20 +139,25 @@ static bool fb_1bpp_text( int x, int y
 	return true;
 }
 
-static bool fb_1bpp_disc(int x, int y, int radius, nsfb_colour_t c, bool filled)
-{ LOG(("%s(%d, %d, %d, 0x%lx, %d)\n", __func__,
-             x, y, radius, c, filled));
+static bool fb_1bpp_disc( int x, int y, int radius
+                        , NSFBCOLOUR c, bool filled )
+{ LOG(("%s(%d, %d, %d, 0x%lx, %d)\n"
+      , __func__
+      ,  x, y
+      , radius, c
+      , filled));
 	 return true;
 }
 
-static bool fb_1bpp_arc(int x, int y, int radius, int angle1, int angle2,
-	    		nsfb_colour_t c)
+static bool fb_1bpp_arc( int x, int y, int radius
+                       , int angle1, int angle2
+                       ,	NSFBCOLOUR c )
 { LOG(("x %d, y %d, radius %d, angle1 %d, angle2 %d, c 0x%lx",
              x, y, radius, angle1, angle2, c));
 	return true;
 }
 
-static inline nsfb_colour_t ablend( nsfb_colour_t pixel )
+static inline NSFBCOLOUR ablend( NSFBCOLOUR pixel )
 { return pixel;
 }
 
@@ -156,21 +165,21 @@ static inline nsfb_colour_t ablend( nsfb_colour_t pixel )
 static bool fb_1bpp_bitmap( int x, int y
                           , int width, int height
                           ,	struct bitmap *bitmap
-                          , nsfb_colour_t bg, struct content *content )
+                          , NSFBCOLOUR bg, struct content *content )
 { u8_t *video_char_start;
   colour *pixel = (colour *)bitmap->pixdata;
   colour abpixel; /* alphablended pixel */
   int xloop,yloop;
 
-  video_char_start = fb_plotters_get_xy_loc(x, y, fbinfo);
+  video_char_start = fb_plotters_getXYloc(x, y, fbinfo);
 
   for (yloop = 0; yloop < height; yloop++)
   { for (xloop = 0; xloop < width; xloop++)
     { abpixel = pixel[(yloop * bitmap->width) + xloop];
       if ((abpixel & 0xFF000000) != 0)
       { if ((abpixel & 0xFF000000) != 0xFF) abpixel = ablend(abpixel);
-        if (abpixel == 0) video_char_start[xloop] |= (1 << (xloop % 8));
-                    else  video_char_start[xloop] &= ~(1 << (xloop % 8));
+        if (abpixel == 0) video_char_start[ xloop] |= (1 << (xloop % 8));
+                    else  video_char_start[ xloop] &= ~(1 << (xloop % 8));
     } }
 
     video_char_start += fbinfo->line_len;

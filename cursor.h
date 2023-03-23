@@ -13,32 +13,33 @@
 
 #include "nsfb.h"
 
-struct nsfbCursor_s
-{ bool plotted;
-  nsfb_bbox_t loc;
+struct NsfbCursorSt
+{ DeviceImageRec * ico; /* current cursor image  */
 
-/* current cursor image 
- */
+  int plotted;
 
-  const nsfb_colour_t *pixel;
-  int bmp_width;
-  int bmp_height;
-  int bmp_stride;
+  NsfbArea loc
+         , last;
+
   int hotspot_x;
   int hotspot_y;
 
-/* current saved image 
+/* current saved image
  */
-  nsfb_bbox_t     savLoc;
-  nsfb_colour_t * savCol;
-  int savSize;
-  int savWidth;
-  int savHeight;
+  NSFBCOLOUR * savDat;
 
 };
 
-bool nsfbCursorDestroy( struct nsfbCursor_s *cursor );
-bool nsfbCursorPlot( nsfb_t * nsfb );
+
+ANSIC bool nsfbCursorDestroy( struct NsfbCursorSt    * );
+ANSIC bool nsfbCursorPlot(           NsfbSurfaceRtns * );
+
+
+/* Hardcoded vectors
+ */
+
+extern IcoRec cursorDefault;
+
 
 
 

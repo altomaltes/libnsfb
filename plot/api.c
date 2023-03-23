@@ -1,10 +1,10 @@
 /* public plotter interface */
 
 
-#include "../libnsfb_plot.h"
-
 #include "../nsfb.h"
+#include "../nsfbPlot.h"
 #include "../plot.h"
+#include "../surface.h"
 
 /** Sets a clip rectangle for subsequent plots.
  *
@@ -12,20 +12,20 @@
  * The clipping area must lie within the framebuffer visible screen or false
  * will be returned and the new clipping area not set.
  */
-PUBLIC bool nsfbPlotset_clip(nsfb_t *nsfb, nsfb_bbox_t *clip)
-{ return nsfb->plotter_fns->set_clip(nsfb, clip);
+ANSIC bool nsfbPlotsetClip(Nsfb *nsfb, NsfbBbox *clip)
+{ return nsfb->plotterFns->setClip(nsfb, clip);
 }
 
 /** Get the previously set clipping region.
  */
-PUBLIC bool nsfbPlotget_clip(nsfb_t *nsfb, nsfb_bbox_t *clip)
-{ return nsfb->plotter_fns->get_clip(nsfb, clip);
+ANSIC bool nsfbPlotgetClip(Nsfb *nsfb, NsfbBbox *clip)
+{ return nsfb->plotterFns->getClip(nsfb, clip);
 }
 
 /** Clears plotting area to a flat colour.
  */
-PUBLIC bool nsfbPlotclg( nsfb_t *nsfb, nsfb_colour_t c )
-{ return nsfb->plotter_fns->clg( nsfb, c );
+ANSIC bool nsfbPlotclg( Nsfb *nsfb, NSFBCOLOUR c )
+{ return( nsfb->plotterFns->clg( nsfb, c ) );
 }
 
 /** Plots a rectangle outline.
@@ -33,20 +33,20 @@ PUBLIC bool nsfbPlotclg( nsfb_t *nsfb, nsfb_colour_t c )
  * The line can be solid, dotted or dashed. Top left corner at (x0,y0) and
  * rectangle has given width and height.
  */
-PUBLIC bool nsfbPlotrectangle( nsfb_t *nsfb
-                        , nsfb_bbox_t *rect
+ANSIC bool nsfbPlotrectangle( Nsfb *nsfb
+                        , NsfbBbox *rect
                         , int line_width
-                        , nsfb_colour_t c
+                        , NSFBCOLOUR c
                         , bool dotted, bool dashed)
-{ return nsfb->plotter_fns->rectangle(nsfb, rect, line_width, c, dotted, dashed);
+{ return( nsfb->plotterFns->rectangle(nsfb, rect, line_width, c, dotted, dashed ));
 }
 
 /** Plots a filled rectangle. Top left corner at (x0,y0), bottom
  *		  right corner at (x1,y1). Note: (x0,y0) is inside filled area,
  *		  but (x1,y1) is below and to the right. See diagram below.
  */
-PUBLIC bool nsfbPlotrectangle_fill(nsfb_t *nsfb, nsfb_bbox_t *rect, nsfb_colour_t c)
-{ return nsfb->plotter_fns->fill(nsfb, rect, c);
+ANSIC bool nsfbPlotrectangleFill( Nsfb *nsfb, NsfbBbox *rect, NSFBCOLOUR c )
+{ return( nsfb->plotterFns->fill(nsfb, rect, c ));
 }
 
 /** Plots a line.
@@ -54,8 +54,8 @@ PUBLIC bool nsfbPlotrectangle_fill(nsfb_t *nsfb, nsfb_bbox_t *rect, nsfb_colour_
  * Draw a line from (x0,y0) to (x1,y1). Coordinates are at centre of line
  * width/thickness.
  */
-PUBLIC bool nsfbPlotline(nsfb_t *nsfb, nsfb_bbox_t *line, nsfbPlotpen_t *pen)
-{ return nsfb->plotter_fns->line(nsfb, 1, line, pen);
+ANSIC bool nsfbPlotline(Nsfb *nsfb, NsfbBbox *line, NsfbPlotpen *pen)
+{ return( nsfb->plotterFns->line(nsfb, 1, line, pen ));
 }
 
 /** Plots more than one line.
@@ -63,12 +63,12 @@ PUBLIC bool nsfbPlotline(nsfb_t *nsfb, nsfb_bbox_t *line, nsfbPlotpen_t *pen)
  * Draw a line from (x0,y0) to (x1,y1). Coordinates are at centre of line
  * width/thickness.
  */
-PUBLIC bool nsfbPlotlines(nsfb_t *nsfb, int linec, nsfb_bbox_t *line, nsfbPlotpen_t *pen)
-{ return nsfb->plotter_fns->line(nsfb, linec, line, pen);
+ANSIC bool nsfbPlotlines(Nsfb *nsfb, int linec, NsfbBbox *line, NsfbPlotpen *pen)
+{ return nsfb->plotterFns->line(nsfb, linec, line, pen);
 }
 
-PUBLIC bool nsfbPlotpolylines(nsfb_t *nsfb, int pointc, const nsfb_point_t *points, nsfbPlotpen_t *pen)
-{ return nsfb->plotter_fns->polylines(nsfb, pointc, points, pen);
+ANSIC bool nsfbPlotpolylines(Nsfb *nsfb, int pointc, const NsfbPoint *points, NsfbPlotpen *pen)
+{ return nsfb->plotterFns->polylines(nsfb, pointc, points, pen);
 }
 
 /** Plots a filled polygon.
@@ -79,8 +79,8 @@ PUBLIC bool nsfbPlotpolylines(nsfb_t *nsfb, int pointc, const nsfb_point_t *poin
  *
  *
  */
-PUBLIC bool nsfbPlotpolygon(nsfb_t *nsfb, const int *p, unsigned int n, nsfb_colour_t fill)
-{ return nsfb->plotter_fns->polygon(nsfb, p, n, fill);
+ANSIC bool nsfbPlotpolygon(Nsfb *nsfb, const int *p, unsigned int n, NSFBCOLOUR fill)
+{ return nsfb->plotterFns->polygon(nsfb, p, n, fill);
 }
 
 /** Plots an arc.
@@ -88,132 +88,160 @@ PUBLIC bool nsfbPlotpolygon(nsfb_t *nsfb, const int *p, unsigned int n, nsfb_col
  * around (x,y), from anticlockwise from angle1 to angle2. Angles are measured
  * anticlockwise from horizontal, in degrees.
  */
-PUBLIC bool nsfbPlotarc( nsfb_t *nsfb
+ANSIC bool nsfbPlotarc( Nsfb *nsfb
                          , int x, int y, int radius
                          , int angle1, int angle2
-                         , nsfb_colour_t c)
-{ return nsfb->plotter_fns->arc(nsfb, x, y, radius, angle1, angle2, c);
+                         , NSFBCOLOUR c)
+{ return nsfb->plotterFns->arc(nsfb, x, y, radius, angle1, angle2, c);
 }
 
 /** Plots an alpha blended pixel.
  *
  * plots an alpha blended pixel.
  */
-PUBLIC bool nsfbPlotpoint(nsfb_t *nsfb, int x, int y, nsfb_colour_t c)
-{ return nsfb->plotter_fns->point(nsfb, x, y, c);
+ANSIC bool nsfbPlotpoint(Nsfb *nsfb, int x, int y, NSFBCOLOUR c)
+{ return nsfb->plotterFns->point(nsfb, x, y, c);
 }
 
-PUBLIC bool nsfbPlotellipse(nsfb_t *nsfb, nsfb_bbox_t *ellipse, nsfb_colour_t c)
-{ return nsfb->plotter_fns->ellipse(nsfb, ellipse, c);
+ANSIC bool nsfbPlotellipse(Nsfb *nsfb, NsfbBbox *ellipse, NSFBCOLOUR c)
+{ return nsfb->plotterFns->ellipse(nsfb, ellipse, c);
 }
 
-PUBLIC bool nsfbPlotellipse_fill(nsfb_t *nsfb, nsfb_bbox_t *ellipse, nsfb_colour_t c)
-{ return nsfb->plotter_fns->ellipse_fill(nsfb, ellipse, c);
+ANSIC bool nsfbPlotellipseFill(      Nsfb * nsfb, NsfbBbox *ellipse, NSFBCOLOUR c)
+{ return( nsfb->plotterFns->ellipseFill(nsfb, ellipse, c ));
 }
+
 
 /* copy an area of surface from one location to another.
  *
  * @warning This implementation is woefully incomplete!
  */
-PUBLIC bool nsfbPlotcopy( nsfb_t * srcfb, nsfb_bbox_t * srcbox
-                          , nsfb_t * dstfb, nsfb_bbox_t * dstbox )
+ANSIC bool nsfbPlotcopy( Nsfb * srcfb, NsfbBbox * srcbox
+                       , Nsfb * dstfb, NsfbBbox * dstbox )
 { int trans = 0;
-  nsfb_colour_t srccol;
+  NSFBCOLOUR srccol;
 
   if ( srcfb == dstfb )
-  { return dstfb->plotter_fns->copy(srcfb, srcbox, dstbox);
+  { return( dstfb->plotterFns->copy(srcfb, srcbox, dstbox));
   }
 
-  if (srcfb->format == NSFB_FMT_ABGR8888)
+  if (srcfb->format == NSFB_FMT_ABGR8888 )
   { trans = DO_ALPHA_BLEND;
   }
 
   if ((srcfb->width == 1) && (srcfb->height == 1))
-  { srccol = *(nsfb_colour_t *)(void *)(srcfb->loc);  // JACS ptr -> pan
+  { srccol = *(NSFBCOLOUR *)(void *)(srcfb->loc);  // JACS ptr -> pan
 
 
     if ((srccol & 0xff000000) == 0) 	/* check for completely transparent */
-	   { return true;
+	   { return( true );
 	   }
 
 	/* completely opaque pixels can be replaced with fill
 	 */
     if ((srccol & 0xff000000) == 0xff000000)
-  	 { return dstfb->plotter_fns->fill(dstfb, dstbox, srccol);
+  	 { return dstfb->plotterFns->fill(dstfb, dstbox, srccol);
   } }
 
-  return dstfb->plotter_fns->bitmap( dstfb, dstbox
-                                   , (const nsfb_colour_t *)(void *)srcfb->loc + (srcbox->y0*srcbox->x1)// JACS ptr -> pan
-                                   , srcfb->width, srcfb->height
-                                   , (srcfb->panlen << 3) / srcfb->bpp
-                                   , trans );
+  return dstfb->plotterFns->bitmap( dstfb, dstbox
+                                  , (const NSFBCOLOUR *)(void *)srcfb->loc + (srcbox->y0*srcbox->x1)// JACS ptr -> pan
+                                  , srcfb->width, srcfb->height
+                                  , (srcfb->panlen << 3) / srcfb->bpp
+                                  , trans );
 }
 
-PUBLIC bool nsfbPlotbitmap( nsfb_t              * nsfb
-                            , const nsfb_bbox_t   * loc
-                            , const nsfb_colour_t * pixel
-                            , int bmp_width, int bmp_height
-                            , int bmp_stride, int alpha )
-{ return nsfb->plotter_fns->bitmap( nsfb, loc, pixel, bmp_width, bmp_height, bmp_stride, alpha);
+ANSIC bool nsfbPlotbitmap( Nsfb              * nsfb
+                          , const NsfbBbox   * loc
+                          , const NSFBCOLOUR * pixel
+                          , int bmp_width, int bmp_height
+                          , int bmp_stride, int alpha )
+{ return nsfb->plotterFns->bitmap( nsfb, loc, pixel, bmp_width, bmp_height, bmp_stride, alpha);
 }
 
-PUBLIC bool nsfbPlotbitmap_tiles( nsfb_t *nsfb, const nsfb_bbox_t *loc
-                                  , int tiles_x, int tiles_y
-                                  , const nsfb_colour_t *pixel
-                                  , int bmp_width, int bmp_height, int bmp_stride
-                                  , int alpha )
-{ return nsfb->plotter_fns->bitmap_tiles(nsfb, loc, tiles_x, tiles_y, pixel, bmp_width, bmp_height, bmp_stride, alpha );
+ANSIC bool nsfbPlotbitmapTiles( Nsfb *nsfb, const NsfbBbox *loc
+                               , int tiles_x, int tiles_y
+                               , const NSFBCOLOUR *pixel
+                               , int bmp_width, int bmp_height, int bmp_stride
+                               , int alpha )
+{ return nsfb->plotterFns->bitmapTiles( nsfb
+                                      , loc, tiles_x, tiles_y
+                                      , pixel, bmp_width, bmp_height
+                                      , bmp_stride, alpha );
 }
 
 /** Plot an 8 bit glyph.
  */
-PUBLIC bool nsfbPlotglyph8( nsfb_t      * nsfb
-                            , nsfb_bbox_t * loc
+ANSIC bool nsfbPlotglyph8( Nsfb      * nsfb
+                            , NsfbBbox * loc
                             , const byte  * pixel
                             , int pitch
-                            , nsfb_colour_t c, nsfb_colour_t b )
-{ return nsfb->plotter_fns->glyph8(nsfb, loc, pixel, pitch, c, b );
+                            , NSFBCOLOUR c, NSFBCOLOUR b )
+{ return nsfb->plotterFns->glyph8(nsfb, loc, pixel, pitch, c, b );
 }
 
 
 /** Plot an 1 bit glyph.
  */
-PUBLIC bool nsfbPlotglyph1( nsfb_t      * nsfb
-                            , nsfb_bbox_t *loc
-                            , const byte  * pixel
-                            , int pitch, nsfb_colour_t c )
-{ return nsfb->plotter_fns->glyph1(nsfb, loc, pixel, pitch, c);
+ANSIC bool nsfbPlotglyph1( Nsfb      * nsfb
+                          , NsfbBbox *loc
+                          , const byte  * pixel
+                          , int pitch, NSFBCOLOUR c )
+{ return nsfb->plotterFns->glyph1(nsfb, loc, pixel, pitch, c);
 }
 
 /* read a rectangle from screen into buffer */
-PUBLIC bool nsfbPlotreadrect(     nsfb_t *nsfb, nsfb_bbox_t *rect, nsfb_colour_t * buffer  )
-{ return nsfb->plotter_fns->readrect(nsfb, rect, buffer );
+ANSIC bool nsfbPlotreadrect( Nsfb *nsfb, NsfbBbox *rect, NSFBCOLOUR * buffer  )
+{ return nsfb->plotterFns->readrect(nsfb, rect, buffer );
 }
 
-PUBLIC int nsfbPlotMoverect( nsfb_t * nsfb, int  w, int h, int x, int y )
-{ return( nsfb->plotter_fns->moverect( nsfb, w,h,x,y) );
+ANSIC int nsfbPlotMoverect( Nsfb * nsfb, int  w, int h, int x, int y )
+{ return( nsfb->surfaceRtns->panType
+        ? nsfb->plotterFns->moverect( nsfb, w,h,x,y )
+        : 0 );
 }
 
-PUBLIC int fbPlotMoverect( nsfb_t * nsfb, int  w, int h, int x, int y )
-//{ return(( nsfb->active & 0x01 ) ? nsfb->plotter_fns->moverect( nsfb, w,h,x,y )
-//                                 : 0 );
-//}
-{ return( nsfb->plotter_fns->moverect( nsfb, w,h,x,y ));
+ANSIC int fbPlotMoverect( Nsfb * nsfb, int  w, int h, int x, int y )
+{ return( nsfb->plotterFns->moverect( nsfb, w,h,x,y ));
 }
 
 
 
-PUBLIC bool nsfbPlotcubic_bezier( nsfb_t *nsfb, nsfb_bbox_t *curve, nsfb_point_t *ctrla, nsfb_point_t *ctrlb, nsfbPlotpen_t *pen)
-{ return nsfb->plotter_fns->cubic(nsfb, curve, ctrla, ctrlb, pen);
+ANSIC bool nsfbPlotcubicBezier( Nsfb *nsfb
+                               , NsfbBbox   *curve
+                               , NsfbPoint  *ctrla, NsfbPoint *ctrlb
+                               , NsfbPlotpen *pen )
+{ return nsfb->plotterFns->cubic( nsfb, curve, ctrla, ctrlb, pen );
 }
 
-PUBLIC bool nsfbPlotquadratic_bezier(nsfb_t *nsfb, nsfb_bbox_t *curve, nsfb_point_t *ctrla, nsfbPlotpen_t *pen)
-{ return nsfb->plotter_fns->quadratic(nsfb, curve, ctrla, pen);
+ANSIC bool nsfbPlotquadraticBezier( Nsfb *nsfb
+                                  , NsfbBbox *curve, NsfbPoint *ctrla
+                                  , NsfbPlotpen *pen )
+{ return nsfb->plotterFns->quadratic(nsfb, curve, ctrla, pen);
 }
 
-PUBLIC bool nsfbPlotpath(nsfb_t *nsfb, int pathc, nsfbPlotpathop_t *pathop, nsfbPlotpen_t *pen)
-{ return nsfb->plotter_fns->path(nsfb, pathc, pathop, pen);
+ANSIC bool nsfbPlotpath( Nsfb *nsfb, int pathc, nsfbPlotpathop_t *pathop, NsfbPlotpen *pen)
+{ return( nsfb->plotterFns->path( nsfb, pathc, pathop, pen ));
 }
+
+ANSIC  bool   nsfbPutPixmap( Nsfb * nsfb
+                           , const ImageMap * hard
+                           , int x, int y
+                           , NSFBCOLOUR back )
+{ return( nsfb->plotterFns->pixmapFill( nsfb, hard, x,y, 0, 0, back ));
+}
+
+ANSIC  bool nsfbPutIconImage( Nsfb           * nsfb
+                            , DeviceImageRec * image
+                            , int x, int y, int n
+                            , NSFBCOLOUR back )
+{ return( image ? nsfb->plotterFns->pixmapFill( nsfb
+                                              , &image->map
+                                              , x, y
+                                              , n * image->height, image->height
+                                              , back )
+                : false );
+}
+
 
 /*
  * Local variables:

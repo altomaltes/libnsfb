@@ -17,53 +17,58 @@
 #include "palette.h"
 
 
-/** Create an empty palette object. */
-bool nsfb_palette_new( struct NsfbPalette **palette
+/** Create an empty palette object. 
+ */
+bool nsfb_palette_new( struct NsfbPalette ** palette
                      , int width )
-{ *palette = malloc(sizeof(struct NsfbPalette));
+{ *palette = CALLOC( sizeof(struct NsfbPalette));
 
-  if ( palette == NULL)  // ççç   if (*palette == NULL)
+  if ( !palette )  // ççç   if (*palette == NULL)
   { (*palette)->type = NSFB_PALETTE_EMPTY;
-	(*palette)->last = 0;
+   	(*palette)->last = 0;
 
-	(*palette)->dither = false;
-	(*palette)->dither_ctx.data_len = width * 3 * sizeof(int);
-	(*palette)->dither_ctx.data = malloc(width * 3 * sizeof(int));
+    	(*palette)->dither = false;
+	    (*palette)->ditherCtx.data_len =     width * 3 * sizeof(int);
+	    (*palette)->ditherCtx.data = CALLOC( width * 3 * sizeof(int));
 
- 	if ((*palette)->dither_ctx.data )
-    { return( true );
-	}
+     if ((*palette)->ditherCtx.data )
+     { return( true );
+	    }
 
-    nsfb_palette_free(*palette);
+    nsfbPaletteFree(*palette);
   }
 
   return( false );
 }
 
-/** Free a palette object. */
-void nsfb_palette_free( struct NsfbPalette *palette )
+/** Free a palette object.
+  */
+void nsfbPaletteFree( struct NsfbPalette *palette )
 { if ( palette )
-  { if (palette->dither_ctx.data )
-    { free(palette->dither_ctx.data);
+  { if ( palette->ditherCtx.data )
+    { free( palette->ditherCtx.data );
     }
-	free(palette);
+	   free( palette );
 } }
 
-/** Init error diffusion for a plot. */
-void nsfb_palette_dither_init(struct NsfbPalette *palette, int width)
+/** Init error diffusion for a plot.
+  */
+void nsfbPaletteDitherInit(struct NsfbPalette *palette, int width)
 { width *= 3;
   palette->dither = true;
-  palette->dither_ctx.current = 0;
-  palette->dither_ctx.width = width;
-  memset(palette->dither_ctx.data, 0, width * sizeof(int));
+  palette->ditherCtx.current = 0;
+  palette->ditherCtx.width = width;
+  memset(palette->ditherCtx.data, 0, width * sizeof(int));
 }
 
-/** Finalise error diffusion after a plot. */
+/** Finalise error diffusion after a plot.
+  */
 void nsfb_palette_dither_fini(struct NsfbPalette *palette)
 { palette->dither = false;
 }
 
-/** Generate libnsfb 8bpp default palette. */
+/** Generate libnsfb 8bpp default palette.
+  */
 void nsfb_palette_generate_nsfb_8bpp(struct NsfbPalette *palette)
 { int rloop, gloop, bloop;
 	 int loop = 0;

@@ -24,7 +24,7 @@ enum
  * @return false if the \a rect lies completely outside the \a clip rectangle,
  *         true if some of the \a rect is still visible.
  */
-PUBLIC bool nsfbPlotclip(const nsfb_bbox_t * restrict clip, nsfb_bbox_t * restrict rect)
+ANSIC bool nsfbPlotClip(const NsfbBbox * restrict clip, NsfbBbox * restrict rect)
 { char region1;
   char region2;
 
@@ -55,13 +55,13 @@ PUBLIC bool nsfbPlotclip(const nsfb_bbox_t * restrict clip, nsfb_bbox_t * restri
   return true;
 }
 
-PUBLIC bool nsfbPlotclip_ctx(nsfb_t *nsfb, nsfb_bbox_t * restrict rect)
-{ return nsfbPlotclip( &nsfb->clip, rect );
+ANSIC bool nsfbPlotClipCtx(Nsfb *nsfb, NsfbBbox * restrict rect)
+{ return nsfbPlotClip( &nsfb->clip, rect );
 }
 
 /** Clip a line to a bounding box.
  */
-PUBLIC bool nsfbPlotclip_line(const nsfb_bbox_t *clip, nsfb_bbox_t * restrict line)
+ANSIC bool nsfbPlotClipLine(const NsfbBbox *clip, NsfbBbox * restrict line)
 { char region1;
   char region2;
   region1 = REGION(line->x0, line->y0, clip->x0, clip->x1 - 1, clip->y0, clip->y1 - 1);
@@ -122,40 +122,40 @@ PUBLIC bool nsfbPlotclip_line(const nsfb_bbox_t *clip, nsfb_bbox_t * restrict li
     return true;
 }
 
-PUBLIC bool nsfbPlotclip_line_ctx( nsfb_t *nsfb
-                                   , nsfb_bbox_t * restrict line )
-{ return nsfbPlotclip_line(&nsfb->clip, line);
+ANSIC bool nsfbPlotClipLineCtx( Nsfb *nsfb
+                                   , NsfbBbox * restrict line )
+{ return nsfbPlotClipLine(&nsfb->clip, line);
 }
 
 /* documented in libnsfb_plot_util.h */
 
-PUBLIC bool nsfbPlotadd_rect( const nsfb_bbox_t *box1
-                              , const nsfb_bbox_t *box2
-                              , nsfb_bbox_t *result )
+ANSIC bool nsfbPlotadd_rect( const NsfbBbox *box1
+                              , const NsfbBbox *box2
+                              , NsfbBbox *result )
 {
 /* lower x coordinate */
-  if (box1->x0 < box2->x0)        result->x0 = box1->x0;
-                     else        result->x0 = box2->x0;
+  if (box1->x0 < box2->x0) result->x0 = box1->x0;
+                     else  result->x0 = box2->x0;
 
 /* lower y coordinate */
-  if (box1->y0 < box2->y0)        result->y0 = box1->y0;
-                      else        result->y0 = box2->y0;
+  if (box1->y0 < box2->y0) result->y0 = box1->y0;
+                      else result->y0 = box2->y0;
 
 /* upper x coordinate */
-  if (box1->x1 > box2->x1)        result->x1 = box1->x1;
-  else        result->x1 = box2->x1;
+  if (box1->x1 > box2->x1) result->x1 = box1->x1;
+                      else result->x1 = box2->x1;
 
 /* upper y coordinate */
-  if (box1->y1 > box2->y1)        result->y1 = box1->y1;
-  else        result->y1 = box2->y1;
+  if (box1->y1 > box2->y1) result->y1 = box1->y1;
+                      else result->y1 = box2->y1;
 
   return true;
 }
 
-PUBLIC bool nsfbPlotbbox_intersect(const nsfb_bbox_t *box1, const nsfb_bbox_t *box2)
-{ if (box2->x1 < box1->x0) return false;
-  if (box2->y1 < box1->y0) return false;
-  if (box2->x0 > box1->x1) return false;
-  if (box2->y0 > box1->y1) return false;
+ANSIC bool nsfbPlotbbox_intersect(const NsfbBbox *box1, const NsfbBbox *box2)
+{ if ( box2->x1 < box1->x0 ) return false;
+  if ( box2->y1 < box1->y0 ) return false;
+  if ( box2->x0 > box1->x1 ) return false;
+  if ( box2->y0 > box1->y1 ) return false;
   return true;
 }

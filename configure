@@ -640,6 +640,12 @@ DIST_ROOT
 BUILDING_SLACK_FALSE
 BUILDING_SLACK_TRUE
 SLACKBUILD
+FT2_CONFIG
+FT2_LIBS
+FT2_CFLAGS
+PKG_CONFIG_LIBDIR
+PKG_CONFIG_PATH
+PKG_CONFIG
 WINDOWS_FALSE
 WINDOWS_TRUE
 LT_SYS_LIBRARY_PATH
@@ -770,6 +776,9 @@ with_aix_soname
 with_gnu_ld
 with_sysroot
 enable_libtool_lock
+with_ft_prefix
+with_ft_exec_prefix
+enable_freetypetest
 enable_slack
 '
       ac_precious_vars='build_alias
@@ -781,7 +790,12 @@ LDFLAGS
 LIBS
 CPPFLAGS
 CPP
-LT_SYS_LIBRARY_PATH'
+LT_SYS_LIBRARY_PATH
+PKG_CONFIG
+PKG_CONFIG_PATH
+PKG_CONFIG_LIBDIR
+FT2_CFLAGS
+FT2_LIBS'
 
 
 # Initialize some variables set by options.
@@ -1411,6 +1425,8 @@ Optional Features:
   --enable-fast-install[=PKGS]
                           optimize for fast installation [default=yes]
   --disable-libtool-lock  avoid locking (might break parallel builds)
+       --disable-freetypetest  Do not try to compile and run a test FreeType
+                          program
   --enable-slack=[yes/no] Configure for building SLACKWARE package
                           [default=yes] (requires makepkg)
 
@@ -1425,6 +1441,9 @@ Optional Packages:
   --with-gnu-ld           assume the C compiler uses GNU ld [default=no]
   --with-sysroot[=DIR]    Search for dependent libraries within DIR (or the
                           compiler's sysroot if not specified).
+       --with-ft-prefix=PREFIX Prefix where FreeType is installed (optional)
+       --with-ft-exec-prefix=PREFIX
+                          Exec prefix where FreeType is installed (optional)
 
 Some influential environment variables:
   CC          C compiler command
@@ -1437,6 +1456,13 @@ Some influential environment variables:
   CPP         C preprocessor
   LT_SYS_LIBRARY_PATH
               User-defined run-time library search path.
+  PKG_CONFIG  path to pkg-config utility
+  PKG_CONFIG_PATH
+              directories to add to pkg-config's search path
+  PKG_CONFIG_LIBDIR
+              path overriding pkg-config's built-in search path
+  FT2_CFLAGS  C compiler flags for FT2, overriding pkg-config
+  FT2_LIBS    linker flags for FT2, overriding pkg-config
 
 Use these variables to override the choices made by `configure' or to help
 it to find libraries and programs with nonstandard names/locations.
@@ -2983,8 +3009,8 @@ ac_config_headers="$ac_config_headers nsfbcfg.h"
 
 
 DATE="`date '+%d %B %Y'`"
-SVN_BUILD=Unversioned directory
-SVN_BUILD=18
+SVN_BUILD=11M
+SVN_BUILD=73
 
 
 
@@ -3002,7 +3028,7 @@ cat >>confdefs.h <<_ACEOF
 _ACEOF
 
 
-CPPFLAGS+="-I../../include -I/usr/include/libdrm"
+CPPFLAGS+="-I../../include"
 
 
 DEPDIR="${am__leading_dot}deps"
@@ -12676,7 +12702,7 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_drm_drmError" >&5
 $as_echo "$ac_cv_lib_drm_drmError" >&6; }
 if test "x$ac_cv_lib_drm_drmError" = xyes; then :
-  LIBS="-ldrm $LIBS"
+  LIBDRM="-ldrm"
 $as_echo "#define HAVE_DRM 1" >>confdefs.h
 
 
@@ -12685,6 +12711,858 @@ else
 $as_echo "$as_me: WARNING: drm is required for GPU driver " >&2;}
 
 fi
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for gifError in -lgif" >&5
+$as_echo_n "checking for gifError in -lgif... " >&6; }
+if ${ac_cv_lib_gif_gifError+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lgif  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char gifError ();
+int
+main ()
+{
+return gifError ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_gif_gifError=yes
+else
+  ac_cv_lib_gif_gifError=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_gif_gifError" >&5
+$as_echo "$ac_cv_lib_gif_gifError" >&6; }
+if test "x$ac_cv_lib_gif_gifError" = xyes; then :
+  LIBGIF="-lgif"
+$as_echo "#define HAVE_GIF 1" >>confdefs.h
+
+
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: gif is required for GIF image format support " >&5
+$as_echo "$as_me: WARNING: gif is required for GIF image format support " >&2;}
+
+fi
+
+
+
+
+
+
+
+
+
+if test "x$ac_cv_env_PKG_CONFIG_set" != "xset"; then
+	if test -n "$ac_tool_prefix"; then
+  # Extract the first word of "${ac_tool_prefix}pkg-config", so it can be a program name with args.
+set dummy ${ac_tool_prefix}pkg-config; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_PKG_CONFIG+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $PKG_CONFIG in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_PKG_CONFIG="$PKG_CONFIG" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_PKG_CONFIG="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  ;;
+esac
+fi
+PKG_CONFIG=$ac_cv_path_PKG_CONFIG
+if test -n "$PKG_CONFIG"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $PKG_CONFIG" >&5
+$as_echo "$PKG_CONFIG" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+fi
+if test -z "$ac_cv_path_PKG_CONFIG"; then
+  ac_pt_PKG_CONFIG=$PKG_CONFIG
+  # Extract the first word of "pkg-config", so it can be a program name with args.
+set dummy pkg-config; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_ac_pt_PKG_CONFIG+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $ac_pt_PKG_CONFIG in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_ac_pt_PKG_CONFIG="$ac_pt_PKG_CONFIG" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_ac_pt_PKG_CONFIG="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  ;;
+esac
+fi
+ac_pt_PKG_CONFIG=$ac_cv_path_ac_pt_PKG_CONFIG
+if test -n "$ac_pt_PKG_CONFIG"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_pt_PKG_CONFIG" >&5
+$as_echo "$ac_pt_PKG_CONFIG" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+  if test "x$ac_pt_PKG_CONFIG" = x; then
+    PKG_CONFIG=""
+  else
+    case $cross_compiling:$ac_tool_warned in
+yes:)
+{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: using cross tools not prefixed with host triplet" >&5
+$as_echo "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
+ac_tool_warned=yes ;;
+esac
+    PKG_CONFIG=$ac_pt_PKG_CONFIG
+  fi
+else
+  PKG_CONFIG="$ac_cv_path_PKG_CONFIG"
+fi
+
+fi
+if test -n "$PKG_CONFIG"; then
+	_pkg_min_version=0.9.0
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking pkg-config is at least version $_pkg_min_version" >&5
+$as_echo_n "checking pkg-config is at least version $_pkg_min_version... " >&6; }
+	if $PKG_CONFIG --atleast-pkgconfig-version $_pkg_min_version; then
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	else
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+		PKG_CONFIG=""
+	fi
+fi
+
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for freetype2 >= 2.0.9" >&5
+$as_echo_n "checking for freetype2 >= 2.0.9... " >&6; }
+
+if test -n "$FT2_CFLAGS"; then
+    pkg_cv_FT2_CFLAGS="$FT2_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"freetype2 >= 2.0.9\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "freetype2 >= 2.0.9") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_FT2_CFLAGS=`$PKG_CONFIG --cflags "freetype2 >= 2.0.9" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$FT2_LIBS"; then
+    pkg_cv_FT2_LIBS="$FT2_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"freetype2 >= 2.0.9\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "freetype2 >= 2.0.9") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_FT2_LIBS=`$PKG_CONFIG --libs "freetype2 >= 2.0.9" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        FT2_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "freetype2 >= 2.0.9" 2>&1`
+        else
+	        FT2_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "freetype2 >= 2.0.9" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$FT2_PKG_ERRORS" >&5
+
+	 # Get the cflags and libraries from the freetype-config script
+   #
+
+# Check whether --with-ft-prefix was given.
+if test "${with_ft_prefix+set}" = set; then :
+  withval=$with_ft_prefix; ft_config_prefix="$withval"
+else
+  ft_config_prefix=""
+fi
+
+
+
+# Check whether --with-ft-exec-prefix was given.
+if test "${with_ft_exec_prefix+set}" = set; then :
+  withval=$with_ft_exec_prefix; ft_config_exec_prefix="$withval"
+else
+  ft_config_exec_prefix=""
+fi
+
+
+   # Check whether --enable-freetypetest was given.
+if test "${enable_freetypetest+set}" = set; then :
+  enableval=$enable_freetypetest;
+else
+  enable_fttest=yes
+fi
+
+
+   if test x$ft_config_exec_prefix != x ; then
+     ft_config_args="$ft_config_args --exec-prefix=$ft_config_exec_prefix"
+     if test x${FT2_CONFIG+set} != xset ; then
+       FT2_CONFIG=$ft_config_exec_prefix/bin/freetype-config
+     fi
+   fi
+
+   if test x$ft_config_prefix != x ; then
+     ft_config_args="$ft_config_args --prefix=$ft_config_prefix"
+     if test x${FT2_CONFIG+set} != xset ; then
+       FT2_CONFIG=$ft_config_prefix/bin/freetype-config
+     fi
+   fi
+
+   if test "x$FT2_CONFIG" = x ; then
+     if test -n "$ac_tool_prefix"; then
+  # Extract the first word of "${ac_tool_prefix}freetype-config", so it can be a program name with args.
+set dummy ${ac_tool_prefix}freetype-config; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_FT2_CONFIG+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $FT2_CONFIG in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_FT2_CONFIG="$FT2_CONFIG" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_FT2_CONFIG="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  ;;
+esac
+fi
+FT2_CONFIG=$ac_cv_path_FT2_CONFIG
+if test -n "$FT2_CONFIG"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $FT2_CONFIG" >&5
+$as_echo "$FT2_CONFIG" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+fi
+if test -z "$ac_cv_path_FT2_CONFIG"; then
+  ac_pt_FT2_CONFIG=$FT2_CONFIG
+  # Extract the first word of "freetype-config", so it can be a program name with args.
+set dummy freetype-config; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_ac_pt_FT2_CONFIG+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $ac_pt_FT2_CONFIG in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_ac_pt_FT2_CONFIG="$ac_pt_FT2_CONFIG" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_ac_pt_FT2_CONFIG="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  ;;
+esac
+fi
+ac_pt_FT2_CONFIG=$ac_cv_path_ac_pt_FT2_CONFIG
+if test -n "$ac_pt_FT2_CONFIG"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_pt_FT2_CONFIG" >&5
+$as_echo "$ac_pt_FT2_CONFIG" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+  if test "x$ac_pt_FT2_CONFIG" = x; then
+    FT2_CONFIG="no"
+  else
+    case $cross_compiling:$ac_tool_warned in
+yes:)
+{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: using cross tools not prefixed with host triplet" >&5
+$as_echo "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
+ac_tool_warned=yes ;;
+esac
+    FT2_CONFIG=$ac_pt_FT2_CONFIG
+  fi
+else
+  FT2_CONFIG="$ac_cv_path_FT2_CONFIG"
+fi
+
+   fi
+
+   min_ft_version=2.0.9
+   { $as_echo "$as_me:${as_lineno-$LINENO}: checking for FreeType -- version >= $min_ft_version" >&5
+$as_echo_n "checking for FreeType -- version >= $min_ft_version... " >&6; }
+   no_ft=""
+   if test "$FT2_CONFIG" = "no" ; then
+     no_ft=yes
+   else
+     FT2_CFLAGS=`$FT2_CONFIG $ft_config_args --cflags`
+     FT2_LIBS=`$FT2_CONFIG $ft_config_args --libs`
+     ft_config_major_version=`$FT2_CONFIG $ft_config_args --version | \
+       sed 's/\([0-9]*\).\([0-9]*\).\([0-9]*\)/\1/'`
+     ft_config_minor_version=`$FT2_CONFIG $ft_config_args --version | \
+       sed 's/\([0-9]*\).\([0-9]*\).\([0-9]*\)/\2/'`
+     ft_config_micro_version=`$FT2_CONFIG $ft_config_args --version | \
+       sed 's/\([0-9]*\).\([0-9]*\).\([0-9]*\)/\3/'`
+     ft_min_major_version=`echo $min_ft_version | \
+       sed 's/\([0-9]*\).\([0-9]*\).\([0-9]*\)/\1/'`
+     ft_min_minor_version=`echo $min_ft_version | \
+       sed 's/\([0-9]*\).\([0-9]*\).\([0-9]*\)/\2/'`
+     ft_min_micro_version=`echo $min_ft_version | \
+       sed 's/\([0-9]*\).\([0-9]*\).\([0-9]*\)/\3/'`
+     if test x$enable_fttest = xyes ; then
+       ft_config_is_lt=""
+       if test $ft_config_major_version -lt $ft_min_major_version ; then
+         ft_config_is_lt=yes
+       else
+         if test $ft_config_major_version -eq $ft_min_major_version ; then
+           if test $ft_config_minor_version -lt $ft_min_minor_version ; then
+             ft_config_is_lt=yes
+           else
+             if test $ft_config_minor_version -eq $ft_min_minor_version ; then
+               if test $ft_config_micro_version -lt $ft_min_micro_version ; then
+                 ft_config_is_lt=yes
+               fi
+             fi
+           fi
+         fi
+       fi
+       if test x$ft_config_is_lt = xyes ; then
+         no_ft=yes
+       else
+         ac_save_CFLAGS="$CFLAGS"
+         ac_save_LIBS="$LIBS"
+         CFLAGS="$CFLAGS $FT2_CFLAGS"
+         LIBS="$FT2_LIBS $LIBS"
+
+         #
+         # Sanity checks for the results of freetype-config to some extent.
+         #
+         if test "$cross_compiling" = yes; then :
+  echo $ECHO_N "cross compiling; assuming OK... $ECHO_C"
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+
+
+#include <ft2build.h>
+#include FT_FREETYPE_H
+#include <stdio.h>
+#include <stdlib.h>
+
+int
+main()
+{
+  FT_Library library;
+  FT_Error  error;
+
+  error = FT_Init_FreeType(&library);
+
+  if (error)
+    return 1;
+  else
+  {
+    FT_Done_FreeType(library);
+    return 0;
+  }
+}
+
+
+
+_ACEOF
+if ac_fn_c_try_run "$LINENO"; then :
+
+else
+  no_ft=yes
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
+  conftest.$ac_objext conftest.beam conftest.$ac_ext
+fi
+
+
+         CFLAGS="$ac_save_CFLAGS"
+         LIBS="$ac_save_LIBS"
+       fi             # test $ft_config_version -lt $ft_min_version
+     fi               # test x$enable_fttest = xyes
+   fi                 # test "$FT2_CONFIG" = "no"
+
+   if test x$no_ft = x ; then
+     { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+     HAVE_FT2="yes"
+   else
+     { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+     if test "$FT2_CONFIG" = "no" ; then
+       { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING:
+
+  The freetype-config script installed by FreeType 2 could not be found.
+  If FreeType 2 was installed in PREFIX, make sure PREFIX/bin is in
+  your path, or set the FT2_CONFIG environment variable to the
+  full path to freetype-config.
+       " >&5
+$as_echo "$as_me: WARNING:
+
+  The freetype-config script installed by FreeType 2 could not be found.
+  If FreeType 2 was installed in PREFIX, make sure PREFIX/bin is in
+  your path, or set the FT2_CONFIG environment variable to the
+  full path to freetype-config.
+       " >&2;}
+     else
+       if test x$ft_config_is_lt = xyes ; then
+         { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING:
+
+  Your installed version of the FreeType 2 library is too old.
+  If you have different versions of FreeType 2, make sure that
+  correct values for --with-ft-prefix or --with-ft-exec-prefix
+  are used, or set the FT2_CONFIG environment variable to the
+  full path to freetype-config.
+         " >&5
+$as_echo "$as_me: WARNING:
+
+  Your installed version of the FreeType 2 library is too old.
+  If you have different versions of FreeType 2, make sure that
+  correct values for --with-ft-prefix or --with-ft-exec-prefix
+  are used, or set the FT2_CONFIG environment variable to the
+  full path to freetype-config.
+         " >&2;}
+       else
+         { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING:
+
+  The FreeType test program failed to run.  If your system uses
+  shared libraries and they are installed outside the normal
+  system library path, make sure the variable LD_LIBRARY_PATH
+  (or whatever is appropriate for your system) is correctly set.
+         " >&5
+$as_echo "$as_me: WARNING:
+
+  The FreeType test program failed to run.  If your system uses
+  shared libraries and they are installed outside the normal
+  system library path, make sure the variable LD_LIBRARY_PATH
+  (or whatever is appropriate for your system) is correctly set.
+         " >&2;}
+       fi
+     fi
+
+     FT2_CFLAGS=""
+     FT2_LIBS=""
+     HAVE_FT2="no"
+   fi
+
+
+
+elif test $pkg_failed = untried; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	 # Get the cflags and libraries from the freetype-config script
+   #
+
+# Check whether --with-ft-prefix was given.
+if test "${with_ft_prefix+set}" = set; then :
+  withval=$with_ft_prefix; ft_config_prefix="$withval"
+else
+  ft_config_prefix=""
+fi
+
+
+
+# Check whether --with-ft-exec-prefix was given.
+if test "${with_ft_exec_prefix+set}" = set; then :
+  withval=$with_ft_exec_prefix; ft_config_exec_prefix="$withval"
+else
+  ft_config_exec_prefix=""
+fi
+
+
+   # Check whether --enable-freetypetest was given.
+if test "${enable_freetypetest+set}" = set; then :
+  enableval=$enable_freetypetest;
+else
+  enable_fttest=yes
+fi
+
+
+   if test x$ft_config_exec_prefix != x ; then
+     ft_config_args="$ft_config_args --exec-prefix=$ft_config_exec_prefix"
+     if test x${FT2_CONFIG+set} != xset ; then
+       FT2_CONFIG=$ft_config_exec_prefix/bin/freetype-config
+     fi
+   fi
+
+   if test x$ft_config_prefix != x ; then
+     ft_config_args="$ft_config_args --prefix=$ft_config_prefix"
+     if test x${FT2_CONFIG+set} != xset ; then
+       FT2_CONFIG=$ft_config_prefix/bin/freetype-config
+     fi
+   fi
+
+   if test "x$FT2_CONFIG" = x ; then
+     if test -n "$ac_tool_prefix"; then
+  # Extract the first word of "${ac_tool_prefix}freetype-config", so it can be a program name with args.
+set dummy ${ac_tool_prefix}freetype-config; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_FT2_CONFIG+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $FT2_CONFIG in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_FT2_CONFIG="$FT2_CONFIG" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_FT2_CONFIG="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  ;;
+esac
+fi
+FT2_CONFIG=$ac_cv_path_FT2_CONFIG
+if test -n "$FT2_CONFIG"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $FT2_CONFIG" >&5
+$as_echo "$FT2_CONFIG" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+fi
+if test -z "$ac_cv_path_FT2_CONFIG"; then
+  ac_pt_FT2_CONFIG=$FT2_CONFIG
+  # Extract the first word of "freetype-config", so it can be a program name with args.
+set dummy freetype-config; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_ac_pt_FT2_CONFIG+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $ac_pt_FT2_CONFIG in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_ac_pt_FT2_CONFIG="$ac_pt_FT2_CONFIG" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_ac_pt_FT2_CONFIG="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  ;;
+esac
+fi
+ac_pt_FT2_CONFIG=$ac_cv_path_ac_pt_FT2_CONFIG
+if test -n "$ac_pt_FT2_CONFIG"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_pt_FT2_CONFIG" >&5
+$as_echo "$ac_pt_FT2_CONFIG" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+  if test "x$ac_pt_FT2_CONFIG" = x; then
+    FT2_CONFIG="no"
+  else
+    case $cross_compiling:$ac_tool_warned in
+yes:)
+{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: using cross tools not prefixed with host triplet" >&5
+$as_echo "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
+ac_tool_warned=yes ;;
+esac
+    FT2_CONFIG=$ac_pt_FT2_CONFIG
+  fi
+else
+  FT2_CONFIG="$ac_cv_path_FT2_CONFIG"
+fi
+
+   fi
+
+   min_ft_version=2.0.9
+   { $as_echo "$as_me:${as_lineno-$LINENO}: checking for FreeType -- version >= $min_ft_version" >&5
+$as_echo_n "checking for FreeType -- version >= $min_ft_version... " >&6; }
+   no_ft=""
+   if test "$FT2_CONFIG" = "no" ; then
+     no_ft=yes
+   else
+     FT2_CFLAGS=`$FT2_CONFIG $ft_config_args --cflags`
+     FT2_LIBS=`$FT2_CONFIG $ft_config_args --libs`
+     ft_config_major_version=`$FT2_CONFIG $ft_config_args --version | \
+       sed 's/\([0-9]*\).\([0-9]*\).\([0-9]*\)/\1/'`
+     ft_config_minor_version=`$FT2_CONFIG $ft_config_args --version | \
+       sed 's/\([0-9]*\).\([0-9]*\).\([0-9]*\)/\2/'`
+     ft_config_micro_version=`$FT2_CONFIG $ft_config_args --version | \
+       sed 's/\([0-9]*\).\([0-9]*\).\([0-9]*\)/\3/'`
+     ft_min_major_version=`echo $min_ft_version | \
+       sed 's/\([0-9]*\).\([0-9]*\).\([0-9]*\)/\1/'`
+     ft_min_minor_version=`echo $min_ft_version | \
+       sed 's/\([0-9]*\).\([0-9]*\).\([0-9]*\)/\2/'`
+     ft_min_micro_version=`echo $min_ft_version | \
+       sed 's/\([0-9]*\).\([0-9]*\).\([0-9]*\)/\3/'`
+     if test x$enable_fttest = xyes ; then
+       ft_config_is_lt=""
+       if test $ft_config_major_version -lt $ft_min_major_version ; then
+         ft_config_is_lt=yes
+       else
+         if test $ft_config_major_version -eq $ft_min_major_version ; then
+           if test $ft_config_minor_version -lt $ft_min_minor_version ; then
+             ft_config_is_lt=yes
+           else
+             if test $ft_config_minor_version -eq $ft_min_minor_version ; then
+               if test $ft_config_micro_version -lt $ft_min_micro_version ; then
+                 ft_config_is_lt=yes
+               fi
+             fi
+           fi
+         fi
+       fi
+       if test x$ft_config_is_lt = xyes ; then
+         no_ft=yes
+       else
+         ac_save_CFLAGS="$CFLAGS"
+         ac_save_LIBS="$LIBS"
+         CFLAGS="$CFLAGS $FT2_CFLAGS"
+         LIBS="$FT2_LIBS $LIBS"
+
+         #
+         # Sanity checks for the results of freetype-config to some extent.
+         #
+         if test "$cross_compiling" = yes; then :
+  echo $ECHO_N "cross compiling; assuming OK... $ECHO_C"
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+
+
+#include <ft2build.h>
+#include FT_FREETYPE_H
+#include <stdio.h>
+#include <stdlib.h>
+
+int
+main()
+{
+  FT_Library library;
+  FT_Error  error;
+
+  error = FT_Init_FreeType(&library);
+
+  if (error)
+    return 1;
+  else
+  {
+    FT_Done_FreeType(library);
+    return 0;
+  }
+}
+
+
+
+_ACEOF
+if ac_fn_c_try_run "$LINENO"; then :
+
+else
+  no_ft=yes
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
+  conftest.$ac_objext conftest.beam conftest.$ac_ext
+fi
+
+
+         CFLAGS="$ac_save_CFLAGS"
+         LIBS="$ac_save_LIBS"
+       fi             # test $ft_config_version -lt $ft_min_version
+     fi               # test x$enable_fttest = xyes
+   fi                 # test "$FT2_CONFIG" = "no"
+
+   if test x$no_ft = x ; then
+     { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+     HAVE_FT2="yes"
+   else
+     { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+     if test "$FT2_CONFIG" = "no" ; then
+       { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING:
+
+  The freetype-config script installed by FreeType 2 could not be found.
+  If FreeType 2 was installed in PREFIX, make sure PREFIX/bin is in
+  your path, or set the FT2_CONFIG environment variable to the
+  full path to freetype-config.
+       " >&5
+$as_echo "$as_me: WARNING:
+
+  The freetype-config script installed by FreeType 2 could not be found.
+  If FreeType 2 was installed in PREFIX, make sure PREFIX/bin is in
+  your path, or set the FT2_CONFIG environment variable to the
+  full path to freetype-config.
+       " >&2;}
+     else
+       if test x$ft_config_is_lt = xyes ; then
+         { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING:
+
+  Your installed version of the FreeType 2 library is too old.
+  If you have different versions of FreeType 2, make sure that
+  correct values for --with-ft-prefix or --with-ft-exec-prefix
+  are used, or set the FT2_CONFIG environment variable to the
+  full path to freetype-config.
+         " >&5
+$as_echo "$as_me: WARNING:
+
+  Your installed version of the FreeType 2 library is too old.
+  If you have different versions of FreeType 2, make sure that
+  correct values for --with-ft-prefix or --with-ft-exec-prefix
+  are used, or set the FT2_CONFIG environment variable to the
+  full path to freetype-config.
+         " >&2;}
+       else
+         { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING:
+
+  The FreeType test program failed to run.  If your system uses
+  shared libraries and they are installed outside the normal
+  system library path, make sure the variable LD_LIBRARY_PATH
+  (or whatever is appropriate for your system) is correctly set.
+         " >&5
+$as_echo "$as_me: WARNING:
+
+  The FreeType test program failed to run.  If your system uses
+  shared libraries and they are installed outside the normal
+  system library path, make sure the variable LD_LIBRARY_PATH
+  (or whatever is appropriate for your system) is correctly set.
+         " >&2;}
+       fi
+     fi
+
+     FT2_CFLAGS=""
+     FT2_LIBS=""
+     HAVE_FT2="no"
+   fi
+
+
+
+else
+	FT2_CFLAGS=$pkg_cv_FT2_CFLAGS
+	FT2_LIBS=$pkg_cv_FT2_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	HAVE_FT2="yes"
+fi
+
 
 
 
@@ -15208,9 +16086,7 @@ $as_echo X/"$am_mf" |
     { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
 $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
 as_fn_error $? "Something went wrong bootstrapping makefile fragments
-    for automatic dependency tracking.  If GNU make was not used, consider
-    re-running the configure script with MAKE=\"gmake\" (or whatever is
-    necessary).  You can also try re-running configure with the
+    for automatic dependency tracking.  Try re-running configure with the
     '--disable-dependency-tracking' option to at least be able to build
     the package (albeit without support for automatic dependency tracking).
 See \`config.log' for more details" "$LINENO" 5; }
@@ -15807,6 +16683,7 @@ fi
 echo "
 
 Configuration:
+
 ----------------------------------------------------
 
   Source code location:       $srcdir
@@ -15815,6 +16692,11 @@ Configuration:
   Compiler:                   $CC $CFLAGS
   Linker:                     $CC $LDFLAGS $LIBS
   Install path:               $prefix
+
+  freetype: $FT2_CFLAGS
+            $FT2_LIBS
+
+  gif: $HAVE_GIF
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

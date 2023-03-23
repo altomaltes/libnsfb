@@ -45,8 +45,8 @@ typedef struct
 
 void logEvt( int code, int h   )
 { CodeRec codes[]=
-  {{ WM_NCMOUSEMOVE      , "WM_NCMOUSEMOVE"   }
-  ,{ WM_NCHITTEST        , "WM_NCHITTEST"     }
+ {{ WM_NCMOUSEMOVE      , "WM_NCMOUSEMOVE"   }
+ ,{ WM_NCHITTEST        , "WM_NCHITTEST"     }
   ,{ MF_MENUBARBREAK     , "MF_MENUBARBREAK"  }
   ,{ WM_MOUSEMOVE        , "WM_MOUSEMOVE"     }
   ,{ WM_MOUSEACTIVATE    , "WM_MOUSEACTIVATE" }
@@ -257,36 +257,26 @@ static int doEvent( HWND   hwnd
           //  ((wobject *)thisEvent->lParam)->doMessage( NULL );    // say unknown originated message
           //return( HABANA_MESSAGE );
 
-          case WM_ERASEBKGND:
-          return( WM_ERASEBKGND );
+          case WM_ERASEBKGND: return( WM_ERASEBKGND );
 
           case WM_PAINT:
           { PAINTSTRUCT ps;
-            /*HDC hdc=*/ BeginPaint( hwnd, &ps );
+              BeginPaint( hwnd, &ps );
 
-//            int rc;
-
-          //        FillRect(win32->theGC, &ps.rcPaint, (HBRUSH) (COLOR_WINDOW+1));
-
-            /*rc=*/ BitBlt( ps.hdc
-                      , ps.rcPaint.left,  ps.rcPaint.top
-                      , ps.rcPaint.right, ps.rcPaint.bottom
-                      , win32->theGC
-                      , ps.rcPaint.left,  ps.rcPaint.top
-                      , SRCCOPY);
-
-                //  FillRect(hdc, &ps.rcPaint, (HBRUSH) (COLOR_WINDOW+1));
+              BitBlt( ps.hdc
+                    , ps.rcPaint.left,  ps.rcPaint.top
+                    , ps.rcPaint.right, ps.rcPaint.bottom
+                    , win32->theGC
+                    , ps.rcPaint.left,  ps.rcPaint.top
+                    , SRCCOPY);
 
             EndPaint( hwnd, &ps );
           }
           return( WM_PAINT );
 
 
-          case WM_MOVE:
-          return( 0 );
-
-          case WM_SIZE:
-          return( 0 );
+          case WM_MOVE:  return( 0 );
+          case WM_SIZE: return( 0 );
 
           case WM_WINDOWPOSCHANGED:     // Keep track of window position & size
           return( WM_WINDOWPOSCHANGED );
@@ -603,7 +593,7 @@ static int w32Initialise( struct w32List * drv )
  *                                                                            *
 \* ========================================================================= **/
 static int w32Cursor( Nsfb                * nsfb
-                    , struct nsfbCursor_s * cursor )
+                    , struct NsfbCursorSt * cursor )
 {
   if ( cursor )
   {// LPCSTR WCursor;
@@ -829,7 +819,7 @@ static int w32Update( Nsfb      * nsfb
  *
  */
 static int w32Claim( Nsfb *nsfb, NsfbBbox * box )
-{ //struct nsfbCursor_s *cursor= nsfb->cursor;
+{ //struct NsfbCursorSt *cursor= nsfb->cursor;
        /*
      */
   return( 0 );
@@ -934,11 +924,11 @@ NsfbSurfaceRtns * newNode( const char * mode )
     node->rtns.events    = w32Events;
     node->rtns.claim     = w32Claim;
     node->rtns.update    = w32Update;
-    node->rtns.cursor    = w32Cursor;
     node->rtns.finalise  = w32Finalise;
     node->rtns.initialise= w32Initialise;
+    node->rtns.pixmap    = w32Pixmap;
 
-    node->rtns.pixmap     = w32Pixmap;
+    node->rtns.cursor    = NULL;  /* OS takes care of cursor */
 
   //  node->rtns.geometry  = w32SetGeometry;
     node->rtns.dataSize  = sizeof( struct w32List );

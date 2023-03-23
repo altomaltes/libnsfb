@@ -15,7 +15,7 @@ AC_CONFIG_MACRO_DIR([m4])
 dnl# Set some basic variables
 DATE="`date '+%d %B %Y'`"
 SVN_BUILD=m4_esyscmd_s([sh -c "svnversion | cut -f1 -d: "])
-SVN_BUILD=m4_esyscmd_s([sh -c "../bld"])
+SVN_BUILD=m4_esyscmd_s([sh -c "./bld"])
 AC_REVISION($Revision: $SVN_BUILD $)
 
 AC_SUBST(DATE)
@@ -25,7 +25,7 @@ AUTHORS="Jose Angel Caso Sanchez (JACS) jascaso@gijon.es"
 AC_SUBST(AUTHORS)
 AC_DEFINE_UNQUOTED(AUTHORS, "$AUTHORS", [ library authors ] )
 
-CPPFLAGS+="-I../../include -I/usr/include/libdrm"
+CPPFLAGS+="-I../../include"
 
 dnl Several pure type stuff
 
@@ -41,9 +41,9 @@ dnl Traditional typedefs and replacements
 AC_TYPE_MODE_T
 AC_CHECK_TYPE(off_t, long)
 AC_CHECK_TYPE(size_t, long)
-AC_CHECK_TYPE(byte,  unsigned char)
+AC_CHECK_TYPE(byte,  unsigned char )
 AC_CHECK_TYPE(word,  unsigned short)
-AC_CHECK_TYPE(dword, unsigned int)
+AC_CHECK_TYPE(dword, unsigned int )
 
 LT_INIT
 
@@ -52,9 +52,20 @@ dnl Detect windows
 AM_CONDITIONAL( WINDOWS,   test "${version_type}" = "windows" )
 
 dnl needed for DRM driver
-AC_CHECK_LIB( drm, drmError, [LIBS="-ldrm $LIBS" AC_DEFINE(HAVE_DRM, 1, [ Define if you have drm. ])]
+AC_CHECK_LIB( drm, drmError, [LIBDRM="-ldrm" AC_DEFINE(HAVE_DRM, 1, [ Define if you have drm. ])]
             , [AC_MSG_WARN([drm is required for GPU driver ])]
             , [])
+
+dnl needed for GIF format 
+AC_CHECK_LIB( gif, gifError, [LIBGIF="-lgif" AC_DEFINE(HAVE_GIF, 1, [ Define if you have gif support. ])]
+            , [AC_MSG_WARN([gif is required for GIF image format support ])]
+            , [])
+
+dnl needs freetype, so check for it here
+PKG_CHECK_MODULES( FT2, freetype2 >= 2.0.9, HAVE_FT2="yes", [ AC_CHECK_FT2(2.0.9, HAVE_FT2="yes", HAVE_FT2="no") ])
+dnl make the HAVE_FT2 variable available to automake and Makefile.am
+
+
 
 
 AC_PATH_PROG([SLACKBUILD], [makepkg], [notfound])
@@ -102,6 +113,7 @@ AC_OUTPUT
 echo "
 
 Configuration:
+
 ----------------------------------------------------
 
   Source code location:       $srcdir
@@ -110,6 +122,11 @@ Configuration:
   Compiler:                   $CC $CFLAGS
   Linker:                     $CC $LDFLAGS $LIBS
   Install path:               $prefix
+
+  freetype: $FT2_CFLAGS
+            $FT2_LIBS
+
+  gif: $HAVE_GIF
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

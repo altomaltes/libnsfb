@@ -36,10 +36,10 @@ static int TTY;
 static void changeVt( int i, siginfo_t * inf, void * v)
 { if ( ioctl( TTY, VT_RELDISP, 1 ) < 0 ) /* Try to release first */
   { ioctl( TTY, VT_RELDISP, VT_ACKACQ );
-    linuxFbOutput( 1, userData );  
+    linuxFbOutput( 1, userData );
   }
   else
-  { linuxFbOutput( 0, userData ); 
+  { linuxFbOutput( 0, userData );
 } }
 
 static struct vt_stat vtstat;
@@ -47,7 +47,7 @@ static struct vt_stat vtstat;
 static void restore( void )
 { ioctl( TTY, VT_RELDISP, 1 ); /* Give screen to kernel */
   if ( ioctl( TTY, VT_ACTIVATE, vtstat.v_active ) < 0 )
-  { error( 1, errno, "failed to switch to former console"); 
+  { error( 1, errno, "failed to switch to former console");
   }
 
   close( TTY );
@@ -60,18 +60,18 @@ int openVt( int flags, void * user )
   struct vt_mode vtmode;
 
   int tty0= open( CONSOLE_DEV, O_WRONLY | O_CLOEXEC );
-  
+
   if (tty0 < 0)
   { error( 1, errno, "could not open tty0" );
-    return( -1 ); 
+    return( -1 );
   }
 
   ioctl( tty0, VT_GETSTATE, &vtstat ); // Get current console
 
   if ( ioctl( tty0, VT_OPENQRY, &vtConsole ) < 0 || vtConsole < 0 )
-  { error( 1, errno, "failed to find non-opened console"); 
-    return( -2 ); 
-  } 
+  { error( 1, errno, "failed to find non-opened console");
+    return( -2 );
+  }
   close( tty0 );   // Not needed from now
 
   snprintf( filename, sizeof( filename )
@@ -80,14 +80,14 @@ int openVt( int flags, void * user )
   TTY= open( filename, O_RDWR | O_CLOEXEC );
 
   if ( TTY < 0 )
-  { error( 1, errno, "failed to open vconsole %d", filename ); 
-  } 
+  { error( 1, errno, "failed to open vconsole %d", filename );
+  }
 
   userData= user;                        /* Very important. BEFORE interrupt handler */
 
   if ( ioctl( TTY, KDSETMODE, KD_GRAPHICS ) < 0 )
-  { error( 1, errno, "failed to switch to graph"); 
-  } 
+  { error( 1, errno, "failed to switch to graph");
+  }
 
 /* Setup the sigal handler
  */
@@ -104,21 +104,21 @@ int openVt( int flags, void * user )
 
 
   if ( ioctl( TTY, VT_SETMODE, &vtmode  ) < 0 )
-  { error( 1, errno, "failed manage graph VT mode"); 
-  } 
+  { error( 1, errno, "failed manage graph VT mode");
+  }
 
   if ( flags )  /* Want to switch to new created console */
   { if ( ioctl( TTY, VT_ACTIVATE, vtConsole  ) < 0 )
-    { error( 1, errno, "failed to switch to new console"); 
-  } } 
+    { error( 1, errno, "failed to switch to new console");
+  } }
 
   return( atexit( restore ) );
-} 
+}
 
 #ifdef TESTMAIN
 
 int main()
-{ printf("Hello world!\n");          
+{ printf("Hello world!\n");
   openVt( 1 );
   getchar();
   return 0;

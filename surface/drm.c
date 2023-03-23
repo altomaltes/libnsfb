@@ -32,16 +32,7 @@
 
 #ifndef _WIN32
 
-
   #define DRM_NAME "/dev/dri/card0"
-
-// struct LnxPriv
-// { struct fb_fix_screeninfo FixInfo;
-//   struct fb_var_screeninfo VarInfo;
-//   int noPan; int fd; int size; int flags;
-//   void * mem;
-// };
-
 
 #endif
 
@@ -324,7 +315,7 @@ static int modesetFindCrtc( int fd
  * We also copy the width/height information into both framebuffers so
  * modesetCreateFb() can use them without requiring a pointer to ModesetDev.
  */
-static int modesetSetupDev( int fd 
+static int modesetSetupDev( int fd
                           , drmModeRes        * res
                           , drmModeConnector  * conn
                           , struct ModesetDev * dev )
@@ -365,7 +356,7 @@ static int modesetSetupDev( int fd
 
   if ( dev->bufs[ 0 ].map  && dev->bufs[ 1 ].map  )
   { return( 0 );
-  }	  
+  }
 
   fprintf( stderr, "cannot create framebuffer for connector %u\n", conn->connector_id );
 
@@ -431,16 +422,17 @@ static int modesetPrepare( int fd )
       continue;
     }
 
-    dev= calloc(sizeof(*dev), 1 ); /* create a device structure */
+    dev= CALLOC(sizeof(*dev)); /* create a device structure */
     dev->conn = conn->connector_id;
 
     if ((ret = modesetSetupDev( fd, res, conn, dev)))  /* call helper function to prepare this connector */
-    { if (ret != -ENOENT)
+    {
+      if (ret != -ENOENT)
       { errno = -ret;
         fprintf(stderr, "cannot setup device for connector %u:%u (%d): %m\n",	i, res->connectors[i], errno);
       }
 
-      free( dev );
+      FREE( dev );
       drmModeFreeConnector( conn );
       continue;
     }
@@ -481,14 +473,14 @@ static void modesetCleanup( int fd )
 
     modesetDestroyFb( fd, iter->bufs+1 );  /* destroy framebuffers */
     modesetDestroyFb( fd, iter->bufs+0 );
-    free(iter);  /* free allocated memory */
+    FREE( iter );  /* free allocated memory */
 } }
 
 
 /* perform actual modesetting on each found connector+CRTC
  */
 
-int  modesetConnector( int fd )
+static int  modesetConnector( int fd )
 { struct ModesetDev * iter= modesetList;
   struct ModesetBuf * buf;
   int errors= 0;
@@ -510,16 +502,16 @@ int  modesetConnector( int fd )
 }
 
 
-int drmInitialize( nsfb_t * nsfb )
+static int drmInitialize( Nsfb * nsfb )
 { struct ModesetDev * iter;
   struct ModesetBuf * buf;
   int ret= -3;
 
-  if ( modesetOpen( &nsfb->fd, DRM_NAME ))      /* open the DRM device */
+  if ( modesetOpen( &nsfb->surfaceRtns->fd, DRM_NAME ))      /* open the DRM device */
   { return( -1 );
   }
 
-  if ( modesetPrepare( nsfb->fd ))      /* prepare all connectors and CRTCs */
+  if ( modesetPrepare( nsfb->surfaceRtns->fd ))      /* prepare all connectors and CRTCs */
   { return( -2 );
   }
 
@@ -528,9 +520,9 @@ int drmInitialize( nsfb_t * nsfb )
   for ( iter= modesetList
       ; iter
       ; iter= iter->next )
-  { iter->savedCrtc= drmModeGetCrtc( nsfb->fd, iter->crtc );
+  { iter->savedCrtc= drmModeGetCrtc( nsfb->surfaceRtns->fd, iter->crtc );
 
-    if ( drmModeSetCrtc( nsfb->fd, iter->crtc
+    if ( drmModeSetCrtc( nsfb->surfaceRtns->fd, iter->crtc
                        , iter->bufs->fb
                        , 0, 0
                        , &iter->conn, 1, &iter->mode ) )
@@ -544,7 +536,7 @@ int drmInitialize( nsfb_t * nsfb )
     nsfb->loc=    iter->bufs[ 0 ].map;
     nsfb->width=  iter->bufs[ 0 ].width;
     nsfb->height= iter->bufs[ 0 ].height;
-    nsfb->loclen= 
+    nsfb->loclen=
     nsfb->panlen= iter->bufs[ 0 ].stride;
     nsfb->buflen= iter->bufs[ 0 ].size;
     ret= 0;
@@ -552,13 +544,13 @@ int drmInitialize( nsfb_t * nsfb )
 puts( "*****************************" );
 
   printf( "PAN %x %X %d %d %d %d \n"
-        , nsfb->pan, nsfb->loc 
+        , nsfb->pan, nsfb->loc
         , iter->bufs[ 0 ].height
         , iter->bufs[ 0 ].width
         , iter->bufs[ 0 ].stride
         , iter->bufs[ 0 ].size
         , nsfb->panlen
-        , nsfb->width  
+        , nsfb->width
         , nsfb->height );
 
   }
@@ -566,12 +558,12 @@ puts( "*****************************" );
   return( ret );
 }
 
-int drmFinalise( nsfb_t * nsfb )
-{ modesetCleanup( nsfb->fd );
+static int drmFinalise( Nsfb * nsfb )
+{ modesetCleanup( nsfb->surfaceRtns->fd );
 }
 
 
-int drmPan( nsfb_t * nsfb, int mode )
+static int drmPan( Nsfb * nsfb, int mode )
 { struct ModesetDev * iter;
 
   printf( "DRM PAN %d panCount %d \n", nsfb->panCount, mode );
@@ -579,19 +571,39 @@ int drmPan( nsfb_t * nsfb, int mode )
   for( iter= modesetList
      ; iter
      ; iter= iter->next )
-  { if (( drmModeSetCrtc( nsfb->fd 
+  { if (( drmModeSetCrtc( nsfb->surfaceRtns->fd
                         , iter->crtc
                         , iter->bufs[ nsfb->panCount & 1 ].fb
                         , 0, 0
                         , &iter->conn, 1, &iter->mode ) ))
     { fprintf( stderr, "cannot flip CRTC for connector %u (%d): %m\n", iter->conn, errno);
     }
-   
-    nsfb->pan= iter->bufs[ nsfb->panCount & 1 ].map; 
+
+    nsfb->pan= iter->bufs[ nsfb->panCount & 1 ].map;
     nsfb->panCount++;
     nsfb->loc= iter->bufs[ nsfb->panCount & 1 ].map;
   }
   return( nsfb->panCount & 1 );
 }
+
+
+NsfbSurfaceRtns drmRtns=
+{ .type= NSFB_SURFACE_DRM
+, .name= "drm"
+
+, .initialise= drmInitialize
+, .finalise  = drmFinalise
+, .claim     = NULL
+, .update    = NULL
+, .cursor    = NULL
+, .geometry  = NULL
+, .pan       = drmPan
+
+, .dataSize  = sizeof( drmRtns )
+
+};
+
+NSFB_SURFACE_DEF( drmRtns  )
+
 
 

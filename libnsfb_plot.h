@@ -30,7 +30,7 @@
  *
  * bits 0-7 are the Red component of the colour.
  */
-typedef dword nsfb_colour_t;
+typedef dword NsfbColour;
 
 /**
  * Type of plot operation
@@ -41,28 +41,30 @@ typedef enum nsfbPlotoptype_e
 , NFSB_PLOT_OPTYPE_PATTERN   /**< Pattern plot */
 } nsfbPlotoptype_t;
 
-/** pen colour and raster operation for plotting primatives. */
+/** pen colour and raster operation for plotting primatives. 
+ */
 typedef struct nsfbPlotpen_s
-{ nsfbPlotoptype_t stroke_type; /**< Stroke plot type */
-  int stroke_width;               /**< Width of stroke, in pixels */
-  nsfb_colour_t stroke_colour;    /**< Colour of stroke */
-  dword stroke_pattern;
-  nsfbPlotoptype_t fill_type;   /**< Fill plot type */
-  nsfb_colour_t fill_colour;      /**< Colour of fill */
-} nsfbPlotpen_t;
+{ nsfbPlotoptype_t strokeType;     /**< Stroke plot type */
+  int              strokeWidth;    /**< Width of stroke, in pixels */
+  NsfbColour       strokeColour;   /**< Colour of stroke */
+  nsfbPlotoptype_t fillType;       /**< Fill plot type */
+  NsfbColour       fillColour;     /**< Colour of fill */
+} NsfbPlotpen;
 
-/** path operation type. */
+/** path operation type. 
+ */
 typedef enum nsfbPlotpathop_type_e
 { NFSB_PLOT_PATHOP_MOVE
 , NFSB_PLOT_PATHOP_LINE
 , NFSB_PLOT_PATHOP_QUAD
 , NFSB_PLOT_PATHOP_CUBIC
-} nsfbPlotpathop_type_t;
+} NsfbPlotpathopType;
 
-/** path element */
+/** path element 
+ */
 typedef struct nsfbPlotpathop_s
-{ nsfbPlotpathop_type_t operation;
-  nsfb_point_t point;
+{ NsfbPlotpathopType operation;
+  NsfbPoint point;
 } nsfbPlotpathop_t;
 
 /** Sets a clip rectangle for subsequent plots.
@@ -71,15 +73,15 @@ typedef struct nsfbPlotpathop_s
  * The clipping area must lie within the framebuffer visible screen or false
  * will be returned and the new clipping area not set.
  */
-PUBLIC bool nsfbPlotset_clip( nsfb_t *, nsfb_bbox_t *clip);
+PUBLIC bool nsfbPlotsetClip( Nsfb *, NsfbBbox *clip);
 
 /** Get the previously set clipping region.
  */
-PUBLIC bool nsfbPlotget_clip( nsfb_t *, nsfb_bbox_t *clip);
+PUBLIC bool nsfbPlotgetClip( Nsfb *, NsfbBbox *clip);
 
 /** Clears plotting area to a flat colour.
  */
-PUBLIC bool nsfbPlotclg( nsfb_t *, nsfb_colour_t c );
+PUBLIC bool nsfbPlotclg( Nsfb *, NsfbColour c );
 
 
 /** Plots a rectangle outline.
@@ -87,32 +89,32 @@ PUBLIC bool nsfbPlotclg( nsfb_t *, nsfb_colour_t c );
  * The line can be solid, dotted or dashed. Top left corner at (x0,y0) and
  * rectangle has given width and height.
  */
-PUBLIC bool nsfbPlotrectangle( nsfb_t *, nsfb_bbox_t *rect, int line_width, nsfb_colour_t c, bool dotted, bool dashed);
+PUBLIC bool nsfbPlotrectangle( Nsfb *, NsfbBbox *rect, int line_width, NsfbColour c, bool dotted, bool dashed);
 
 /** Plots a filled rectangle. Top left corner at (x0,y0), bottom
  *		  right corner at (x1,y1). Note: (x0,y0) is inside filled area,
  *		  but (x1,y1) is below and to the right. See diagram below.
  */
-PUBLIC bool nsfbPlotrectangle_fill( nsfb_t *, nsfb_bbox_t *rect, nsfb_colour_t c);
+PUBLIC bool nsfbPlotrectangle_fill( Nsfb *, NsfbBbox *rect, NsfbColour c);
 
 /** Plots a line.
  *
  * Draw a line from (x0,y0) to (x1,y1). Coordinates are at centre of line
  * width/thickness.
  */
-PUBLIC bool nsfbPlotline( nsfb_t *, nsfb_bbox_t *line, nsfbPlotpen_t *pen);
+PUBLIC bool nsfbPlotline( Nsfb *, NsfbBbox *line, NsfbPlotpen *pen);
 
 /** Plots a number of lines.
  *
  * Draw a series of lines.
  */
-PUBLIC bool nsfbPlotlines(nsfb_t *nsfb, int linec, nsfb_bbox_t *line, nsfbPlotpen_t *pen);
+PUBLIC bool nsfbPlotlines(Nsfb *nsfb, int linec, NsfbBbox *line, NsfbPlotpen *pen);
 
 /** Plots a number of connected lines.
  *
  * Draw a series of connected lines.
  */
-PUBLIC bool nsfbPlotpolylines(nsfb_t *nsfb, int pointc, const nsfb_point_t *points, nsfbPlotpen_t *pen);
+PUBLIC bool nsfbPlotpolylines(Nsfb *nsfb, int pointc, const NsfbPoint *points, NsfbPlotpen *pen);
 
 /** Plots a filled polygon.
  *
@@ -122,73 +124,73 @@ PUBLIC bool nsfbPlotpolylines(nsfb_t *nsfb, int pointc, const nsfb_point_t *poin
  *
  *
  */
-PUBLIC bool nsfbPlotpolygon(nsfb_t *nsfb, const int *p, unsigned int n, nsfb_colour_t fill);
+PUBLIC bool nsfbPlotpolygon(Nsfb *nsfb, const int *p, unsigned int n, NsfbColour fill);
 
 /** Plot an ellipse.
  */
-PUBLIC bool nsfbPlotellipse(nsfb_t *nsfb, nsfb_bbox_t *ellipse, nsfb_colour_t c);
+PUBLIC bool nsfbPlotellipse(Nsfb *nsfb, NsfbBbox *ellipse, NsfbColour c);
 
 /** Plot a filled ellipse.
  */
-PUBLIC bool nsfbPlotellipse_fill(nsfb_t *nsfb, nsfb_bbox_t *ellipse, nsfb_colour_t c);
+PUBLIC bool nsfbPlotellipseFill(Nsfb *nsfb, NsfbBbox *ellipse, NsfbColour c);
 
 /** Plots an arc.
  *
  * around (x,y), from anticlockwise from angle1 to angle2. Angles are measured
  * anticlockwise from horizontal, in degrees.
  */
-PUBLIC bool nsfbPlotarc( nsfb_t *nsfb
-                         , int x, int y, int radius
-                         , int angle1, int angle2
-                         , nsfb_colour_t c);
+PUBLIC bool nsfbPlotarc( Nsfb *
+                       , int x, int y, int radius
+                       , int angle1, int angle2
+                       , NsfbColour c);
 
 /** Plots an alpha blended pixel.
  *
  * plots an alpha blended pixel.
  */
-PUBLIC bool nsfbPlotpoint(            nsfb_t *, int x, int y, nsfb_colour_t c );
-PUBLIC bool nsfbPlotcubic_bezier(     nsfb_t *, nsfb_bbox_t *curve, nsfb_point_t *ctrla, nsfb_point_t *ctrlb, nsfbPlotpen_t *pen );
-PUBLIC bool nsfbPlotquadratic_bezier( nsfb_t *, nsfb_bbox_t *curve, nsfb_point_t *ctrla, nsfbPlotpen_t *pen );
-PUBLIC bool nsfbPlotpath(             nsfb_t *, int pathc, nsfbPlotpathop_t *pathop, nsfbPlotpen_t *pen );
+PUBLIC bool nsfbPlotpoint(           Nsfb *, int x, int y, NsfbColour c );
+PUBLIC bool nsfbPlotcubicBezier(     Nsfb *, NsfbBbox *curve, NsfbPoint *ctrla, NsfbPoint *ctrlb, NsfbPlotpen *pen );
+PUBLIC bool nsfbPlotquadraticBezier( Nsfb *, NsfbBbox *curve, NsfbPoint *ctrla, NsfbPlotpen *pen );
+PUBLIC bool nsfbPlotpath(            Nsfb *, int pathc, nsfbPlotpathop_t *pathop, NsfbPlotpen *pen );
 
 /** copy an area of screen
  *
  * Copy an area of the display.
  */
-PUBLIC bool nsfbPlotcopy(         nsfb_t *, nsfb_bbox_t *srcbox, nsfb_t *dstfb, nsfb_bbox_t *dstbox);
+PUBLIC bool nsfbPlotcopy(         Nsfb *, NsfbBbox *srcbox, Nsfb *dstfb, NsfbBbox *dstbox);
 
 /** Plot bitmap.
  */
-PUBLIC bool nsfbPlotbitmap( nsfb_t *
-                            , const nsfb_bbox_t *loc, const nsfb_colour_t *pixel
-                            , int bmp_width, int bmp_height, int bmp_stride
-                            , int alpha );
+PUBLIC bool nsfbPlotbitmap( Nsfb *
+                          , const NsfbBbox *loc, const NsfbColour *pixel
+                          , int bmp_width, int bmp_height, int bmp_stride
+                          , int alpha );
 
 /** Plot bitmap.
  */
-PUBLIC bool nsfbPlotbitmap_tiles( nsfb_t *
-                                  , const nsfb_bbox_t *
-                                  , int tiles_x, int tiles_y
-                                  , const nsfb_colour_t *
-                                  , int bmp_width, int bmp_height, int bmp_stride
-                                  , int alpha );
+PUBLIC bool nsfbPlotbitmapTiles( Nsfb *
+                               , const NsfbBbox *
+                               , int tiles_x, int tiles_y
+                               , const NsfbColour *
+                               , int bmp_width, int bmp_height, int bmp_stride
+                               , int alpha );
 
 /** Plot an 8 bit glyph.
  */
-PUBLIC bool nsfbPlotglyph8(       nsfb_t *, nsfb_bbox_t *, const byte *pixel, int pitch, nsfb_colour_t c, nsfb_colour_t b );
+PUBLIC bool nsfbPlotglyph8(    Nsfb *, NsfbBbox *, const byte *pixel, int pitch, NsfbColour c, NsfbColour b );
 
 /** Plot an 1 bit glyph.
  */
-PUBLIC bool nsfbPlotglyph1(       nsfb_t *, nsfb_bbox_t *loc, const byte *pixel, int pitch, nsfb_colour_t c);
+PUBLIC bool nsfbPlotglyph1(    Nsfb *, NsfbBbox *loc, const byte *pixel, int pitch, NsfbColour c);
 
 /** read rectangle into buffer
  */
-PUBLIC bool nsfbPlotreadrect(     nsfb_t *, nsfb_bbox_t *rect, nsfb_colour_t * buffer );
+PUBLIC bool nsfbPlotreadrect(  Nsfb *, NsfbBbox *rect, NsfbColour * buffer );
 
 /** Move image area
   */
-PUBLIC  int nsfbPlotMoverect(     nsfb_t *, int  w, int h, int x, int y );
-PUBLIC  int   fbPlotMoverect(     nsfb_t *, int  w, int h, int x, int y );
+PUBLIC  int nsfbPlotMoverect(  Nsfb *, int  w, int h, int x, int y );
+PUBLIC  int   fbPlotMoverect(  Nsfb *, int  w, int h, int x, int y );
 
 
 #endif /* _LIBNSFB_PLOT_H */

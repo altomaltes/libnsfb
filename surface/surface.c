@@ -6,127 +6,550 @@
  *                http://www.opensource.org/licenses/mit-license.php
  */
 
+#define _GNU_SOURCE
+
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdarg.h>
+#include <ctype.h>
 
 #include "../surface.h"
 #include "../plot.h"
 #include "../nsfb.h"
 
-#define MAX_SURFACES 16
+#define PATH_SIZE 256
 
-struct nsfb_surface_s
-{ enum  nsfb_type_e type;
-  const nsfb_surface_rtns_t *rtns;
-  const char *name;
-};
+typedef NsfbSurfaceRtns * ( *NodeFun ) ( const char * mode                           ); /* dll mouter */
+typedef IcoRec          * ( *IcoFun  ) ( const char * name, int wtarget, int htarget ); /* dll mouter */
+typedef DeviceImageRec  * ( *ImgFun  ) ( const char * name, int wtarget, int htarget ); /* dll mouter */
 
-static struct nsfb_surface_s surfaces[ MAX_SURFACES ];
-static int surface_count = 0;
 
-/* internal routine which lets surfaces register their presence at runtime */
-void _nsfb_register_surface( const enum nsfb_type_e type
-                           , const nsfb_surface_rtns_t * rtns
-                           , const char *name )
-{ if ( surface_count >= MAX_SURFACES ) /* no space for additional surfaces */
-  { return;
+static NsfbSurfaceRtns * surfaceSeed= NULL;
+
+/** ================================================ [ JACS, 10/12/2009 ] == **\
+ **                                                                          **
+ **   JACS 2009 (altomaltes@yahoo.es)                                        **
+ **             (altomaltes@gmail.com)                                       **
+ **                                                                          **
+ **  FUNCION: loadModuleSymbolNsfb                                               **
+ **                                                                          **
+ **  @brief Loads a symbol from a plugin on the same path of symbol.         **
+ **                                                                          **
+\** ======================================================================== **/
+#if defined( __unix__ )
+#include <dlfcn.h>
+
+static void * loadModuleSymbolNsfb( const char * name
+                                  , const char * dll, ...  )
+{ Dl_info info;
+
+  if ( dladdr( loadModuleSymbolNsfb, &info ) )
+  { if ( info.dli_fname )
+    { char path[ PATH_SIZE ];
+
+      strcpy( path, info.dli_fname ); char * mark= strrchr( path, '/' );
+
+      if ( mark )
+      {
+        mark++;              /* Cut path, but leave "/" */
+        void * addr;
+        void * hOle2Dll;
+
+        va_list ap; va_start( ap, dll);
+        vsprintf( mark, dll, ap );
+        va_end( ap );
+        strcat( mark, ".so" );
+
+        if (( hOle2Dll= dlopen( path, RTLD_NOW )))
+        { if (( addr= dlsym( hOle2Dll, name )))
+          { fprintf( stderr, "Open %s in %s sucess\n", name, path );
+            return( addr );
+        } }
+
+        fprintf( stderr, "Not able to open %s in %s -> %s\n", name, path, dlerror() );
+
+  } } }
+
+  return( NULL );
+}
+
+#elif defined( __WIN32 )
+
+#undef byte            // namespace corruption
+  #include "windows.h"
+
+ANSIC void * loadModuleSymbolNsfb( const char * name
+                                  , const char * dll, ...  )
+{ char lib[ 1024 ];
+  void * hOle2Dll;
+
+  if ( dll )
+  { va_list ap; va_start( ap, dll);
+    vsprintf( lib, dll, ap );
+    va_end( ap );
+
+    if ( !strstr( dll, ".DLL" ) )
+    { if ( !strstr( dll, ".dll" ) )
+      { strcat( lib, ".DLL" );
+    } }
+
+    hOle2Dll= LoadLibrary( dll= lib );
+  }
+  else
+  { hOle2Dll= GetModuleHandle( name );
   }
 
-  surfaces[ surface_count ].type = type;
-  surfaces[ surface_count ].rtns = rtns;
-  surfaces[ surface_count ].name = name;
-  surface_count++;
+  if ( hOle2Dll )
+  { if ( name )                               /* A symbol was requested */
+    { void * addr= GetProcAddress( hOle2Dll, name );
+
+      if ( addr )
+      { return( addr );
+    } }
+
+    FreeLibrary( hOle2Dll );
+  }
+  return( NULL );
 }
 
-/* default surface implementations */
+#endif
 
-static int surface_defaults(nsfb_t *nsfb)
-{ nsfb->width = 800;
-  nsfb->height= 600;
-  nsfb->format= NSFB_FMT_XRGB8888;
-  nsfb->rotate= NSFB_ROTATE_NORTH;
 
-  select_plotters( nsfb );   /* select default sw plotters for bpp */
-
-  return 0;
+/* internal routine which lets surfaces register their presence at runtime
+ */
+void _nsfb_register_surface( NsfbSurfaceRtns * rtns )
+{ rtns->next= surfaceSeed;
+  surfaceSeed= rtns;
 }
 
-static int surface_claim( nsfb_t *nsfb, nsfb_bbox_t *box )
-{ UNUSED(nsfb);
-  UNUSED(box);
-  return 0;
+
+struct NsfbSurfaceRtnsSt * nsfbFindSurface( int type )
+{ NsfbSurfaceRtns * ptr;
+
+  for( ptr = surfaceSeed
+     ; ptr
+     ; ptr= ptr->next )
+  { if ( ptr->type == type )
+    { return(( struct NsfbSurfaceRtnsSt *)ptr );
+  } }
+
+  return( NULL );
 }
 
-static int surface_update(nsfb_t *nsfb, nsfb_bbox_t *box)
+/* default surface implementations
+ */
+
+static int surfaceClaim( Nsfb *nsfb, NsfbBbox *box )
 { UNUSED( nsfb );
   UNUSED( box  );
 
-  return 0;
+  return( 0 );
 }
 
-static int surface_cursor(nsfb_t *nsfb, struct nsfbCursor_s *cursor)
-{ UNUSED(nsfb);
-  UNUSED(cursor);
-  return 0;
-}
-
-static int surface_parameters( nsfb_t *nsfb
-                             , const char *parameters )
-{ UNUSED(nsfb);
-  UNUSED(parameters);
-  return 0;
-}
-
-/* exported interface documented in surface.h */
-nsfb_surface_rtns_t * nsfbSurfaceGetRtns( enum nsfb_type_e type )
-{ int fend_loop;
-  nsfb_surface_rtns_t *rtns = NULL;
-
-/* surface type must match and have a initialisor, finaliser
- * and input method
+/* memory updates
  */
-  for (fend_loop = 0; fend_loop < surface_count; fend_loop++)
-  { if ((surfaces[ fend_loop ].type == type     )
-     && (surfaces[ fend_loop ].rtns->initialise )
-     && (surfaces[ fend_loop ].rtns->finalise   )
-     && (surfaces[ fend_loop ].rtns->input      ))
-    { rtns = malloc(sizeof(nsfb_surface_rtns_t ));
-      if ( !rtns )
-      { continue;
-      }
+static int surfaceUpdate( Nsfb     * nsfb
+                        , NsfbBbox * box )
+{ if ( nsfb && box )
+  { return( nsfb->plotterFns->moverect( nsfb
+                                      , box->x1 - box->x0
+                                      , box->y1 - box->y0
+                                      , box->x0 , box->y0 ));
+  }
 
-	    memcpy( rtns
-	           , surfaces[fend_loop].rtns
-	           , sizeof( nsfb_surface_rtns_t ));
-
-	    /* The rest may be empty but to avoid the null check every time
-	     * provide default implementations.
-	     */
-      if ( ! rtns->defaults   ) { rtns->defaults  = surface_defaults;  }
-      if ( ! rtns->claim      ) { rtns->claim     = surface_claim;	    }
-      if ( ! rtns->update     ) { rtns->update    = surface_update;	   }
-      if ( ! rtns->cursor     ) { rtns->cursor    = surface_cursor;	   }
-      if ( ! rtns->parameters ) { rtns->parameters= surface_parameters;}
-
-      break;
-  } }
-
-  return rtns;
+  return( -1 );
 }
 
-PUBLIC enum nsfb_type_e nsfbTypeFromName( const char * name )
-{ int fend_loop;
+ANSIC int nsfbSnap( Nsfb       * nsfb  )
+{ if ( nsfb  )
+  { return( nsfb->plotterFns->moverect( nsfb
+                                      , nsfb->width
+                                      , nsfb->height
+                                      , 0 , 0 ));
+  }
 
-  for ( fend_loop = 0
-      ; fend_loop < surface_count
-      ; fend_loop++ )
-  { if ( !strcmp( surfaces[ fend_loop ].name, name) )
-    { return( surfaces[ fend_loop ].type );
+  return( 0 );
+}
+
+static int surfaceCursor(Nsfb *nsfb, struct NsfbCursorSt *cursor)
+{ UNUSED( nsfb   );
+  UNUSED( cursor );
+  return 0;
+}
+
+static int surfaceGeometry( Nsfb * nsfb
+                          , int width, int height
+                          , enum NsfbFormat format )
+{ nsfb->width = width;
+  nsfb->height= height;
+  nsfb->format= format;
+
+  return( 0 );
+}
+
+ANSIC enum NsfbType nsfbGetSurfaceType( Nsfb *nsfb )
+{ if ( nsfb )
+  { if ( nsfb->surfaceRtns )
+    { return( nsfb->surfaceRtns->type );
   } }
 
   return( NSFB_SURFACE_NONE );
 }
+
+/* exported interface documented in surface.h
+ */
+/* surface type must match and have a initialisor, finaliser
+ * and input method
+ */
+/*    The rest may be empty but to avoid the null check every time
+ * provide default implementations.
+ */
+
+NsfbSurfaceRtns * nsfbSurfaceDefaultRtns( NsfbSurfaceRtns * rtns )
+{ if (( rtns->initialise )
+  &&  ( rtns->finalise   ))
+  { if ( !rtns->claim    ) { rtns->claim   = surfaceClaim;	   }
+    if ( !rtns->update   ) { rtns->update  = surfaceUpdate;	  }
+    if ( !rtns->cursor   ) { rtns->cursor  = surfaceCursor;	  }
+    if ( !rtns->geometry ) { rtns->geometry= surfaceGeometry; }
+//    if ( !rtns->clg      ) { rtns->geometry= surfaceClg;      }
+
+    if ( !rtns->theDepth) { rtns->theDepth= 32; }
+
+    return( rtns );
+  }
+
+  return( NULL );
+}
+
+
+/*   EXAMPLE ":0#800x600x24.N@X11" -> ":0" "800x600x24.N" "X11"
+ */
+ANSIC Nsfb * nsfbNewSurface( enum NsfbType type
+                           , int w, int h, int plan
+                           , int x, int y, int geo
+                           , const char * title )
+{ Nsfb * newfb= nsfbNew( type );
+
+  if ( !newfb )
+  { printf("Unable to allocate \"%d %d\" nsfb surface\n", w,h );
+  }
+  else
+  { nsfbSetGeometry( newfb         /* Before nsfbInit, because of the size */
+                   , w, h, plan );
+
+    nsfbSetAttrib(  newfb
+                 ,  title );
+    nsfbInit( newfb );
+
+    nsfbSetPosition( newfb
+                   , x, y, geo );
+
+  }
+
+  return( newfb );
+}
+
+/*
+ */
+ANSIC Nsfb * nsfbNewConsole( enum NsfbType type
+                           , const char * ascii )
+{ const char * mk= (const char *)strchr( ascii, '#' );
+
+  mk= mk ? mk +1  : ascii;
+
+  int w= 800;  /* Some default values */
+  int h= 600;
+  int x= 0
+    , y= 0;
+
+  int plan=  32;
+  char geo= 'N';
+
+  sscanf( mk, "%dx%dx%d.%c;%d,%d"
+        , &w, &h, &plan, &geo, &x, &y );
+
+  return( nsfbNewSurface( type
+                        , w, h, plan
+                        , x, y, geo
+                        , "nsfb library" ));
+
+}
+
+/*
+ */
+const char * nsfbDemangleName( const char * name
+                             , char * display
+                             , int * w, int * h, int * bpp
+                             , int * x, int * y, int * geo )
+{ if ( name )
+  { int thisW= -1;
+    int thisH= -1;   /* default values */
+    int thisX= -1;
+    int thisY= -1;
+    int thisBpp= 32;
+    int thisGeo= NSFB_ROTATE_NORTH;
+
+    const char * thisDriver= NULL;
+
+/* Extract display
+ */
+    const char * src= name;
+    char * dst= display;
+
+    while(( *src != '#' ) && ( *src != '@' ))
+    { if ( *src == 0)         /* Invalid stream    */
+      { //if ( *name == ':' )    /* Last resort, tell most probable */
+
+        if ( dst )
+        { *dst= 0; }
+        #ifdef __unix__
+          return( "X11" );
+        #else
+          return( "w32" );
+        #endif
+      }
+      if ( dst )
+      { *dst++= *src;
+      } src++;
+    };
+    if ( dst ) { *dst= 0; }             /* Terminate display */
+
+//        case '@':                     /* bypass other data */
+//          *dst++= 0;                  /* Terminate display */
+  //        set->driver= src;
+    //    return( 0 );
+
+    if ( *src=='#' )                   /* Resolution information */
+    { src++; sscanf( src, "%dx%dx%d"
+                        , &thisW
+                        , &thisH
+                        , &thisBpp );
+      while( isalnum( *src ))          /* Skip alphanumeric */
+      { src++;
+    } }
+
+    if ( *src== '.' )                  /* Orientation information */
+    { src++; switch( *src )
+      { case 'S': case 's': thisGeo= NSFB_ROTATE_SOUTH; break;
+        case 'E': case 'e': thisGeo= NSFB_ROTATE_EAST;  break;
+        case 'W': case 'w': thisGeo= NSFB_ROTATE_WEST;  break;
+        case 'N': case 'n': thisGeo= NSFB_ROTATE_NORTH; break;
+      }; src++;
+    }
+
+    if ( *src== ';' )                /* Placement information */
+    { src++; sscanf( src, "%d,%d"
+                        , &thisX
+                        , &thisY );
+    }
+
+    while( *src++ != '@' )               /* Driver */
+    { if ( ! *src )
+      { src= NULL;
+        break;
+    } }
+
+    if (( w   ) && ( thisW != -1 )) { *w= thisW; }
+    if (( h   ) && ( thisH != -1 )) { *h= thisH; }
+    if (( x   ) && ( thisX != -1 )) { *x= thisX; }
+    if (( y   ) && ( thisY != -1 )) { *y= thisY; }
+
+    if (( bpp ) && ( thisBpp != -1 )) { *bpp= thisBpp; }
+    if (( geo ) && ( thisGeo != -1 )) { *geo= thisGeo; }
+
+
+    return( src );
+  }
+  return( NULL );
+}
+
+ANSIC enum NsfbType nsfbTypeFromName( const char * name )
+{ if ( name )
+  { int try= 2;
+
+    int theX= 0, theY= 0, theGeo= NSFB_ROTATE_NORTH;
+    int theW= 0, theH= 0, theBpp= 32;
+
+    char display[ 256 ];
+
+    const char * drv= nsfbDemangleName( name
+                                      , display
+                                      , &theW, &theH, &theBpp
+                                      , &theX, &theY, &theGeo );
+
+    if ( drv )               /* Driver specified */
+    { NsfbSurfaceRtns * ptr;
+
+     // if ( strcmp( drv, "vga" ))   /* Non internal */
+      { strcat( display, "@" ); strcat( display, drv );
+      }
+
+/* Try internally loaded
+ */
+      while( try-- )                   /* Only a try */
+      { for( ptr = surfaceSeed
+           ; ptr
+           ; ptr= ptr->next )
+        { if ( !strcmp( ptr->name, display ) )
+          { ptr->theGeo= theGeo;
+            return( ptr->type );
+        } }
+
+/* Load from shared lib if not, this registers surface also
+ */
+        NodeFun launch= loadModuleSymbolNsfb( "newNode"
+                                            , "nsfb-%s-%s", drv, VERSION );
+        if ( launch )
+        { if (( ptr= launch( display )))
+          { _nsfb_register_surface( ptr );
+            ptr->theGeo= theGeo;
+            ptr->theDepth= theBpp;
+            return( ptr->type );
+  } } } } }
+
+  return( NSFB_SURFACE_NONE );
+}
+
+/** ========================================= [ JACS, 10/02/2023 ] == *\
+ *                                                                    *
+ *   JASC 2023                                                        *
+ *                                                                    *
+ *  FUNCTION loadIcoGifFile                                           *
+ *           loadIcoPngFile                                           *
+ *           loadIcoJpgFile                                           *
+ *                                                                    *
+ *           loadImgGifFile                                           *
+ *           loadImgPngFile                                           *
+ *           loadImgJpgFile                                           *
+ *                                                                    *
+ *  @brief                                                            *
+ *                                                                    *
+\* ================================================================= **/
+ANSIC IcoRec * loadIcoGifFile( const char * fname, int wtarget, int htarget  )
+{ static IcoFun launcher;
+
+  if ( !launcher )  /* Search for the magician in the dll*/
+  {
+    launcher= loadModuleSymbolNsfb( "loadIcoFile"
+                                  , "nsfb-gif-%s", VERSION );
+  }
+
+  return( launcher ? launcher( fname, wtarget, htarget ) : NULL );
+}
+
+/*
+ *
+ */
+ANSIC IcoRec * loadIcoPngFile( const char * fname, int wtarget, int htarget  )
+{ static IcoFun launcher;
+
+  if ( !launcher )  /* Search for the magician in the dll*/
+  {
+    launcher= loadModuleSymbolNsfb( "loadIcoFile"
+                                  , "nsfb-png-%s", VERSION );
+  }
+
+  return( launcher ? launcher( fname, wtarget, htarget ) : NULL );
+}
+
+/*
+ *
+ */
+ANSIC IcoRec * loadIcoJpgFile( const char * fname, int wtarget, int htarget  )
+{ static IcoFun launcher;
+
+  if ( !launcher )  /* Search for the magician in the dll*/
+  {
+    launcher= loadModuleSymbolNsfb( "loadIcoFile"
+                                  , "nsfb-jpg-%s", VERSION );
+  }
+
+  return( launcher ? launcher( fname, wtarget, htarget ) : NULL );
+}
+
+
+/*
+ *
+ */
+ANSIC IcoRec * loadIcoSvgFile( const char * fname, int wtarget, int htarget  )
+{ static IcoFun launcher;
+
+  if ( !launcher )  /* Search for the magician in the dll*/
+  {
+    launcher= loadModuleSymbolNsfb( "loadIcoFile"
+                                  , "nsfb-svg-%s", VERSION );
+  }
+
+  return( launcher ? launcher( fname, wtarget, htarget ) : NULL );
+}
+
+
+/*
+ * Image formats
+ */
+ANSIC DeviceImageRec * loadImgGifFile( const char * fname, int wtarget, int htarget  )
+{ static ImgFun launcher;
+
+  if ( !launcher )  /* Search for the magician in the dll*/
+  {
+    launcher= loadModuleSymbolNsfb( "loadImgFile"
+                                  , "nsfb-gif-%s", VERSION );
+  }
+
+  return( launcher ? launcher( fname, wtarget, htarget ) : NULL );
+}
+
+/*
+ *
+ */
+ANSIC DeviceImageRec * loadImgPngFile( const char * fname, int wtarget, int htarget  )
+{ static ImgFun launcher;
+
+  if ( !launcher )  /* Search for the magician in the dll*/
+  {
+    launcher= loadModuleSymbolNsfb( "loadImgFile"
+                                  , "nsfb-png-%s", VERSION );
+  }
+
+  return( launcher ? launcher( fname, wtarget, htarget ) : NULL );
+}
+
+/*
+ *
+ */
+ANSIC DeviceImageRec * loadImgJpgFile( const char * fname, int wtarget, int htarget  )
+{ static ImgFun launcher;
+
+  if ( !launcher )  /* Search for the magician in the dll*/
+  {
+    launcher= loadModuleSymbolNsfb( "loadImgFile"
+                                  , "nsfb-jpg-%s", VERSION );
+  }
+
+  return( launcher ? launcher( fname, wtarget, htarget ) : NULL );
+}
+
+/*
+ *
+ */
+ANSIC DeviceImageRec * loadImgSvgFile( const char * fname, int wtarget, int htarget  )
+{ static ImgFun launcher;
+
+  if ( !launcher )  /* Search for the magician in the dll*/
+  {
+    launcher= loadModuleSymbolNsfb( "loadVectors"
+                                  , "nsfb-svg-%s", VERSION );
+  }
+
+  return( launcher ? launcher( fname, wtarget, htarget ) : NULL );
+}
+
+
+
+
+
 
 /*
  * Local variables:

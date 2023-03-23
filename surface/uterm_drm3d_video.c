@@ -58,14 +58,14 @@
 static int displayInit( struct utermDisplay *disp )
 { int ret;
 
-  struct utermDrm3dDisplay *d3d= calloc(sizeof(*d3d),1);
+  struct utermDrm3dDisplay *d3d= CALLOC(sizeof(*d3d));
 
   if ( !d3d )
   { return( -ENOMEM );
   }
 
   if ((ret = utermDrmDisplayInit(disp, d3d)))
-  { free(d3d);
+  { FREE(d3d);
     return ret;
   }
 
@@ -73,7 +73,7 @@ static int displayInit( struct utermDisplay *disp )
 }
 
 static void displayDestroy(struct utermDisplay *disp)
-{ free( utermDrmDisplayGetData(disp) );
+{ FREE( utermDrmDisplayGetData(disp) );
   utermDrmDisplayDestroy( disp );
 }
 
@@ -84,7 +84,7 @@ static void boDestroyEvent( struct gbm_bo *bo, void *data )
   if ( rb )
   { vdrm = rb->disp->video->data;
     drmModeRmFB(vdrm->fd, rb->fb);
-    free(rb);
+    FREE( rb );
 } }
 
 static struct utermDrm3dRb *bo_to_rb( struct utermDisplay *disp
@@ -96,7 +96,7 @@ static struct utermDrm3dRb *bo_to_rb( struct utermDisplay *disp
   unsigned int stride, handle, width, height;;
 
   if ( !rb )
-  { rb = calloc(sizeof(*rb),1);
+  { rb = CALLOC(sizeof(*rb));
     if ( !rb )
     { logError("cannot allocate memory for render buffer (%d): %m",  errno);
       return( NULL );
@@ -118,8 +118,8 @@ static struct utermDrm3dRb *bo_to_rb( struct utermDisplay *disp
                             , 24, 32, stride
                             , handle, &rb->fb)))
     { logErr("cannot add drm-fb (%d): %m", errno);
-      free(rb);
-      return NULL;
+      FREE( rb );
+      return( NULL );
     }
 
     gbm_bo_set_user_data(bo, rb, boDestroyEvent);
@@ -183,6 +183,7 @@ static int displayActivate( struct utermDisplay * disp
 
   glClearColor(0, 0, 0, 0);
   glClear(GL_COLORBuffer_BIT);
+
   if (!eglSwapBuffers(v3d->disp, d3d->surface))
   { logError("cannot swap buffers");
     ret = -EFAULT;
@@ -221,8 +222,10 @@ err_noctx:
 		       v3d->ctx);
 err_surface:
 	eglDestroySurface(v3d->disp, d3d->surface);
+
 err_gbm:
 	gbm_surfaceDestroy(d3d->gbm);
+
 err_saved:
 	disp->current_mode = NULL;
 	utermDrmDisplayDeactivate(disp, vdrm->fd);
@@ -270,7 +273,7 @@ int utermDrm3ddisplayUse( struct utermDisplay *disp, bool *opengl )
   if (!eglMakeCurrent(v3d->disp, d3d->surface
                      ,d3d->surface, v3d->ctx))
   { logError("cannot activate EGL context");
-	return( -EFAULT );
+   	return( -EFAULT );
   }
 
   if ( opengl )
@@ -321,7 +324,8 @@ static int displaySwap(struct utermDisplay *disp, bool immediate)
 
   if (immediate)
   { if (d3d->current)
-	gbm_surface_releaseBuffer(d3d->gbm, d3d->current->bo);
+	   { gbm_surface_releaseBuffer(d3d->gbm, d3d->current->bo);
+    }
     d3d->current = rb;
   }
   else
@@ -350,20 +354,23 @@ static void showDisplays(struct utermVideo *video)
   struct utermDisplay *iter;
   struct shl_dlist *i;
 
-  if (!videoIsAwake(video))
-		return;
+  if ( !videoIsAwake(video) )
+		{ return;
+  } 
 
-  shl_dlist_for_each(i, &video->displays)
+  shl_dlist_for_each( i, &video->displays )
   { iter = shl_dlist_entry(i, struct utermDisplay, list);
 
     if (!displayIsOnline(iter))
-	continue;
+	   { continue;
+    }
     if (iter->dpms != UTERM_DPMS_ON)
-	continue;
+    { continue;
+    }
 
-    ret = utermDrm3ddisplayUse(iter, NULL);
-    if (ret)
-    continue;
+    if (( ret = utermDrm3ddisplayUse(iter, NULL) ))
+    { continue;
+    }
 
     glClearColor(0, 0, 0, 1);
     glClear(GL_COLORBuffer_BIT);
@@ -371,16 +378,16 @@ static void showDisplays(struct utermVideo *video)
 } }
 
 static void page_flip_handler(struct utermDisplay *disp)
-{ struct utermDrm3dDisplay *d3d = utermDrmDisplayGetData(disp);
+{  struct utermDrm3dDisplay *d3d = utermDrmDisplayGetData(disp);
 
-  if (d3d->next)
-  { if (d3d->current)
-     gbm_surface_releaseBuffer(d3d->gbm,
-						   d3d->current->bo);
-		d3d->current = d3d->next;
-		d3d->next = NULL;
-	}
-}
+   if (d3d->next)
+   { if ( d3d->current )
+     { gbm_surface_releaseBuffer( d3d->gbm
+                                , d3d->current->bo );
+     }
+  	 	d3d->current = d3d->next;
+		   d3d->next = NULL;
+}  }
 
 static int videoInit( struct utermVideo *video, const char *node )
 { static const EGLint conf_att[] =
@@ -404,7 +411,7 @@ static int videoInit( struct utermVideo *video, const char *node )
   struct utermDrmVideo *vdrm;
   struct utermDrm3d_video *v3d;
 
-  v3d = calloc(sizeof(*v3d), 1);
+  v3d = CALLOC( sizeof(*v3d), 1 );
   if (!v3d)
   { return -ENOMEM;
   }
@@ -498,8 +505,7 @@ err_ctx:   eglDestroyContext(v3d->disp, v3d->ctx);
 err_disp:  eglTerminate(v3d->disp);
 err_gbm:   gbm_deviceDestroy(v3d->gbm);
 err_video: utermDrmVideoDestroy(video);
-err_free:
-  free(v3d);
+err_free:  FREE(v3d);
   return ret;
 }
 
@@ -513,17 +519,19 @@ static void videoDestroy(struct utermVideo *video)
   logError("cannot activate GL context during destruction");
   utermDrm3d_deinit_shaders(video);
 
-  eglMakeCurrent(v3d->disp, EGL_NO_SURFACE, EGL_NO_SURFACE,
-		       EGL_NO_CONTEXT);
-  eglDestroyContext(v3d->disp, v3d->ctx);
-  eglTerminate(v3d->disp);
-  gbm_deviceDestroy(v3d->gbm);
-  free(v3d);
-  utermDrmVideoDestroy(video);
+  eglMakeCurrent( v3d->disp
+                , EGL_NO_SURFACE, EGL_NO_SURFACE
+                , EGL_NO_CONTEXT );
+  eglDestroyContext( v3d->disp
+                   , v3d->ctx );
+  eglTerminate( v3d->disp );
+  gbm_deviceDestroy( v3d->gbm );
+  FREE( v3d );
+  utermDrmVideoDestroy( video );
 }
 
 static int videoPoll(struct utermVideo *video)
-{ return utermDrmVideoPoll(video);
+{ return( utermDrmVideoPoll(video) );
 }
 
 static void videoSleep(struct utermVideo *video)
@@ -544,16 +552,16 @@ static int videoWakeUp(struct utermVideo *video)
 }
 
 static const struct videoOps drmVideoOps =
-{ .init = videoInit
+{ .init    = videoInit
 , .destroy = videoDestroy
-, .segfault = NULL, /* TODO: reset all saved CRTCs on segfault */
-  .poll = videoPoll
-, .sleep = videoSleep
-, .wakeUp = videoWakeUp
+, .segfault= NULL, /* TODO: reset all saved CRTCs on segfault */
+  .poll    = videoPoll
+, .sleep   = videoSleep
+, .wakeUp  = videoWakeUp
 };
 
 static const struct utermVideo_module drm3d_module =
 { .ops = &drmVideoOps
 };
 
-PUBLIC const struct utermVideo_module *utermVideo_DRM3D = &drm3d_module;
+ANSIC const struct utermVideo_module *utermVideo_DRM3D = &drm3d_module;

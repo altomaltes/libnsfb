@@ -13,32 +13,53 @@
 #include "../plot.h"
 
 
-static inline nsfb_colour_t PIXEL_TO_COLOR( void * p, int idx )
+
+static inline NSFBCOLOUR PIXEL_TO_COLOR( void * p, int idx )
 { dword * ptr= (dword *)p;
 
   return( ptr[ idx ] );
 }
 
-static inline void COLOR_TO_PIXEL( void * p, int idx, nsfb_colour_t c )
+static inline void COLOR_TO_PIXEL( void * p, int idx, NSFBCOLOUR c )
 { dword * ptr= (dword *)p;
 
   ptr[ idx ]= c ;
 }
 
+#define surfaceAlphaBitmap surfaceAlphaBitmapXBGR
+#define surfaceBitmap surfaceBitmapXBGR
+#define PLOT_TYPE dword
+#define PLOT_LINELEN(ll) ((ll) >> 2)
+
 #include "32bpp-common.c"
 
-const nsfb_plotter_fns_t _nsfb_32bpp_xbgr8888_plotters =
-{ .line        = line
-, .fill        = fill
-, .point       = point
-, .bitmap      = bitmap
-, .bitmap_tiles= bitmap_tiles
-, .glyph8      = glyph8
-, .glyph1      = glyph1
-, .readrect    = readrect
-, .moverect    = moverect
-};
+const nsfbPlotterFns _nsfb_32bpp_xbgr8888_plotters =
+{ .line       = line
+, .fill       = fill
+, .point      = point
+, .bitmap     = bitmap
+, .glyph8     = glyph8
+, .glyph1     = glyph1
+, .readrect   = readrect
+, .moverect   = moverect
+, .rectangle  = rectangle
+, .ellipse    = ellipse
+, .ellipseFill= ellipseFill
+, .copy       = copy
+, .arc        = arc
+, .quadratic  = plotQuadratic
+, .cubic      = plotCubic
+, .path       = plotPath
+, .polylines  = polylines
+, .polygon    = polygon
+, .bitmapTiles= bitmapTilesCommon
+, .clg        = clg
+, .setClip    = setClip
+, .getClip    = getClip
 
+, .pixmapFill = pixmapFill  // NsfbPlotfnBitmap
+
+};
 /*
  * Local Variables:
  * c-basic-offset:8

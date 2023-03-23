@@ -9,8 +9,9 @@
 #define __BYTE_ORDER __BYTE_ORDER__
 #define __BIG_ENDIAN __ORDER_BIG_ENDIAN__
 
-#include <string.h>
 #include "../libnsfb_plot_util.h"
+
+#include <string.h>
 #include "../nsfb.h"
 #include "../plot.h"
 
@@ -25,19 +26,19 @@ p[ idx*3+0 ]= c & 0xFF; c >>= 8
 ((dword)p[ idx*3+0 ] << 16 )
 
 
-static inline void * get_xy_loc( nsfb_t *nsfb
-                               , int x, int y )
+static inline void * getXYloc( Nsfb * nsfb
+                             , int x, int y )
 { return (byte *)(nsfb->loc + (y * nsfb->loclen) + (x * 3));
 }
 
-static inline void * get_xy_pan( nsfb_t *nsfb
-                               , int x, int y )
+static inline void * getXYpan( Nsfb * nsfb
+                             , int x, int y )
 { return (byte *)(nsfb->pan + (y * nsfb->panlen) + (x * 3));
 }
 
 #define SIGN(x)  ((x<0) ?  -1  :  ((x>0) ? 1 : 0))
 
-static bool line( nsfb_t *nsfb, int linec, nsfb_bbox_t *line, nsfbPlotpen_t *pen )
+static bool line( Nsfb *nsfb, int linec, NsfbBbox *line, NsfbPlotpen *pen )
 { int w;
   dword c;
   byte * pvideo;
@@ -45,16 +46,16 @@ static bool line( nsfb_t *nsfb, int linec, nsfb_bbox_t *line, nsfbPlotpen_t *pen
   int dx, dy, sdy;
   int dxabs, dyabs;
 
-  c=pen->stroke_colour;
+  c= pen->strokeColour;
 
 
   for (;linec > 0; linec--)
   { if (line->y0 == line->y1)                      /* horizontal line special cased */
-    { if (!nsfbPlotclip_ctx(nsfb, line))         /* line outside clipping */
+    { if (!nsfbPlotClipCtx(nsfb, line))         /* line outside clipping */
       { line++;
         continue;
       }
-      pvideo = get_xy_loc(nsfb, line->x0, line->y0);
+      pvideo = getXYloc(nsfb, line->x0, line->y0);
 
       w = line->x1 - line->x0;
 
@@ -64,7 +65,7 @@ static bool line( nsfb_t *nsfb, int linec, nsfb_bbox_t *line, nsfbPlotpen_t *pen
         *pvideo++ = ( c >> 16 ) & 0xFF;
     } }
     else                    /* standard bresenham line */
-    { if (!nsfbPlotclip_line_ctx(nsfb, line))
+    { if (!nsfbPlotClipLineCtx(nsfb, line))
       { line++;                        /* line outside clipping */
         continue;
       }
@@ -79,8 +80,8 @@ static bool line( nsfb_t *nsfb, int linec, nsfb_bbox_t *line, nsfbPlotpen_t *pen
 
       sdy = dx ? SIGN(dy) * SIGN(dx) : SIGN(dy);
 
-      if (dx >= 0)  pvideo = get_xy_loc(nsfb, line->x0, line->y0);
-               else pvideo = get_xy_loc(nsfb, line->x1, line->y1);
+      if (dx >= 0)  pvideo = getXYloc(nsfb, line->x0, line->y0);
+               else pvideo = getXYloc(nsfb, line->x1, line->y1);
 
       x = dyabs >> 1;
       y = dxabs >> 1;
@@ -111,28 +112,29 @@ static bool line( nsfb_t *nsfb, int linec, nsfb_bbox_t *line, nsfbPlotpen_t *pen
 
     line++;
   }
+
   return true;
 }
 
 
 
-static bool fill( nsfb_t      * nsfb
-                , nsfb_bbox_t * rect
-                , nsfb_colour_t c )
+static bool fill( Nsfb      * nsfb
+                , NsfbBbox * rect
+                , NSFBCOLOUR c )
 { int w;
   byte *pvid;
   dword llen;
   dword width;
   dword height;
 
-  if (!nsfbPlotclip_ctx(nsfb, rect))
+  if (!nsfbPlotClipCtx(nsfb, rect))
                 return true; /* fill lies outside current clipping region */
 
   width = rect->x1 - rect->x0;
   height= rect->y1 - rect->y0;
   llen  = nsfb->loclen - width * 3;
 
-  pvid = get_xy_loc(nsfb, rect->x0, rect->y0);
+  pvid = getXYloc(nsfb, rect->x0, rect->y0);
 
   while ( height-- > 0)
   { w = width;
@@ -150,7 +152,7 @@ static bool fill( nsfb_t      * nsfb
 }
 
 
-static bool point(nsfb_t *nsfb, int x, int y, nsfb_colour_t c)
+static bool point(Nsfb *nsfb, int x, int y, NSFBCOLOUR c)
 { byte * pvideo;
 
         /* check point lies within clipping region */
@@ -161,7 +163,7 @@ static bool point(nsfb_t *nsfb, int x, int y, nsfb_colour_t c)
   { return true;
   }
 
-  pvideo = get_xy_loc(nsfb, x, y);
+  pvideo = getXYloc( nsfb, x, y );
 
   if ((c & 0xFF000000) != 0)
   { if ((c & 0xFF000000) != 0xFF000000)
@@ -174,11 +176,11 @@ static bool point(nsfb_t *nsfb, int x, int y, nsfb_colour_t c)
   return( true );
 }
 
-static bool glyph1( nsfb_t      * nsfb
-                  , nsfb_bbox_t * loc
+static bool glyph1( Nsfb      * nsfb
+                  , NsfbBbox * loc
                   , const byte  * pixel
                   , int pitch
-                  , nsfb_colour_t c )
+                  , NSFBCOLOUR c )
 { byte *pvideo;
   int xloop, yloop;
   int xoff, yoff; /* x and y offset into image */
@@ -189,14 +191,14 @@ static bool glyph1( nsfb_t      * nsfb
   const byte *fntd;
   byte row;
 
-  if ( !nsfbPlotclip_ctx(nsfb, loc)) return true;
+  if ( !nsfbPlotClipCtx(nsfb, loc)) return true;
   if ( height > (loc->y1 - loc->y0  )) height= (loc->y1 - loc->y0);
   if ( width  > (loc->x1 - loc->x0  )) width = (loc->x1 - loc->x0);
 
   xoff= loc->x0 - x;
   yoff= loc->y0 - y;
 
-  pvideo= get_xy_loc( nsfb, loc->x0, loc->y0 );
+  pvideo= getXYloc( nsfb, loc->x0, loc->y0 );
 
   for (yloop = yoff; yloop < height; yloop++)
   { fntd = pixel + (yloop * (pitch>>3)) + (xoff>>3);
@@ -217,13 +219,13 @@ static bool glyph1( nsfb_t      * nsfb
   return true;
 }
 
-static bool glyph8( nsfb_t        * nsfb
-                  , nsfb_bbox_t   * loc
+static bool glyph8( Nsfb        * nsfb
+                  , NsfbBbox   * loc
                   , const byte    * pixel
                   , int pitch
-                  , nsfb_colour_t color, nsfb_colour_t back )
+                  , NSFBCOLOUR color, NSFBCOLOUR back )
 { byte *pvideo;
-  nsfb_colour_t abpixel; /* alphablended pixel */
+  NSFBCOLOUR abpixel; /* alphablended pixel */
   int xloop, yloop;
   int  xoff, yoff;       /* x and y offset into image */
   int x = loc->x0;
@@ -231,14 +233,14 @@ static bool glyph8( nsfb_t        * nsfb
   int width = loc->x1 - loc->x0;
   int height= loc->y1 - loc->y0;
 
-  if ( !nsfbPlotclip_ctx(nsfb, loc)) return true;
+  if ( !nsfbPlotClipCtx(nsfb, loc)) return true;
   if ( height > (loc->y1 - loc->y0  )) height = (loc->y1 - loc->y0);
   if ( width  > (loc->x1 - loc->x0  )) width  = (loc->x1 - loc->x0);
 
   xoff = loc->x0 - x;
   yoff = loc->y0 - y;
 
-  pvideo = get_xy_loc( nsfb, loc->x0, loc->y0 );
+  pvideo = getXYloc( nsfb, loc->x0, loc->y0 );
 
   for (yloop = 0; yloop < height; yloop++)
   { byte * ptr = pixel + ( yoff + yloop ) * pitch;
@@ -259,20 +261,20 @@ static bool glyph8( nsfb_t        * nsfb
 }
 
 
-static bool bitmap( nsfb_t * nsfb
-                  , const nsfb_bbox_t   * loc
-                  , const nsfb_colour_t * pixel
+static bool bitmap( Nsfb * nsfb
+                  , const NsfbBbox   * loc
+                  , const NSFBCOLOUR * pixel
                   , int bmp_width, int bmp_height
                   , int bmp_stride, int alpha )
 { byte *pvideo;
-  nsfb_colour_t abpixel = 0; /* alphablended pixel */
+  NSFBCOLOUR abpixel = 0; /* alphablended pixel */
   int xloop, yloop;
   int xoff, yoff;            /* x and y offset into image */
   int x = loc->x0;
   int y = loc->y0;
   int width = loc->x1 - loc->x0;
   int height = loc->y1 - loc->y0;
-  nsfb_bbox_t clipped; /* clipped display */
+  NsfbBbox clipped; /* clipped display */
 
 /*   TODO here we should scale the image from bmp_width to width, for
  * now simply crop.
@@ -290,7 +292,7 @@ static bool bitmap( nsfb_t * nsfb
   clipped.x1 = x + width;
   clipped.y1 = y + height;
 
-  if (!nsfbPlotclip_ctx(nsfb, &clipped))
+  if (!nsfbPlotClipCtx(nsfb, &clipped))
   { return true;
   }
 
@@ -301,9 +303,10 @@ static bool bitmap( nsfb_t * nsfb
   yoff = (clipped.y0 - y) * bmp_width;
   height = height * bmp_stride + yoff;
 
-        /* plot the image */
-  pvideo= ( alpha & DO_FRONT_RENDER ) ? get_xy_pan( nsfb, clipped.x0, clipped.y0 )
-                                      : get_xy_loc( nsfb, clipped.x0, clipped.y0 );
+/* plot the image
+ */
+  pvideo= ( alpha & DO_FRONT_RENDER ) ? getXYpan( nsfb, clipped.x0, clipped.y0 )
+                                      : getXYloc( nsfb, clipped.x0, clipped.y0 );
 
   if ( alpha & DO_ALPHA_BLEND )
   { for (yloop = yoff; yloop < height; yloop += bmp_stride)
@@ -329,20 +332,20 @@ static bool bitmap( nsfb_t * nsfb
   return true;
 }
 
-static bool readrect( nsfb_t *nsfb
-                    , nsfb_bbox_t *rect
-                    , nsfb_colour_t *buffer )
+static bool readrect( Nsfb *nsfb
+                    , NsfbBbox *rect
+                    , NSFBCOLOUR *buffer )
 { byte *pvideo;
   int xloop, yloop;
   int width;
 
-  if (!nsfbPlotclip_ctx(nsfb, rect))
+  if (!nsfbPlotClipCtx(nsfb, rect))
   { return true;
   }
 
   width = rect->x1 - rect->x0;
 
-  pvideo= get_xy_loc(nsfb, rect->x0, rect->y0);
+  pvideo= getXYloc(nsfb, rect->x0, rect->y0);
 
   for( yloop = rect->y0
      ; yloop < rect->y1
@@ -358,16 +361,16 @@ static bool readrect( nsfb_t *nsfb
   return true;
 }
 
-static int moverect( nsfb_t * nsfb
+static int moverect( Nsfb * nsfb
                    , int w, int h
                    , int x, int y )
-{ /*dword * src= (dword*)get_xy_pan( nsfb, x, y );
-  dword * dst= (dword*)get_xy_loc( nsfb, x, y );
+{ /*dword * src= (dword*)getXYpan( nsfb, x, y );
+  dword * dst= (dword*)getXYloc( nsfb, x, y );
 
   int width= nsfb->linelen >> 2;
 
   while( h-- )
-  { memcpy( dst, src, w * sizeof( dword ));
+  { mem cpy( dst, src, w * sizeof( dword ));
     dst += width; src += width;
   }
 
@@ -377,15 +380,52 @@ static int moverect( nsfb_t * nsfb
 }
 
 
-const nsfb_plotter_fns_t _nsfb_24bpp_plotters =
-{ .line    = line
-, .fill    = fill
-, .point   = point
-, .bitmap  = bitmap
-, .glyph8  = glyph8
-, .glyph1  = glyph1
-, .readrect= readrect
-, .moverect= moverect
+ANSIC bool nsfbPlotbitmapTiles( Nsfb *
+                               , const NsfbBbox *
+                               , int tiles_x, int tiles_y
+                               , const NSFBCOLOUR *
+                               , int bmp_width, int bmp_height, int bmp_stride
+                               , int alpha );
+
+
+
+/*
+ *
+ */
+static bool pixmapFill( Nsfb     * nsfb
+                      , ImageMap * img
+                      , int x, int y
+                      , int offy, int capy
+                      , NSFBCOLOUR back )
+{
+}
+
+nsfbPlotterFns _nsfb_24bpp_plotters =
+{ .line       = line
+, .fill       = fill
+, .point      = point
+, .bitmap     = bitmap
+, .glyph8     = glyph8
+, .glyph1     = glyph1
+, .readrect   = readrect
+, .moverect   = moverect
+, .rectangle  = rectangle
+, .ellipse    = ellipse
+, .ellipseFill= ellipseFill
+, .copy       = copy
+, .arc        = arc
+, .quadratic  = plotQuadratic
+, .cubic      = plotCubic
+, .path       = plotPath
+, .polylines  = polylines
+, .polygon    = polygon
+//, .bitmapTiles= bitmapTilesCommon
+, .clg        = clg
+, .setClip    = setClip
+, .getClip    = getClip
+
+, .pixmapFill = pixmapFill  // NsfbPlotfnBitmap
+
 };
 
 /*

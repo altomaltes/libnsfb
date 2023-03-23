@@ -80,7 +80,7 @@ typedef struct fb_faceid_s
 { char *fontfile;          /* path to font */
   int index;               /* index of font */
   int cidx;                /* character map index for unicode */
-} fb_faceid_t;
+} FbFaceid;
 
 
 enum fb_face_e
@@ -103,7 +103,7 @@ enum fb_face_e
 /* defines for accesing the faces */
 #define FB_FACE_DEFAULT FB_FACE_SANS_SERIF
 
-static fb_faceid_t *fb_faces[FB_FACE_COUNT];
+static FbFaceid *fb_faces[FB_FACE_COUNT];
 
 /* map cache manager handle to face id */
 
@@ -112,7 +112,7 @@ static FT_Error ft_face_requester( FTC_FaceID  face_id
                                  , FT_Pointer  request_data
                                  , FT_Face   * face )
 { FT_Error error;
-  fb_faceid_t *fb_face = (fb_faceid_t *)face_id;
+  FbFaceid *fb_face = (FbFaceid *)face_id;
   int cidx;
 
   if ((error = FT_New_Face(library, fb_face->fontfile, fb_face->index, face)))
@@ -134,15 +134,15 @@ static FT_Error ft_face_requester( FTC_FaceID  face_id
 }
 
 /* create new framebuffer face and cause it to be loaded to check its ok */
-static fb_faceid_t * fb_new_face( const char * option
-                                , const char * resname
-                                , const char * fontname )
-{ fb_faceid_t *newf;
+static FbFaceid * fb_new_face( const char * option
+                             , const char * resname
+                             , const char * fontname )
+{ FbFaceid *newf;
   FT_Error error;
   FT_Face aface;
   char buf[PATH_MAX];
 
-  newf = calloc(1, sizeof(fb_faceid_t));
+  newf = CALLOC(sizeof(FbFaceid));
 
   if ( option )
   { newf->fontfile = strdup(option);
@@ -153,8 +153,8 @@ static fb_faceid_t * fb_new_face( const char * option
 
   if ((error = FTC_Manager_LookupFace( ft_cmanager, (FTC_FaceID)newf, &aface)))
   { LOG("Could not find font face %s (code %d)", fontname, error );
-    free(newf->fontfile);
-    free(newf);
+    FREE( newf->fontfile );
+    FREE( newf           );
     newf = NULL;
   }
 
@@ -166,7 +166,7 @@ bool fb_font_init( void )
 { FT_Error error;
   FT_ULong max_cache_size;
   FT_UInt max_faces = 6;
-  fb_faceid_t *fb_face;
+  FbFaceid *fb_face;
 
   error = FT_Init_FreeType( &library );        /* freetype library initialise */
   if (error)
@@ -202,7 +202,7 @@ bool fb_font_init( void )
                       , "sans_serif.ttf"
                       , NETSURF_FB_FONT_SANS_SERIF );
 
-  if (fb_face == NULL)  /* The sans serif font is the default and must be found. */
+  if ( ! fb_face )  /* The sans serif font is the default and must be found. */
   { LOG(("Could not find the default font"));
     FTC_Manager_Done(ft_cmanager);
     FT_Done_FreeType(library);
@@ -227,7 +227,7 @@ bool fb_font_init( void )
   fb_face= fb_new_face( nsoption_charp(fb_face_sans_serif_italic)
 	                  , "sans_serif_italic.ttf"
 	                  , NETSURF_FB_FONT_SANS_SERIF_ITALIC );
-  if (fb_face == NULL) /* seperate italic face unavailabe use the normal weight version */
+  if ( !fb_face  ) /* seperate italic face unavailabe use the normal weight version */
   { fb_faces[FB_FACE_SANS_SERIF_ITALIC] = fb_faces[FB_FACE_SANS_SERIF];
   }
   else
@@ -238,7 +238,7 @@ bool fb_font_init( void )
   fb_face = fb_new_face( nsoption_charp( fb_face_sans_serif_italic_bold)
                        ,"sans_serif_italic_bold.ttf"
                        , NETSURF_FB_FONT_SANS_SERIF_ITALIC_BOLD );
-  if (fb_face == NULL)  	/* seperate italic face unavailabe use the normal weight version */
+  if ( !fb_face )  	/* seperate italic face unavailabe use the normal weight version */
   { fb_faces[FB_FACE_SANS_SERIF_ITALIC_BOLD] = fb_faces[FB_FACE_SANS_SERIF];
   }
   else
@@ -250,9 +250,11 @@ bool fb_font_init( void )
   fb_face = fb_new_face(nsoption_charp(fb_face_serif),
                             "serif.ttf",
 			      NETSURF_FB_FONT_SERIF);
-  if ( fb_face == NULL) /* serif face unavailabe use the default */
+			      
+  if ( !fb_face  ) /* serif face unavailabe use the default */
   { fb_faces[FB_FACE_SERIF] = fb_faces[FB_FACE_SANS_SERIF];
-  } else
+  } 
+  else
   { fb_faces[FB_FACE_SERIF] = fb_face;
   }
 
@@ -261,7 +263,7 @@ bool fb_font_init( void )
 	fb_face= fb_new_face( nsoption_charp(fb_face_serif_bold)
 	                    , "serif_bold.ttf"
 	                    , NETSURF_FB_FONT_SERIF_BOLD );
-	if (fb_face == NULL)  	/* bold serif face unavailabe use the normal weight */
+	if ( !fb_face )  	/* bold serif face unavailabe use the normal weight */
 	{ fb_faces[FB_FACE_SERIF_BOLD] = fb_faces[FB_FACE_SERIF];
 	}
 	else
@@ -285,7 +287,7 @@ bool fb_font_init( void )
 	                    , "monospace_bold.ttf"
 	                    , NETSURF_FB_FONT_MONOSPACE_BOLD );
 
-	if (fb_face == NULL) /* bold serif face unavailabe use the normal weight */
+	if ( !fb_face ) /* bold serif face unavailabe use the normal weight */
 	{ fb_faces[FB_FACE_MONOSPACE_BOLD] = fb_faces[FB_FACE_MONOSPACE];
 	}
 	else
@@ -297,22 +299,22 @@ bool fb_font_init( void )
 	                    , "cursive.ttf"
 	                    , NETSURF_FB_FONT_CURSIVE );
 
-	if (fb_face == NULL) /* cursive face unavailabe use the default */
-	{ fb_faces[FB_FACE_CURSIVE] = fb_faces[FB_FACE_SANS_SERIF];
+	if ( !fb_face ) /* cursive face unavailabe use the default */
+	{ fb_faces[ FB_FACE_CURSIVE] = fb_faces[FB_FACE_SANS_SERIF];
 	}
 	else
-	{ fb_faces[FB_FACE_CURSIVE] = fb_face;
+	{ fb_faces[ FB_FACE_CURSIVE] = fb_face;
 	}
 
 	/* fantasy face */
 	fb_face= fb_new_face( nsoption_charp(fb_face_fantasy)
 	                    , "fantasy.ttf"
 	                    , NETSURF_FB_FONT_FANTASY);
-	if (fb_face == NULL)  /* fantasy face unavailabe use the default */
-	{ fb_faces[FB_FACE_FANTASY] = fb_faces[FB_FACE_SANS_SERIF];
+	if ( !fb_face )  /* fantasy face unavailabe use the default */
+	{ fb_faces[ FB_FACE_FANTASY ] = fb_faces[FB_FACE_SANS_SERIF];
 	}
 	else
-	{ fb_faces[FB_FACE_FANTASY] = fb_face;
+	{ fb_faces[ FB_FACE_FANTASY ] = fb_face;
 	}
 
 
@@ -332,8 +334,10 @@ bool fb_font_finalise(void)
   FTC_Manager_Done(ft_cmanager);
   FT_Done_FreeType(library);
 
-  for (i = 0; i < FB_FACE_COUNT; i++)
-  { if (fb_faces[i] == NULL)
+  for ( i = 0
+      ; i < FB_FACE_COUNT
+      ; i++)
+  { if ( !fb_faces[i] )
 	{ continue;
 	}
 
@@ -343,8 +347,8 @@ bool fb_font_finalise(void)
 	  { fb_faces[j] = NULL;
 	} }
 
-	free(fb_faces[i]->fontfile);
-	free(fb_faces[i]);
+	FREE( fb_faces[i]->fontfile);
+	FREE( fb_faces[i]);
 	fb_faces[i] = NULL;
   }
 
@@ -406,10 +410,10 @@ FT_Glyph fb_getglyph( const plot_font_style_t *fstyle
   FTC_ScalerRec srec;
   FT_Glyph glyph;
   FT_Error error;
-  fb_faceid_t *fb_face;
+  FbFaceid *fb_face;
 
   fb_fill_scalar(fstyle, &srec);
-  fb_face = (fb_faceid_t *)srec.face_id;
+  fb_face = (FbFaceid *)srec.face_id;
 
    glyph_index = FTC_CMapCache_Lookup( ft_cmap_cache
                                      , srec.face_id
@@ -481,7 +485,7 @@ static bool nsfont_position_in_string( const plot_font_style_t *fstyle
   { // !!! ucs4 = utf8_to_ucs4(string + nxtchr, length - nxtchr);
 
     glyph = fb_getglyph(fstyle, ucs4);
-    if ( glyph == NULL)
+    if ( !glyph )
     { continue;
     }
 
@@ -540,7 +544,7 @@ static bool nsfont_split( const plot_font_style_t *fstyle
   { // !!! ucs4 = utf8_to_ucs4(string + nxtchr, length - nxtchr);
 
     glyph = fb_getglyph(fstyle, ucs4);
-    if (glyph == NULL)
+    if ( !glyph  )
     { continue;
     }
 
