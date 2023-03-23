@@ -1,5 +1,4 @@
 
-
 /** Clears plotting area to a flat colour (if needed)
  */
 typedef bool ( *NsfbPlotfnClg)(Nsfb *, NSFBCOLOUR c);

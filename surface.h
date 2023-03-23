@@ -1,7 +1,6 @@
 /* libnsfb framebuffer surface support */
 
 #include "nsfb.h"
-
 #include "nsfbPlot.h"
 #include "img/images.h"
 
