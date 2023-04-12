@@ -280,7 +280,7 @@ ANSIC Nsfb * nsfbNewConsole( enum NsfbType type
 /*
  */
 const char * nsfbDemangleName( const char * name
-                             , char * display
+                             , char       * display
                              , int * w, int * h, int * bpp
                              , int * x, int * y, int * geo )
 { if ( name )
@@ -313,22 +313,29 @@ const char * nsfbDemangleName( const char * name
       if ( dst )
       { *dst++= *src;
       } src++;
-    };
-    if ( dst ) { *dst= 0; }             /* Terminate display */
+    }; if ( dst ) { *dst= 0; }             /* Terminate display */
 
-//        case '@':                     /* bypass other data */
-//          *dst++= 0;                  /* Terminate display */
-  //        set->driver= src;
-    //    return( 0 );
+    switch( *src )
+    { case '@':                         /* No display info passed */
+        src= name;
+        dst= display;
+      break;
 
-    if ( *src=='#' )                   /* Resolution information */
-    { src++; sscanf( src, "%dx%dx%d"
-                        , &thisW
-                        , &thisH
-                        , &thisBpp );
-      while( isalnum( *src ))          /* Skip alphanumeric */
-      { src++;
-    } }
+      case '#':                         /* Resolution information */
+        *dst++= '@';
+        src++;                          /* Point to resolution    */
+      break;
+
+      default: return( NULL );
+    }
+
+    sscanf( src, "%dx%dx%d"
+               , &thisW
+               , &thisH
+               , &thisBpp );
+    while( isalnum( *src ))          /* Skip alphanumeric */
+    { src++;
+    }
 
     if ( *src== '.' )                  /* Orientation information */
     { src++; switch( *src )
@@ -345,11 +352,16 @@ const char * nsfbDemangleName( const char * name
                         , &thisY );
     }
 
-    while( *src++ != '@' )               /* Driver */
+    while( *src++ != '@' )            /* Point to the driver */
     { if ( ! *src )
       { src= NULL;
         break;
     } }
+
+    while( *src )            /* Point to the driver */
+    { *dst++= *src++;
+    }
+    *dst=0;
 
     if (( w   ) && ( thisW != -1 )) { *w= thisW; }
     if (( h   ) && ( thisH != -1 )) { *h= thisH; }
@@ -359,8 +371,7 @@ const char * nsfbDemangleName( const char * name
     if (( bpp ) && ( thisBpp != -1 )) { *bpp= thisBpp; }
     if (( geo ) && ( thisGeo != -1 )) { *geo= thisGeo; }
 
-
-    return( src );
+    return( display );
   }
   return( NULL );
 }
@@ -381,10 +392,6 @@ ANSIC enum NsfbType nsfbTypeFromName( const char * name )
 
     if ( drv )               /* Driver specified */
     { NsfbSurfaceRtns * ptr;
-
-     // if ( strcmp( drv, "vga" ))   /* Non internal */
-      { strcat( display, "@" ); strcat( display, drv );
-      }
 
 /* Try internally loaded
  */

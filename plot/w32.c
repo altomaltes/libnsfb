@@ -66,21 +66,7 @@
  *                                                                            *
 \* ========================================================================= **/
 static int setForeColor( struct w32List * win32, NSFBCOLOUR clr )
-{ //clr &=  0x00FFFFFF;           // Strip alpha channel info
-
- /*byte width= GET_BYTE( clr, 3 );           // Strip off the width
-
-  if ( width )
-  { LOGPEN data=
-    {( width & 0x80 ) ? PS_DOT : PS_SOLID
-    ,{ width & 0x7F, 0 }
-    , clr & 0x00FFFFFF };
-
-    CreatePenIndirect( &data );
-  }
-  */
-
-  byte r= clr; clr >>= 8;
+{ byte r= clr; clr >>= 8;
   byte g= clr; clr >>= 8;
   byte b= clr; clr >>= 8;
 
@@ -93,11 +79,11 @@ static int setForeColor( struct w32List * win32, NSFBCOLOUR clr )
 }
 
 static int setBackColor(  struct w32List * win32, NSFBCOLOUR clr )
-{  byte r= clr; clr >>= 8;
+{ byte r= clr; clr >>= 8;
   byte g= clr; clr >>= 8;
   byte b= clr; clr >>= 8;
 
-              clr  = r;
+             clr  = r;
   clr <<= 8; clr |= g;
   clr <<= 8; clr |= b;
 
@@ -414,7 +400,9 @@ static bool PixmapFill( struct w32List * nsfb
 
   if ( img->mask )
   { if ( back != NOCOLOR )
-    { HBRUSH brush= CreateSolidBrush( back );
+    { HBRUSH brush= CreateSolidBrush( (( back & 0x000000FF ) << 16 )
+                                    | (( back & 0x0000FF00 )       )
+                                    | (( back & 0x00FF0000 ) >> 16 ));
 
       HGDIOBJ old= SelectObject( nsfb->theGC, brush );
 
@@ -428,9 +416,9 @@ static bool PixmapFill( struct w32List * nsfb
              , 0, offy
              , MAKEROP4( SRCCOPY, PATCOPY ));   //     , 0x00AA0029 ));
 
-     SelectObject( nsfb->theGC, old );
+      SelectObject( nsfb->theGC, old );
 
-     return( DeleteObject( brush ));
+      return( DeleteObject( brush ) );
     }
 
     return( MaskBlt( nsfb->theGC         // theDisplay + theWindow + thisGC

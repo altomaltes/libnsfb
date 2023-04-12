@@ -457,8 +457,6 @@ static int x11Pixmap( struct x11Priv * x11
 }
 
 
-
-
 /*
  *
  */

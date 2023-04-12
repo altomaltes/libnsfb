@@ -41,6 +41,7 @@ int main(int argc, char **argv)
 
   if (argc < 2)
   { fename= ":0.0#800x600x32.N@x11";
+    fename= "800x600x32.N@w32";
   }
   else
   { fename= argv[1];
@@ -56,7 +57,7 @@ int main(int argc, char **argv)
   box.x0 = box.y0 = 0;
 
   nsfbGetGeometry( nsfb, &box.x1, &box.y1
-                   , NULL );
+                 , NULL );
 
   radius = (box.x1 / 80);
   sides = 5;

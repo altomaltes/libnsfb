@@ -25,10 +25,8 @@
  *               windows version
  *
  */
-
- #define RGB ç
-
 #include "../w32.h"
+#include "../libnsfb_cursor.h"
 #include "../img/images.h"
 
 
@@ -47,33 +45,33 @@ void logEvt( int code, int h   )
 { CodeRec codes[]=
  {{ WM_NCMOUSEMOVE      , "WM_NCMOUSEMOVE"   }
  ,{ WM_NCHITTEST        , "WM_NCHITTEST"     }
-  ,{ MF_MENUBARBREAK     , "MF_MENUBARBREAK"  }
-  ,{ WM_MOUSEMOVE        , "WM_MOUSEMOVE"     }
-  ,{ WM_MOUSEACTIVATE    , "WM_MOUSEACTIVATE" }
-  ,{ WM_MOVING           , "WM_MOVING"        }
-  ,{ WM_LBUTTONDOWN      , "WM_LBUTTONDOWN"   }
-  ,{ WM_LBUTTONUP        , "WM_LBUTTONUP"     }
-  ,{ WM_SETFOCUS         , "WM_SETFOCUS"      }
-  ,{ WM_NCLBUTTONDOWN    , "WM_NCLBUTTONDOWN" }
+ ,{ MF_MENUBARBREAK     , "MF_MENUBARBREAK"  }
+ ,{ WM_MOUSEMOVE        , "WM_MOUSEMOVE"     }
+ ,{ WM_MOUSEACTIVATE    , "WM_MOUSEACTIVATE" }
+ ,{ WM_MOVING           , "WM_MOVING"        }
+ ,{ WM_LBUTTONDOWN      , "WM_LBUTTONDOWN"   }
+ ,{ WM_LBUTTONUP        , "WM_LBUTTONUP"     }
+ ,{ WM_SETFOCUS         , "WM_SETFOCUS"      }
+ ,{ WM_NCLBUTTONDOWN    , "WM_NCLBUTTONDOWN" }
 
 
-  ,{ WM_WINDOWPOSCHANGED , "WM_WINDOWPOSCHANGED"  }
-  ,{ WM_WINDOWPOSCHANGING, "WM_WINDOWPOSCHANGING" }
-  ,{ WM_MOVE             , "WM_MOVE"              }
-  ,{ WM_GETTEXT          , "WM_GETTEXT"           }
-  ,{ WM_GETMINMAXINFO    , "WM_GETMINMAXINFO"     }
-  ,{ WM_ACTIVATE         , "WM_ACTIVATE"          }
-  ,{ WM_NCPAINT          , "WM_NCPAINT"           }
-  ,{ WM_SYNCPAINT        , "WM_SYNCPAINT"         }
+ ,{ WM_WINDOWPOSCHANGED , "WM_WINDOWPOSCHANGED"  }
+ ,{ WM_WINDOWPOSCHANGING, "WM_WINDOWPOSCHANGING" }
+ ,{ WM_MOVE             , "WM_MOVE"              }
+ ,{ WM_GETTEXT          , "WM_GETTEXT"           }
+ ,{ WM_GETMINMAXINFO    , "WM_GETMINMAXINFO"     }
+ ,{ WM_ACTIVATE         , "WM_ACTIVATE"          }
+ ,{ WM_NCPAINT          , "WM_NCPAINT"           }
+ ,{ WM_SYNCPAINT        , "WM_SYNCPAINT"         }
 
-  ,{ WM_PAINT            , "WM_PAINT" }
-  ,{ WM_ERASEBKGND       , "WM_ERASEBKGND"     }
-  ,{ WM_NCACTIVATE       , "WM_NCACTIVATE"     }
-  ,{ WM_ACTIVATEAPP      , "WM_ACTIVATEAPP"    }
-  ,{ WM_KILLFOCUS        , "WM_KILLFOCUS"      }
-  ,{ WM_CAPTURECHANGED   , "WM_CAPTURECHANGED" }
+ ,{ WM_PAINT            , "WM_PAINT" }
+ ,{ WM_ERASEBKGND       , "WM_ERASEBKGND"     }
+ ,{ WM_NCACTIVATE       , "WM_NCACTIVATE"     }
+ ,{ WM_ACTIVATEAPP      , "WM_ACTIVATEAPP"    }
+ ,{ WM_KILLFOCUS        , "WM_KILLFOCUS"      }
+ ,{ WM_CAPTURECHANGED   , "WM_CAPTURECHANGED" }
 
-  ,{              0, NULL              }};
+ ,{              0, NULL              }};
 
 
 
@@ -94,7 +92,7 @@ void logEvt( int code, int h   )
 
 #endif
 
-
+#define puts( skip )
 
 #define TOGGLED_KEY 0x01 /* The key is toggled */
 #define PRESSED_KEY 0x80 /* The key is pressed */
@@ -231,13 +229,12 @@ static int w32Events( int theDisp, void * userData
 }
 
 
-static int doEvent( HWND   hwnd
+static int doEvent( struct w32Priv * surface
+                  , HWND   hwnd
                   , UINT   message
                   , WPARAM wParam
                   , LPARAM lParam )
-{ struct w32Priv * surface= (struct w32Priv *)nsfbFindSurface( NSFB_SURFACE_WIN32 );
-
-  if ( surface )
+{ if ( surface )
   { struct w32List * win32;
 
 
@@ -250,7 +247,7 @@ static int doEvent( HWND   hwnd
       { ToClientFun toClient= win32->seed.toClient;
         void      * toData  = win32->seed.toData;
         int button= 0;   // Sequencial
- // puts("NODE");
+        struct NsfbEventStruct evt; memset( &evt, 0, sizeof( evt ));
 
         switch ( message )
         { //case HABANA_MESSAGE:         // May 2007, automessage
@@ -275,7 +272,7 @@ static int doEvent( HWND   hwnd
           return( WM_PAINT );
 
 
-          case WM_MOVE:  return( 0 );
+          case WM_MOVE: return( 0 );
           case WM_SIZE: return( 0 );
 
           case WM_WINDOWPOSCHANGED:     // Keep track of window position & size
@@ -305,12 +302,16 @@ static int doEvent( HWND   hwnd
           case WM_MBUTTONDBLCLK: button++;
           case WM_RBUTTONDBLCLK: button++;
           case WM_LBUTTONDBLCLK: button++;
-            toClient( toData
-                    , NSFB_EVT_CLICK
-                    , LOWORD( lParam ), HIWORD( lParam )
-                    , button
-                    , doMask( wParam ), 0 );
-            break;
+            evt.type = NSFB_EVT_CLICK;
+            evt.x    = LOWORD( lParam );
+            evt.y    = HIWORD( lParam );
+            evt.b    = button;
+            evt.mod  = doMask( wParam );
+            evt.stamp= 0;
+
+            toClient( &evt
+                    , toData );
+          break;
 
 #if(_WIN32_WINNT >= 0x0500)
           case WM_XBUTTONDOWN: button++;
@@ -318,39 +319,49 @@ static int doEvent( HWND   hwnd
           case WM_MBUTTONDOWN: button++;
           case WM_RBUTTONDOWN: button++;
           case WM_LBUTTONDOWN: button++;
-            toClient( toData
-                    , NSFB_EVT_PRESS
-                    , LOWORD( lParam ), HIWORD( lParam )
-                    , button
-                    , doMask( wParam ), 0 /* time */ );
-            break;
+            evt.type = NSFB_EVT_PRESS;
+            evt.x    = LOWORD( lParam );
+            evt.y    = HIWORD( lParam );
+            evt.b    = button;
+            evt.mod  = doMask( wParam );
+            evt.stamp= 0;
 
-            case WM_LBUTTONUP:
-            case WM_MBUTTONUP:
-            case WM_RBUTTONUP:
+            toClient( &evt
+                    , toData );
+          break;
+
+          case WM_LBUTTONUP:
+          case WM_MBUTTONUP:
+          case WM_RBUTTONUP:
 #if(_WIN32_WINNT >= 0x0500)
-            case WM_XBUTTONUP:
+          case WM_XBUTTONUP:
 #endif
-              toClient( toData
-                      , NSFB_EVT_REL
-                      , LOWORD( lParam ), HIWORD( lParam )
-                      ,   message == WM_LBUTTONDBLCLK ? 1
-                        : message == WM_MBUTTONDBLCLK ? 2
-                        : message == WM_RBUTTONDBLCLK ? 3
+            evt.type = NSFB_EVT_REL;
+            evt.x    = LOWORD( lParam );
+            evt.y    = HIWORD( lParam );
+            evt.b    = message == WM_LBUTTONDBLCLK ? 1
+                     : message == WM_MBUTTONDBLCLK ? 2
+                     : message == WM_RBUTTONDBLCLK ? 3
 #if(_WIN32_WINNT >= 0x0500)
-                        : message == WM_XBUTTONDBLCLK ? 4
+                     : message == WM_XBUTTONDBLCLK ? 4
 #endif
-                        : 0
-                     , doMask( wParam ), 0 /* time */ );
-            break;
+                     : 0;
+            evt.mod  = doMask( wParam );
+            evt.stamp= 0;
+
+            toClient( &evt
+                     , toData );
+          break;
 
 
-            case WM_MOUSEMOVE://  puts("mousemove1");
-              toClient( toData, NSFB_EVT_MOVE
-                      , LOWORD( lParam ), HIWORD( lParam )
-                      , doMask( wParam )
-                      , 0, 0 );
-            return( 1 );
+          case WM_MOUSEMOVE://  puts("mousemove1");
+            evt.type = NSFB_EVT_MOVE;
+            evt.x    = LOWORD( lParam );
+            evt.y    = HIWORD( lParam );
+            evt.b    = 0;
+            evt.mod  = doMask( wParam );
+            evt.stamp= 0;
+          break;
 
             case WM_DESTROY:   // ago 2008, know closing window
     //    doClose();
@@ -373,25 +384,100 @@ LRESULT CALLBACK atEvent( HWND   hwnd
                         , UINT   message
                         , WPARAM wParam
                         , LPARAM lParam )
-{ switch( message )           // Some messages need preprocess
-  { //case WM_CREATE: return( 0;
-    //case WM_SIZE:   return( 0;        // Set the size and position of the window.
+{ struct w32Priv * surface= (struct w32Priv *)nsfbFindSurface( NSFB_SURFACE_WIN32 );
 
+  switch( message )           // Some messages need preprocess
+  { case WM_CREATE:     /* Points to creating window */
+    { struct w32List * win32= surface->rtns.clients;
 
-    case WM_LBUTTONDOWN:       // Set the size and position of the window.
-//      puts("butt");
+      puts("CREATE");
+      win32->theWindow= hwnd;
+    }
     break;
+
+    case WM_SIZE:   puts("SIZE");   break;        // Set the size and position of the window.
+
+/*  Sent to a window when the size or position of the window is about to change.
+ * An application can use this message to override the window's default maximized size and position,
+ * or its default minimum or maximum tracking size.
+ */
+    case WM_GETMINMAXINFO: puts("MAXINFO");   break;
+
+/*  Sent prior to the WM_CREATE message when a window is first created.
+ */
+    case WM_NCCREATE: puts("NCCREATE"); break;
+
+/*  Sent when the size and position of a window's client area must be calculated.
+ * By processing this message, an application can control the content of the
+ * window's client area when the size or position of the window changes.
+ */
+    case WM_NCCALCSIZE: puts("CALCSIZE"); break;
+
+/* Sent to a window when the window is about to be hidden or shown.
+ */
+    case WM_SHOWWINDOW: puts("SHOWWINDOW"); break;
+
+/*  Sent to a window whose size, position, or place in the Z order is about to change
+ * as a result of a call to the SetWindowPos function or another
+ * window-management function.
+ */
+    case WM_WINDOWPOSCHANGING: puts("WINDOWPOSCHANGING"); break;
+    case WM_WINDOWPOSCHANGED : puts("WINDOWPOSCHANGED");  break;
+    case WM_MOVE             : puts("MOVE");              break;
+/*  A window belonging to a different application than the active window
+ * is about to be activated. The message is sent to the application whose window
+ * is being activated and to the application whose window is being deactivated.
+ */
+   case WM_ACTIVATEAPP: puts("ACTIVATEAPP"); break;
+
+/*  The nonclient area needs to be changed to indicate an active or inactive state.
+ */
+   case WM_NCACTIVATE: puts("WM_NCACTIVATE"); break;
+
+/*  Retrieve a handle to the large or small icon associated with a window.
+ * The system displays the large icon in the ALT+TAB dialog,
+ * and the small icon in the window caption.
+ */
+   case WM_GETICON: puts("GETICON"); break;
+
+/*  Sent to both the window being activated and the window being deactivated.
+ * If the windows use the same input queue, the message is sent synchronously,
+ * first to the window procedure of the top-level window being deactivated,
+ * then to the window procedure of the top-level window being activated.
+ *   If the windows use different input queues, the message is sent asynchronously,
+ * so the window is activated immediately.
+ */
+    case WM_ACTIVATE: puts("ACTIVATE");  break;
+
+/*  Sent to an application when a window is activated.
+ * A window receives this message through its WindowProc function.
+ */
+    case WM_IME_SETCONTEXT: puts("IME_SETCONTEXT");  break;
+    case WM_IME_NOTIFY:     puts("IME_NOTIFY");  break;
+    case WM_SETFOCUS:       puts("SETFOCUS");  break;
+
+/* the frame must be painted.
+ */
+    case WM_NCPAINT:        puts("NCPAINT");  break;
+    case WM_ERASEBKGND:     puts("ERASEBKGND");  break;
+
+
 
     case WM_DESTROY:         // Clean up window-specific data objects.
       PostQuitMessage( 0 );
     return( 0 );
-  }
 
-  return( doEvent( hwnd      // Other events must be forwardwed
-                 , message
-                 , wParam
-                 , lParam ) ? 0  // Distribute it among program windows
-        : DefWindowProc( hwnd      // Other events must be forwardwed
+
+    default:
+      if ( doEvent( surface
+                  , hwnd      // Other events must be forwardwed
+                  , message
+                  , wParam
+                  , lParam ))
+      { return( 0 );
+  }   }
+
+  return( DefWindowProc( hwnd      // Other events must be forwardwed
                        , message
                        , wParam
                        , lParam ));
@@ -408,10 +494,8 @@ LRESULT CALLBACK atEvent( HWND   hwnd
  *                                                                            *
 \* ========================================================================= **/
 static NsfbSurfaceRtns * initW32Display( struct w32Priv * drv )
-{ int idx;
-  PALETTEENTRY palette[ 256 ];
-
-  drv->rtns.fd= -1;  /* Not use of, handlers, but event loop*/
+{ drv->rtns.fd= -1;  /* Not use of, handlers, but event loop*/
+  int idx; PALETTEENTRY palette[ 256 ];
 
   if ( ! theInstance )
   { static WNDCLASSEX theClass;
@@ -457,20 +541,20 @@ static NsfbSurfaceRtns * initW32Display( struct w32Priv * drv )
                                                                           , BITSPIXEL )
                                        , drv->theScreen );
 
-    switch( drv->rtns.theDepth ) // Now arrange the system it can work with all knonwn color planes
-    { case 8:
-        GetSystemPaletteEntries( drv->theScreen
-                               , 0
-                               , 256
-                               , palette );
+  switch( drv->rtns.theDepth ) // Now arrange the system it can work with all knonwn color planes
+  { case 8:
+      GetSystemPaletteEntries( drv->theScreen
+                             , 0
+                             , 256
+                             , palette );
 
-        for( idx= 0
-           ; idx < 256
-           ; idx ++ )
-        { AddHistogram( drv->theHistogram
-                      , palette[ idx ].peRed
-                      , palette[ idx ].peGreen
-                      , palette[ idx ].peBlue );
+      for( idx= 0
+         ; idx < 256
+         ; idx ++ )
+      { AddHistogram( drv->theHistogram
+                    , palette[ idx ].peRed
+                    , palette[ idx ].peGreen
+                    , palette[ idx ].peBlue );
   } }
 
 //    GetStartupInfoA ( &startinfo );   /* Get the command line passed to the process. */
@@ -487,7 +571,11 @@ static NsfbSurfaceRtns * initW32Display( struct w32Priv * drv )
 
 static int w32Initialise( struct w32List * drv )
 { if ( drv )
-  { int styles= WS_OVERLAPPEDWINDOW
+  { if ( !theInstance )
+    { initW32Display( drv->seed.surfaceRtns );
+    }
+
+    int styles= WS_OVERLAPPEDWINDOW
 //              | WS_CHILD
               | WS_VISIBLE
               | WS_CLIPCHILDREN
@@ -504,7 +592,9 @@ static int w32Initialise( struct w32List * drv )
                     , styles
                     , false );
 
-    drv->theWindow= CreateWindowEx
+    printf( "ABOUT TO CREATE ..... %X\n", drv->theWindow );
+
+    /*drv->theWindow=*/ CreateWindowEx
     ( 0                            /* Possible styles   */
     , theClassName                 /* theClassName      */
     , drv->seed.theTitle
@@ -523,6 +613,8 @@ static int w32Initialise( struct w32List * drv )
 
 //    border.right -= w;
 //    border.bottom-= h;
+
+    printf( "WINDOW CREATED ..... %X\n", drv->theWindow );
 
     if ( drv->theWindow )                 /* Fails to create (font creation assigns) */
     { ShowWindow  ( drv->theWindow          /* Make the window visible on the screen  */
@@ -713,10 +805,6 @@ static int w32Pan( Nsfb * nsfb, int type )
 int doEvent1( int type, int wParam )
 { dword keyCode, keyMask;
 
- // ToClientFun toClient= NULL;//= ptr->seed.toClient;
-//  void      * toData  = NULL; //=   ptr->seed.toData;
-
-
 /* Lock first for key events, not related to canvases
  */
 
@@ -849,36 +937,52 @@ static int w32Pixmap( NsfbSurfaceRtns * surf
         } }
         break;
 
-        case 32: if ( !mask )
+        case 32: /* if ( !mask )
         { dword * ptr= (dword *)data;
 
           while( sz-- )
           { dword back= *ptr;
 
-            byte r= back; back >>= 8;
+           byte b= back; back >>= 8;
             byte g= back; back >>= 8;
-            byte b= back; back >>= 8;
+            byte r= back; back >>= 8;
 
-                        back  = r;
+                        back  = b;
             back <<= 8; back |= g;
-            back <<= 8; back |= b;
+            back <<= 8; back |= r;
 
             *ptr++= back;
           } }
+          */
           break;
       }
-
 
       map->image= CreateBitmap( bmpWidth, bmpHeight
                               , 1, planes
                               , data );
       map->mask=  mask
                ? CreateBitmap( bmpWidth, bmpHeight   /* Size   */
-                              , 1, 1                  /* deep   */
-                              , mask ) : NULL;               /* raster */
+                              , 1, 1                 /* deep   */
+                              , mask ) : NULL;       /* raster */
   } }
 
   return( 0 );
+}
+
+
+
+static int w32SetGeometry( Nsfb * nsfb
+                           , int width, int height
+                           , enum NsfbFormat format )
+{ nsfb->width = width;
+  nsfb->height= height;
+  nsfb->format= format;
+
+  if ( selectPlotters( nsfb ))
+  { return( -1 );
+  }
+
+  return 0;
 }
 
 
@@ -939,15 +1043,31 @@ NsfbSurfaceRtns * newNode( const char * mode )
   return( NULL );
 }
 
+NsfbSurfaceRtns w32Rtns=
+{ .type=  NSFB_SURFACE_WIN32
+, .name= "w32"
+, .fd  = -1
 
+, .theDepth  = 0
 
+, .pan       = w32Pan
+, .events    = w32Events
+, .claim     = w32Claim
+, .initialise= w32Initialise
+, .finalise  = w32Finalise
+, .geometry  = w32SetGeometry
+, .pixmap    = w32Pixmap
+, .update    = w32Update
 
+, .theDepth  = 32   // !!! Default value. Not automated
 
+, .cursor    = NULL
 
+, .dataSize  = sizeof( w32Rtns )
 
+};
 
-
-
+NSFB_SURFACE_DEF( w32Rtns )
 
 
 

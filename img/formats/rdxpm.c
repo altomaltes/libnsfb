@@ -15,7 +15,11 @@
 
 #include <stdio.h>
 #include <malloc.h>
-#include <alloca.h>
+
+#ifndef _WIN32
+  #include <alloca.h>
+#endif
+
 #include <string.h>
 
 #define VALUES_LEN 80      /* Max length of values line */
@@ -30,7 +34,7 @@
 #define DEBUG 10
 
 
-#include "nsfb.h"
+#include "../../nsfb.h"
 #include "../images.h"
 
 /*
@@ -437,7 +441,7 @@ ANSIC IcoRec * loadIcoXpmFile( const char * bname, int wtarget, int htarget )
 }
 
 
-DeviceImageRec * loadImgXpmFile( const char * bname, int w, int h ) 
+DeviceImageRec * loadImgXpmFile( const char * bname, int w, int h )
 { return( NULL );
 }
 

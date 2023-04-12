@@ -201,6 +201,19 @@ FontColorRec * getFreeRender( FontListRec * seed
   { return( NULL );
   }
 
+#ifdef _WIN32123
+
+  fore= (( fore & 0x000000FF ) << 16 )
+      | (( fore & 0x0000FF00 )      )
+      | (( fore & 0x00FF0000 ) >> 16 );
+
+  back= (( back & 0x000000FF ) << 16 )
+      | (( back & 0x0000FF00 )      )
+      | (( back & 0x00FF0000 ) >> 16 );
+
+#endif
+
+
   FontColorRec * item= seed->list;
 
   while( item )

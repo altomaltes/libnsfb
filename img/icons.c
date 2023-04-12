@@ -30,7 +30,7 @@
 #include <string.h>
 
 #include "../libnsfb_plot_util.h"
-#include "surface.h"
+#include "../surface.h"
 
 #ifndef __WIN32
   #include <alloca.h>
@@ -128,11 +128,6 @@ static DeviceImageRec * openIcoFromData
   int cols, rows, loop, vert;
   ImgPalette * palPtr;
   unsigned char * pic;        /* Run all avatars */
-//  int order= 0;
-
- // if ( pals == 0x0905 )
- // { puts("hola");
-//}
 
   if ( pals )                              /* Multiicon */
   { cols= pals;      cols &= 0xFF;
@@ -185,7 +180,7 @@ static DeviceImageRec * openIcoFromData
   } } } }
 
   else
-  {  printf( "NATUR: %d PALS: %d ROWS: %d COLD: %d\n" , pics, pals, hOrg, wOrg );
+  { // printf( "NATUR: %d PALS: %d ROWS: %d COLD: %d\n" , pics, pals, hOrg, wOrg );
 
     while ( pics-- )                    /* A image per palette */
     { int hight; ImgPalette * palPtr;
@@ -359,7 +354,7 @@ int nsfbGetImageGeometry( DeviceImageRec * img
 
 DeviceImageRec * getIconImage( NsfbSurfaceRtns * surf
                              , IcoRec          * ico
-                             , NSFBCOLOUR         hue )
+                             , NSFBCOLOUR        hue123 )
 { static DeviceImageRec * seed= NULL;                   /* Linked list storing */
 
   if ( ico )

@@ -29,7 +29,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "img/formats/rdsvg/svgtiny.h"
+#include "formats/rdsvg/svgtiny.h"
 
 #include "../nsfb.h"
 #include "../nsfbPlot.h"

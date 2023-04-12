@@ -34,7 +34,7 @@
 #include <string.h>
 #include <malloc.h>
 
-#include "nsfb.h"
+#include "../../nsfb.h"
 #include "../images.h"
 
 /*
@@ -395,7 +395,7 @@ ANSIC IcoRec * loadIcoIcoFile( const char * bname, int wtarget, int htarget )
  *  @brief Loads an icon from disk                                            *
  *                                                                            *
 \* ========================================================================= **/
-DeviceImageRec * loadImgIcoFile( const char * bname, int wtarget, int htarget ) 
+DeviceImageRec * loadImgIcoFile( const char * bname, int wtarget, int htarget )
 { return( NULL );
 }
 
