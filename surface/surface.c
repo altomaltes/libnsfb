@@ -296,7 +296,7 @@ const char * nsfbDemangleName( const char * name
 /* Extract display
  */
     const char * src= name;
-    char * dst= display;
+    char * dst= display ? display : (char*)alloca( 256 );
 
     while(( *src != '#' ) && ( *src != '@' ))
     { if ( *src == 0)         /* Invalid stream    */
