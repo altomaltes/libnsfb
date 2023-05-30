@@ -1425,7 +1425,7 @@ Optional Features:
   --enable-fast-install[=PKGS]
                           optimize for fast installation [default=yes]
   --disable-libtool-lock  avoid locking (might break parallel builds)
-       --disable-freetypetest  Do not try to compile and run a test FreeType
+  --disable-freetypetest  Do not try to compile and run a test FreeType
                           program
   --enable-slack=[yes/no] Configure for building SLACKWARE package
                           [default=yes] (requires makepkg)
@@ -1441,8 +1441,8 @@ Optional Packages:
   --with-gnu-ld           assume the C compiler uses GNU ld [default=no]
   --with-sysroot[=DIR]    Search for dependent libraries within DIR (or the
                           compiler's sysroot if not specified).
-       --with-ft-prefix=PREFIX Prefix where FreeType is installed (optional)
-       --with-ft-exec-prefix=PREFIX
+  --with-ft-prefix=PREFIX Prefix where FreeType is installed (optional)
+  --with-ft-exec-prefix=PREFIX
                           Exec prefix where FreeType is installed (optional)
 
 Some influential environment variables:
@@ -3009,8 +3009,8 @@ ac_config_headers="$ac_config_headers nsfbcfg.h"
 
 
 DATE="`date '+%d %B %Y'`"
-SVN_BUILD=21M
-SVN_BUILD=79
+SVN_BUILD=22M
+SVN_BUILD=81
 
 
 
@@ -13141,7 +13141,7 @@ else
 
 
 #include <ft2build.h>
-#include FT_FREETYPE_H
+#include <freetype/freetype.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -13450,7 +13450,7 @@ else
 
 
 #include <ft2build.h>
-#include FT_FREETYPE_H
+#include <freetype/freetype.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -16086,7 +16086,9 @@ $as_echo X/"$am_mf" |
     { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
 $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
 as_fn_error $? "Something went wrong bootstrapping makefile fragments
-    for automatic dependency tracking.  Try re-running configure with the
+    for automatic dependency tracking.  If GNU make was not used, consider
+    re-running the configure script with MAKE=\"gmake\" (or whatever is
+    necessary).  You can also try re-running configure with the
     '--disable-dependency-tracking' option to at least be able to build
     the package (albeit without support for automatic dependency tracking).
 See \`config.log' for more details" "$LINENO" 5; }
