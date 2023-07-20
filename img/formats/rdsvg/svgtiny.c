@@ -42,7 +42,7 @@ static void svgtiny_parse_paint_attributes(    dom_element * ,	struct svgtinyPar
 static void svgtiny_parse_font_attributes(     dom_element * ,	struct svgtinyParseState *state);
 static void svgtinyParseTransform_attributes(  dom_element * ,	struct svgtinyParseState *state);
 
-static svgtiny_code svgtiny_add_path(float *p, unsigned int n, 		struct svgtinyParseState *state);
+static svgtiny_code svgtinyAddPath(float *p, unsigned int n, 		struct svgtinyParseState *state);
 static void _svgtinyParseColor(const char *s, NSFBCOLOUR *c,		struct svgtinyParseState *state);
 
 /**
@@ -74,15 +74,15 @@ static void svgtiny_setup_state_local(struct svgtinyParseState *state)
  */
 static void svgtiny_cleanup_state_local(struct svgtinyParseState *state)
 {
-	if (state->gradient_x1 ) {
-		dom_string_unref(state->gradient_x1);
-		state->gradient_x1 = NULL;
-	}
+	 if (state->gradient_x1 )
+	 { dom_string_unref(state->gradient_x1);
+		  state->gradient_x1 = NULL;
+ 	}
 
-	if (state->gradient_y1 ) {
-		dom_string_unref(state->gradient_y1);
-		state->gradient_y1 = NULL;
-	}
+	 if (state->gradient_y1 )
+	 {	dom_string_unref(state->gradient_y1);
+		  state->gradient_y1 = NULL;
+	 }
 
 	if (state->gradient_x2 ) {
 		dom_string_unref(state->gradient_x2);
@@ -610,12 +610,12 @@ svgtiny_code svgtiny_parse_path( dom_element *path
 		 			 y  += last_y;
 			 	}
 
-				 p[ i++] = x1;
-				 p[ i++] = y1;
-				 p[ i++] = last_cubic_x = x2;
-				 p[ i++] = last_cubic_y = y2;
-				 p[ i++] = last_quad_x = last_x = x;
-				 p[ i++] = last_quad_y = last_y = y;
+				 p[ i++ ] = x1;
+				 p[ i++ ] = y1;
+				 p[ i++ ] = last_cubic_x = x2;
+				 p[ i++ ] = last_cubic_y = y2;
+				 p[ i++ ] = last_quad_x = last_x = x;
+				 p[ i++ ] = last_quad_y = last_y = y;
 				 s += n;
 			}
 			while ( sscanf( s, "%f %f %f %f %f %f %n"
@@ -677,8 +677,8 @@ svgtiny_code svgtiny_parse_path( dom_element *path
 
 			 	p[ i++ ] = 1./3 * last_x + 2./3 * x1;
 			 	p[ i++ ] = 1./3 * last_y + 2./3 * y1;
-			 	p[ i++ ] = 2./3 * x1 + 1./3 * x;
-			 	p[ i++ ] = 2./3 * y1 + 1./3 * y;
+			 	p[ i++ ] = 2./3 *     x1 + 1./3 * x;
+			 	p[ i++ ] = 2./3 *     y1 + 1./3 * y;
 			 	p[ i++ ] = last_cubic_x = last_x = x;
 			 	p[ i++ ] = last_cubic_y = last_y = y;
 			 	s += n;
@@ -710,8 +710,8 @@ svgtiny_code svgtiny_parse_path( dom_element *path
 				 }
 		  	p[ i++ ] = 1./3 * last_x + 2./3 * x1;
   			p[ i++ ] = 1./3 * last_y + 2./3 * y1;
-		  	p[ i++ ] = 2./3 * x1 + 1./3 * x;
-		  	p[ i++ ] = 2./3 * y1 + 1./3 * y;
+		  	p[ i++ ] = 2./3 * x1     + 1./3 * x;
+		  	p[ i++ ] = 2./3 * y1     + 1./3 * y;
 	  		p[ i++ ] = last_cubic_x = last_x = x;
 	  		p[ i++ ] = last_cubic_y = last_y = y;
 		  	s += n;
@@ -743,9 +743,8 @@ svgtiny_code svgtiny_parse_path( dom_element *path
 			               ,	&x, &y, &n) == 7);
 		}
 		else
-		{
-			fprintf(stderr, "parse failed at \"%s\"\n", s);
-			break;
+		{ fprintf(stderr, "parse failed at \"%s\"\n", s);
+			 break;
 	 }	}
 
 	 free( path_d );
@@ -767,7 +766,7 @@ svgtiny_code svgtiny_parse_path( dom_element *path
     { p = tp;
   } }
 
-	 err = svgtiny_add_path(p, i, &state);
+	 err = svgtinyAddPath(p, i, &state);
  	svgtiny_cleanup_state_local(&state);
 
  	return( err );
@@ -800,21 +799,21 @@ svgtiny_code svgtiny_parse_rect(dom_element *rect,
 		return svgtiny_OUT_OF_MEMORY;
 	}
 
-	p[0] = NFSB_PLOT_PATHOP_MOVE;
-	p[1] = x;
-	p[2] = y;
-	p[3] = NFSB_PLOT_PATHOP_LINE;
-	p[4] = x + width;
-	p[5] = y;
-	p[6] = NFSB_PLOT_PATHOP_LINE;
-	p[7] = x + width;
-	p[8] = y + height;
-	p[9] = NFSB_PLOT_PATHOP_LINE;
-	p[10] = x;
-	p[11] = y + height;
-	p[12] = NFSB_PLOT_PATHOP_CLOSE;
+	p[ 0 ] = NFSB_PLOT_PATHOP_MOVE;
+	p[ 1 ] = x;
+	p[ 2 ] = y;
+	p[ 3 ] = NFSB_PLOT_PATHOP_LINE;
+	p[ 4 ] = x + width;
+	p[ 5 ] = y;
+	p[ 6 ] = NFSB_PLOT_PATHOP_LINE;
+	p[ 7 ] = x + width;
+	p[ 8 ] = y + height;
+	p[ 9 ] = NFSB_PLOT_PATHOP_LINE;
+	p[10 ] = x;
+	p[11 ] = y + height;
+	p[12 ] = NFSB_PLOT_PATHOP_CLOSE;
 
-	err = svgtiny_add_path(p, 13, &state);
+	err = svgtinyAddPath( p, 13, &state );
 
 	svgtiny_cleanup_state_local(&state);
 
@@ -920,7 +919,7 @@ svgtiny_code svgtinyParseCircle(dom_element *circle,
 	p[30] = y;
 	p[31] = NFSB_PLOT_PATHOP_CLOSE;
 
-	err = svgtiny_add_path(p, 32, &state);
+	err = svgtinyAddPath(p, 32, &state);
 
 	svgtiny_cleanup_state_local(&state);
 
@@ -1045,7 +1044,7 @@ svgtiny_code svgtinyParseEllipse( dom_element *ellipse
 	 p[ 30 ] = y;
 	 p[ 31 ] = NFSB_PLOT_PATHOP_CLOSE;
 
- 	err= svgtiny_add_path( p, 32, &state );
+ 	err= svgtinyAddPath( p, 32, &state );
 
 	svgtiny_cleanup_state_local(&state);
 
@@ -1125,7 +1124,7 @@ svgtiny_code svgtiny_parse_line(dom_element *line,
 	p[5] = y2;
 	p[6] = NFSB_PLOT_PATHOP_CLOSE;
 
-	err = svgtiny_add_path(p, 7, &state);
+	err = svgtinyAddPath(p, 7, &state);
 
 	svgtiny_cleanup_state_local(&state);
 
@@ -1217,7 +1216,7 @@ svgtiny_code svgtiny_parse_poly( dom_element *poly
 
 	free(points);
 
-	err = svgtiny_add_path(p, i, &state);
+	err = svgtinyAddPath(p, i, &state);
 
 	svgtiny_cleanup_state_local(&state);
 
@@ -1292,7 +1291,7 @@ svgtiny_code svgtiny_parse_text( dom_element *text
 		}
 		else if (nodetype == DOM_TEXT_NODE)
 		{
-			struct svgtiny_shape *shape = svgtiny_add_shape(&state);
+			struct svgtiny_shape *shape = svgtinyAddShape(&state);
 			dom_string *content;
 			if ( !shape )
 			{
@@ -1732,7 +1731,6 @@ void svgtinyParseTransform_attributes( dom_element *node
 /**
  * Parse a transform string.
  */
-
 void svgtinyParseTransform( char  * s
                           , float * ma, float *mb,	float *mc
                           , float * md, float *me, float *mf )
@@ -1754,12 +1752,13 @@ void svgtinyParseTransform( char  * s
   		b = c = 0;
 	  	e = f = 0;
 
-		  if ((sscanf(s, " matrix (%f %f %f %f %f %f ) %n", &a, &b, &c, &d, &e, &f, &n ) == 6) && (n > 0));
-  		else if ((sscanf(s, " translate (%f %f ) %n    ", &e, &f, &n                 ) == 2) && (n > 0));
-  		else if ((sscanf(s, " translate (%f ) %n"       , &e, &n                     ) == 1) && (n > 0));
-  		else if ((sscanf(s, " scale (%f %f ) %n"        , &a, &d, &n                 ) == 2) && (n > 0));
-  		else if ((sscanf(s, " scale (%f ) %n"           , &a, &n                     ) == 1) && (n > 0))
-   			d = a;
+		       if ((sscanf(s, " matrix (%f %f %f %f %f %f ) %n", &a, &b, &c, &d, &e, &f, &n ) == 6) && (n > 0));
+  		else if ((sscanf(s, " translate (%f %f ) %n    "     , &e, &f, &n                 ) == 2) && (n > 0));
+  		else if ((sscanf(s, " translate (%f ) %n"            , &e, &n                     ) == 1) && (n > 0));
+  		else if ((sscanf(s, " scale (%f %f ) %n"             , &a, &d, &n                 ) == 2) && (n > 0));
+  		else if ((sscanf(s, " scale (%f ) %n"                , &a, &n                     ) == 1) && (n > 0))
+   	{	d = a;
+   	}
 		  else if ((sscanf(s, " rotate (%f %f %f ) %n", &angle, &x, &y, &n) == 3) && (n > 0))
 		  { angle = angle / 180 * M_PI;
    			a =      cos( angle );
@@ -1771,10 +1770,10 @@ void svgtinyParseTransform( char  * s
 		  }
 		  else if ((sscanf(s, " rotate (%f ) %n", &angle, &n) == 1) && (n > 0))
 		  { angle = angle / 180 * M_PI;
-   			a = cos(angle);
-		   	b = sin(angle);
-		   	c = -sin(angle);
-		   	d = cos(angle);
+   			a =  cos( angle );
+		   	b =  sin( angle );
+		   	c = -sin( angle );
+		   	d =  cos( angle );
 		  }
 		  else if ((sscanf(s, " skewX (%f ) %n",  &angle, &n) == 1) && (n > 0))
 		  { angle = angle / 180 * M_PI;
@@ -1807,17 +1806,17 @@ void svgtinyParseTransform( char  * s
  * Add a path to the VectorRec.
  */
 
-svgtiny_code svgtiny_add_path( float *p, unsigned int n
-                             ,	struct svgtinyParseState *state )
+svgtiny_code svgtinyAddPath( float *p, unsigned int n
+                           ,	struct svgtinyParseState *state )
 { struct svgtiny_shape *shape;
 
 	 if ( state->fill == NFSB_PLOT_OPTYPE_GRADIENT )
 		{ return( svgtinyAddPathLinearGradient(p, n, state));
 		}
 
- 	svgtiny_transform_path(p, n, state);
+ 	svgtinyTransformPath(p, n, state);
 
-  shape = svgtiny_add_shape(state);
+  shape = svgtinyAddShape(state);
 
   if (!shape)
   { free(p);
@@ -1836,7 +1835,7 @@ svgtiny_code svgtiny_add_path( float *p, unsigned int n
  * Add a svgtiny_shape to the VectorRec.
  */
 
-struct svgtiny_shape * svgtiny_add_shape( struct svgtinyParseState *state )
+struct svgtiny_shape * svgtinyAddShape( struct svgtinyParseState *state )
 { struct svgtiny_shape *shape = realloc( state->diagram->shape
 	                                     , 	(state->diagram->shape_count + 1) *	sizeof (state->diagram->shape[0]));
 	 if ( !shape )
@@ -1869,7 +1868,7 @@ struct svgtiny_shape * svgtiny_add_shape( struct svgtinyParseState *state )
  * Apply the current transformation matrix to a path.
  */
 
-void svgtiny_transform_path( float *p
+void svgtinyTransformPath( float *p
                            , unsigned int n
                            , struct svgtinyParseState *state )
 { unsigned int j;

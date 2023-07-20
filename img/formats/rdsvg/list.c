@@ -31,14 +31,14 @@ struct svgtiny_list
 struct svgtiny_list *svgtiny_list_create(size_t item_size)
 { struct svgtiny_list *list = malloc(sizeof *list);
 
-	if ( list )
-	{ list->size = 0;
-  	list->allocated = 0;
-  	list->item_size = item_size;
-	  list->items = 0;
-	}  
+ 	if ( list )
+ 	{ list->size = 0;
+   	list->allocated = 0;
+   	list->item_size = item_size;
+	   list->items = 0;
+	 }
 
-	return list;
+	 return list;
 }
 
 
@@ -67,17 +67,17 @@ svgtiny_code svgtiny_list_resize( struct svgtiny_list *list
 { unsigned int new_allocated;
  	void *new_items;
 
- 	if (new_size <= list->allocated) 
+ 	if (new_size <= list->allocated)
  	{ list->size = new_size;
 	  	return svgtiny_OK;
 	 }
 
 	 new_allocated = (new_size >> 3) + (new_size < 9 ? 3 : 6) + new_size;
-	 
+
 	 if (new_size == 0)
 		{ new_allocated = 0;
 		}
-		
+
 	 new_items = realloc(list->items, new_allocated * list->item_size);
 	 if (!new_items)
 		{ return svgtiny_OUT_OF_MEMORY;
@@ -110,11 +110,11 @@ void *svgtiny_list_get( struct svgtiny_list *list
 void *svgtiny_list_push(struct svgtiny_list *list)
 { svgtiny_code code;
 	 code = svgtiny_list_resize(list, list->size + 1);
-	 
+
 	 if (code != svgtiny_OK)
 	 {	return 0;
 	 }
-	 
+
 	 return svgtiny_list_get(list, list->size - 1);
 }
 

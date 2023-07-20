@@ -378,8 +378,8 @@ svgtiny_code svgtinyAddPathLinearGradient( float *p
 		p[10] = p[7] - strip_dx;
 		p[11] = p[8] - strip_dy;
 		p[12] = NFSB_PLOT_PATHOP_CLOSE;
-		svgtiny_transform_path(p, 13, state);
-		struct svgtiny_shape *shape = svgtiny_add_shape(state);
+		svgtinyTransformPath(p, 13, state);
+		struct svgtiny_shape *shape = svgtinyAddShape(state);
 		if (!shape) {
 			free(p);
 			return svgtiny_OUT_OF_MEMORY;
@@ -600,8 +600,8 @@ svgtiny_code svgtinyAddPathLinearGradient( float *p
 		 p[ 8 ] = point_b->y;
 		 p[ 9 ] = NFSB_PLOT_PATHOP_CLOSE;
 
-		 svgtiny_transform_path(p, 10, state);
-		 shape = svgtiny_add_shape(state);
+		 svgtinyTransformPath(p, 10, state);
+		 shape = svgtinyAddShape(state);
 		 if (!shape)
 		 { free(p);
 		  	return svgtiny_OUT_OF_MEMORY;
@@ -650,8 +650,8 @@ svgtiny_code svgtinyAddPathLinearGradient( float *p
 		p[4] = gradient_x1;
 		p[5] = gradient_y1;
 		p[6] = NFSB_PLOT_PATHOP_CLOSE;
-		svgtiny_transform_path(p, 7, state);
-		struct svgtiny_shape *shape = svgtiny_add_shape(state);
+		svgtinyTransformPath(p, 7, state);
+		struct svgtiny_shape *shape = svgtinyAddShape(state);
 		if (!shape) {
 			free(p);
 			return svgtiny_OUT_OF_MEMORY;
@@ -668,7 +668,7 @@ svgtiny_code svgtinyAddPathLinearGradient( float *p
 	#ifdef GRADIENT_DEBUG
 	for (unsigned int i = 0; i != svgtiny_list_size(pts); i++) {
 		struct grad_point *point = svgtiny_list_get(pts, i);
-		struct svgtiny_shape *shape = svgtiny_add_shape(state);
+		struct svgtiny_shape *shape = svgtinyAddShape(state);
 		if (!shape)
 			return svgtiny_OUT_OF_MEMORY;
 		char *text = malloc(20);
@@ -689,9 +689,9 @@ svgtiny_code svgtinyAddPathLinearGradient( float *p
 	/* plot actual path outline */
 	 if (state->stroke != NFSB_PLOT_OPTYPE_TRANSP)
 	 { struct svgtiny_shape *shape;
-  		svgtiny_transform_path(p, n, state);
+  		svgtinyTransformPath(p, n, state);
 
-		  shape = svgtiny_add_shape(state);
+		  shape = svgtinyAddShape(state);
 
   		if (!shape)
 		  {

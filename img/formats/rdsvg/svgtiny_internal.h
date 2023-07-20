@@ -16,9 +16,9 @@
 #define UNUSED(x) ((void) (x))
 #endif
 
-struct svgtiny_gradient_stop {
-	float offset;
-	NSFBCOLOUR color;
+struct svgtiny_gradient_stop
+{ float offset;
+	 NSFBCOLOUR color;
 };
 
 #define svgtiny_MAX_STOPS 10
@@ -78,10 +78,10 @@ void svgtinyParseColor( dom_string *s, NSFBCOLOUR *c
 void svgtinyParseTransform( char *s, float *ma, float *mb
                           ,	float *mc, float *md, float *me, float *mf);
 
-struct svgtiny_shape * svgtiny_add_shape(struct svgtinyParseState *state);
+struct svgtiny_shape * svgtinyAddShape(struct svgtinyParseState *state);
 
-void svgtiny_transform_path(float *p, unsigned int n,
-		struct svgtinyParseState *state);
+void svgtinyTransformPath( float *p, unsigned int n
+                           ,	struct svgtinyParseState *state );
 
 #if (defined(_GNU_SOURCE) && !defined(__APPLE__) || defined(__amigaos4__) || defined(__HAIKU__) || (defined(_POSIX_C_SOURCE) && ((_POSIX_C_SOURCE - 0) >= 200809L)))
 #define HAVE_STRNDUP
@@ -91,12 +91,14 @@ char *svgtiny_strndup(const char *s, size_t n);
 #define strndup svgtiny_strndup
 #endif
 
-/* svgtiny_gradient.c */
-void svgtiny_find_gradient(const char *id, struct svgtinyParseState *state);
+/* svgtiny_gradient.c
+ */
+void svgtiny_find_gradient( const char *id, struct svgtinyParseState *state );
 svgtiny_code svgtinyAddPathLinearGradient(float *p, unsigned int n,
 		struct svgtinyParseState *state);
 
-/* svgtiny_list.c */
+/* svgtiny_list.c
+ */
 struct svgtiny_list *svgtiny_list_create(size_t item_size);
 unsigned int svgtiny_list_size(struct svgtiny_list *list);
 svgtiny_code svgtiny_list_resize(struct svgtiny_list *list,

@@ -18,7 +18,7 @@
 
 static int sDidInitXML2Lib = 0;
 
-enum  
+enum
 { MAGIC_DOCUMENT_NODE =  10000
 };
 
@@ -73,14 +73,14 @@ dom_xml_error dom_xml_parser_parse_chunk( dom_xml_parser *parser
   return( DOM_XML_MALFORMED );
 }
 
-dom_xml_error dom_xml_parser_completed(dom_xml_parser *parser) 
+dom_xml_error dom_xml_parser_completed(dom_xml_parser *parser)
 {
   return DOM_XML_OK;
 }
 
 // we intentionally don't free the document here.
 
-dom_xml_error dom_xml_parser_destroy(dom_xml_parser *parser) 
+dom_xml_error dom_xml_parser_destroy(dom_xml_parser *parser)
 {
   free(parser);
   return DOM_XML_OK;
@@ -96,68 +96,68 @@ dom_exception dom_document_get_document_element( dom_document *document
   return( DOM_NO_ERR );
 }
 
-static xmlElement * getElementById(xmlElement *element, const xmlChar *idValue) 
+static xmlElement * getElementById(xmlElement *element, const xmlChar *idValue)
 {
   xmlAttrPtr attrPtr = xmlHasProp((xmlNode *)element, (const xmlChar *)"id");
-  
-  if ( attrPtr 
-    && attrPtr->children 
-    && attrPtr->children->content 
+
+  if ( attrPtr
+    && attrPtr->children
+    && attrPtr->children->content
     && !strcasecmp((const char *)attrPtr->children->content
-                  ,(const char *)idValue)) 
+                  ,(const char *)idValue))
   {
     return element;
   }
-  
+
   xmlElement *result;
-  if (element->next && NULL != (result = getElementById((xmlElement *)element->next, idValue))) 
+  if (element->next && NULL != (result = getElementById((xmlElement *)element->next, idValue)))
   {
-    return result;
+    return( result );
   }
-  
-  if (element->children && NULL != (result = getElementById((xmlElement *)element->children, idValue))) 
+
+  if (element->children && NULL != (result = getElementById((xmlElement *)element->children, idValue)))
   {
-    return result;
+    return( result );
   }
-  
-  return NULL;
+
+  return( NULL );
 }
 
 dom_exception dom_document_get_element_by_id( dom_node   *node
                                             , dom_string *string
-                                            , dom_element **outNode) 
+                                            , dom_element **outNode)
 { xmlAttrPtr attrPtr = xmlHasProp(node->node, (const xmlChar *)"id");
 
-  if (attrPtr && !strcasecmp((const char *)attrPtr->children->content, string->s)) 
+  if (attrPtr && !strcasecmp((const char *)attrPtr->children->content, string->s))
   { node->ref++;
     *outNode = node;
     return DOM_NO_ERR;
   }
-  
+
   xmlElement *resultXML = getElementById((xmlElement *)node->node, (const xmlChar *)string->s);
-  if (resultXML) 
+  if (resultXML)
   { dom_element *result = (dom_element *)calloc(sizeof(dom_element), 1);
     result->node = (xmlNode *)resultXML;
     result->ref = 1;
     *outNode = result;
     return DOM_NO_ERR;
   }
-  
+
   *outNode = NULL;
   return DOM_NO_ERR;
 }
 
 dom_exception dom_element_get_attribute( dom_node *node
                                        , dom_string *string
-                                       , dom_string **outAttribute ) 
+                                       , dom_string **outAttribute )
 {
   xmlAttrPtr attrPtr = xmlHasProp(node->node, (const xmlChar *)string->s);
-  if ( ! attrPtr) 
-  { if (strchr(string->s, ':')) 
+  if ( ! attrPtr)
+  { if (strchr(string->s, ':'))
     {
       fprintf(stderr, "TODO:dom_element_get_attribute - namespace %s\n", string->s);
-  } } 
-  else 
+  } }
+  else
   {
     const char *s = (const char *)attrPtr->children->content;
     return dom_string_create_interned((const uint8_t *)s, strlen(s), outAttribute);
@@ -166,34 +166,34 @@ dom_exception dom_element_get_attribute( dom_node *node
   return DOM_NO_ERR;
 }
 
-dom_exception dom_element_get_elements_by_tag_name( dom_element *element 
+dom_exception dom_element_get_elements_by_tag_name( dom_element *element
                                                   , dom_string *string
-                                                  , dom_nodelist **outNodeList) 
+                                                  , dom_nodelist **outNodeList)
 {
   dom_nodelist *result = NULL;
   dom_element **nodeList = NULL;
   int nodeCount = 0;
-  
+
   for ( xmlElement *candidate = (xmlElement *)element->node->children
       ; candidate
-      ; candidate = (xmlElement *)candidate->next) 
+      ; candidate = (xmlElement *)candidate->next)
   {
-    if (!strcmp((const char *)candidate->name, string->s)) 
+    if (!strcmp((const char *)candidate->name, string->s))
     {
-      if (NULL == nodeList) 
+      if (NULL == nodeList)
       {
         nodeList = (dom_element **)malloc(nodeCount * sizeof(dom_element *));
-      } 
-      else 
+      }
+      else
       {
         dom_element **t = realloc(nodeList, (1+nodeCount) * sizeof(dom_element *));
-        if (t) 
+        if (t)
         {
           nodeList = t;
-        } 
-        else 
+        }
+        else
         {
-          for (int i = 0; i < nodeCount; ++i) 
+          for (int i = 0; i < nodeCount; ++i)
           {
             dom_node_unref(nodeList[i]);
           }
@@ -201,20 +201,20 @@ dom_exception dom_element_get_elements_by_tag_name( dom_element *element
           *outNodeList = result;
           return DOM_MEM_ERR;
       } }
-       
+
       dom_element *elem = (dom_element *)calloc(sizeof(dom_element), 1);
       elem->node = (xmlNode *)candidate;
       elem->ref = 1;
       nodeList[nodeCount++] = elem;
   } }
-  
-  if (nodeCount) 
+
+  if (nodeCount)
   { result = calloc(sizeof(dom_nodelist), 1);
     result->nodes = nodeList;
     result->count = nodeCount;
     result->ref = 1;
   }
-  
+
   *outNodeList = result;
   return( DOM_NO_ERR );
 }
@@ -293,13 +293,13 @@ dom_exception dom_node_get_first_child( dom_element *element
 { dom_element *newElement= NULL;
 
   xmlElement *child = (xmlElement *)element->node->children;
-  if (child) 
+  if (child)
   {
     newElement = (dom_element *)calloc(sizeof(dom_element), 1);
     newElement->node = (xmlNode *)child;
     newElement->ref = 1;
   }
-  
+
   *outChild = newElement;
   return DOM_NO_ERR;
 }
@@ -307,17 +307,17 @@ dom_exception dom_node_get_first_child( dom_element *element
 dom_exception dom_node_get_node_type( dom_node *node
                                     , dom_node_type *outType)
 { switch (node->node->type)
-  { case XML_ELEMENT_NODE:       *outType = DOM_ELEMENT_NODE; break;
+  { case XML_ELEMENT_NODE:       *outType = DOM_ELEMENT_NODE;   break;
     case XML_ATTRIBUTE_NODE:     *outType = DOM_ATTRIBUTE_NODE; break;
     case XML_CDATA_SECTION_NODE:
-    case XML_TEXT_NODE:          *outType = DOM_TEXT_NODE; break;
-    case XML_COMMENT_NODE:       *outType = DOM_COMMENT_NODE; break;
+    case XML_TEXT_NODE:          *outType = DOM_TEXT_NODE;      break;
+    case XML_COMMENT_NODE:       *outType = DOM_COMMENT_NODE;   break;
     case XML_DOCB_DOCUMENT_NODE:
     case XML_DOCUMENT_NODE:
     case XML_DOCUMENT_TYPE_NODE:
     case XML_DOCUMENT_FRAG_NODE:
     case XML_HTML_DOCUMENT_NODE: *outType = DOM_DOCUMENT_NODE; break;
-    default:                     *outType = DOM_OTHER_NODE; break;
+    default:                     *outType = DOM_OTHER_NODE;    break;
   }
   return DOM_NO_ERR;
 }
@@ -374,7 +374,8 @@ dom_exception dom_string_create_interned( const uint8_t *data, size_t len
   return DOM_NO_ERR;
 }
 
-char *dom_string_data(dom_string *str) {
+char *dom_string_data(dom_string *str)
+{
   return str->s;
 }
 
@@ -391,7 +392,7 @@ dom_string * dom_string_ref( dom_string *str )
 void dom_string_unref(dom_string *str)
 { str->ref--;
 
-  if ( !str->ref ) 
+  if ( !str->ref )
   { free( str->s );
     free( str    );
 } }
