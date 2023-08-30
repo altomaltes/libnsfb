@@ -3009,8 +3009,8 @@ ac_config_headers="$ac_config_headers nsfbcfg.h"
 
 
 DATE="`date '+%d %B %Y'`"
-SVN_BUILD=22M
-SVN_BUILD=81
+SVN_BUILD=24M
+SVN_BUILD=82
 
 
 
