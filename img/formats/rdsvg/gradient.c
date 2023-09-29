@@ -401,37 +401,38 @@ svgtiny_code svgtinyAddPathLinearGradient( float *p
 
 	/* compute points on the path for triangle vertices */
 	/* r, r0, r1 are distance along gradient vector */
-	gradient_norm_squared = gradient_dx * gradient_dx +
-	                              gradient_dy * gradient_dy;
-	pts = svgtiny_list_create(
-			sizeof (struct grad_point));
+	gradient_norm_squared = gradient_dx * gradient_dx
+                      +  gradient_dy * gradient_dy;
+	pts = svgtinyListCreate( sizeof (struct grad_point));
+
 	if (!pts)
 		return svgtiny_OUT_OF_MEMORY;
-	for (j = 0; j != n; ) {
-		int segment_type = (int) p[j];
-		struct grad_point *point;
-		unsigned int z;
 
-		if (segment_type == NFSB_PLOT_PATHOP_MOVE)
-		{ x0 = p[j + 1];
-			 y0 = p[j + 2];
-			 j += 3;
-			 continue;
-		}
+ 	for (j = 0; j != n; )
+  { int segment_type = (int) p[j];
+  		struct grad_point *point;
+		  unsigned int z;
 
-		assert( segment_type == NFSB_PLOT_PATHOP_CLOSE
-		     ||	segment_type == NFSB_PLOT_PATHOP_LINE
-		     ||	segment_type == NFSB_PLOT_PATHOP_QUAD );
+  		if (segment_type == NFSB_PLOT_PATHOP_MOVE)
+		  { x0 = p[j + 1];
+  			 y0 = p[j + 2];
+		  	 j += 3;
+			   continue;
+  		}
+
+		  assert( segment_type == NFSB_PLOT_PATHOP_CLOSE
+		       ||	segment_type == NFSB_PLOT_PATHOP_LINE
+		       ||	segment_type == NFSB_PLOT_PATHOP_QUAD );
 
 		/* start point (x0, y0) */
-		x0_trans = trans[0]*x0 + trans[2]*y0 + trans[4];
-		y0_trans = trans[1]*x0 + trans[3]*y0 + trans[5];
+  		x0_trans = trans[0]*x0 + trans[2]*y0 + trans[4];
+		  y0_trans = trans[1]*x0 + trans[3]*y0 + trans[5];
 
-		r0 = ((x0_trans - gradient_x0) * gradient_dx +		(y0_trans - gradient_y0) * gradient_dy) /		gradient_norm_squared;
+  		r0 = ((x0_trans - gradient_x0) * gradient_dx +		(y0_trans - gradient_y0) * gradient_dy) /		gradient_norm_squared;
 
-		point= svgtiny_list_push( pts );
+		point= svgtinyListPush( pts );
 		if (!point)
-		{ svgtiny_list_free(pts);
+		{ svgtinyListFree(pts);
 			 return( svgtiny_OUT_OF_MEMORY );
 		}
 		point->x = x0;
@@ -524,9 +525,9 @@ svgtiny_code svgtinyAddPathLinearGradient( float *p
 			#ifdef GRADIENT_DEBUG
 			fprintf(stderr, "(%g %g [%g]) ", x, y, r);
 			#endif
-  		point = svgtiny_list_push(pts);
+  		point = svgtinyListPush(pts);
 		 	if ( !point )
-		 	{ svgtiny_list_free(pts);
+		 	{ svgtinyListFree(pts);
 				  return svgtiny_OUT_OF_MEMORY;
 			 }
  			point->x = x;
@@ -563,9 +564,9 @@ svgtiny_code svgtinyAddPathLinearGradient( float *p
 	b = min_pt == 0 ? svgtiny_list_size(pts) - 1 : min_pt - 1;
 
 	while (a != b)
-	{ struct grad_point *point_t = svgtiny_list_get(pts, t);
-		 struct grad_point *point_a = svgtiny_list_get(pts, a);
-		 struct grad_point *point_b = svgtiny_list_get(pts, b);
+	{ struct grad_point *point_t = svgtinyListGet(pts, t);
+		 struct grad_point *point_a = svgtinyListGet(pts, a);
+		 struct grad_point *point_b = svgtinyListGet(pts, b);
 		 float mean_r = (point_t->r + point_a->r + point_b->r) / 3;
 		 float *p;
 		 struct svgtiny_shape *shape;
@@ -587,6 +588,7 @@ svgtiny_code svgtinyAddPathLinearGradient( float *p
 	 	 	current_stop_r = state->gradient_stop[current_stop].offset;
  		}
 		 p = malloc(10 * sizeof p[0]);
+
 		 if (!p)
 			  return svgtiny_OUT_OF_MEMORY;
 		 p[ 0 ] = NFSB_PLOT_PATHOP_MOVE;
@@ -667,7 +669,7 @@ svgtiny_code svgtinyAddPathLinearGradient( float *p
 	/* render triangle vertices with r values for debugging */
 	#ifdef GRADIENT_DEBUG
 	for (unsigned int i = 0; i != svgtiny_list_size(pts); i++) {
-		struct grad_point *point = svgtiny_list_get(pts, i);
+		struct grad_point *point = svgtinyListGet(pts, i);
 		struct svgtiny_shape *shape = svgtinyAddShape(state);
 		if (!shape)
 			return svgtiny_OUT_OF_MEMORY;
@@ -708,7 +710,7 @@ svgtiny_code svgtinyAddPathLinearGradient( float *p
   { free(p);
 	 }
 
-	svgtiny_list_free(pts);
+	svgtinyListFree(pts);
 
 	return svgtiny_OK;
 }

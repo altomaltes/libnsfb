@@ -28,7 +28,7 @@ struct svgtiny_list
  * Create an empty svgtiny_list.
  */
 
-struct svgtiny_list *svgtiny_list_create(size_t item_size)
+struct svgtiny_list *svgtinyListCreate( size_t item_size )
 { struct svgtiny_list *list = malloc(sizeof *list);
 
  	if ( list )
@@ -58,7 +58,7 @@ unsigned int svgtiny_list_size(struct svgtiny_list *list)
  * The allocation size formula is taken from Python's list:
  * http://svn.python.org/view/python/trunk/Objects/listobject.c?view=markup
  *
- * Objects may have moved after this call. Use svgtiny_list_get() to get new
+ * Objects may have moved after this call. Use svgtinyListGet() to get new
  * pointers.
  */
 
@@ -95,7 +95,7 @@ svgtiny_code svgtiny_list_resize( struct svgtiny_list *list
  * Return a pointer to an object in a list.
  */
 
-void *svgtiny_list_get( struct svgtiny_list *list
+void *svgtinyListGet( struct svgtiny_list *list
                      ,		unsigned int i )
 { assert(i < list->size);
 
@@ -107,7 +107,7 @@ void *svgtiny_list_get( struct svgtiny_list *list
  * Add space for one object to a list and return a pointer to it.
  */
 
-void *svgtiny_list_push(struct svgtiny_list *list)
+void *svgtinyListPush(struct svgtiny_list *list)
 { svgtiny_code code;
 	 code = svgtiny_list_resize(list, list->size + 1);
 
@@ -115,7 +115,7 @@ void *svgtiny_list_push(struct svgtiny_list *list)
 	 {	return 0;
 	 }
 
-	 return svgtiny_list_get(list, list->size - 1);
+	 return svgtinyListGet(list, list->size - 1);
 }
 
 
@@ -123,7 +123,7 @@ void *svgtiny_list_push(struct svgtiny_list *list)
  * Free an entire list.
  */
 
-void svgtiny_list_free(struct svgtiny_list *list)
+void svgtinyListFree(struct svgtiny_list *list)
 { free( list->items );
 	 free( list        );
 }

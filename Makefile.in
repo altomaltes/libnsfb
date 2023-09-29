@@ -145,7 +145,7 @@ am_libnsfb_la_OBJECTS = libnsfb.lo surface/linux.lo surface/ram.lo \
 	palette.lo dump.lo nsglobe.lo img/dither.lo img/resize.lo \
 	img/parsec.lo img/printer.lo img/icons.lo img/freetype.lo \
 	img/formats/rdico.lo img/formats/rdxpm.lo img/vectors.lo \
-	src/pointers.lo
+	src/pointers.lo arena/testgif.lo
 libnsfb_la_OBJECTS = $(am_libnsfb_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -219,10 +219,11 @@ depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__maybe_remake_depfiles = depfiles
 am__depfiles_remade = ./$(DEPDIR)/cursor.Plo ./$(DEPDIR)/dump.Plo \
 	./$(DEPDIR)/libnsfb.Plo ./$(DEPDIR)/nsglobe.Plo \
-	./$(DEPDIR)/palette.Plo img/$(DEPDIR)/dither.Plo \
-	img/$(DEPDIR)/freetype.Plo img/$(DEPDIR)/icons.Plo \
-	img/$(DEPDIR)/parsec.Plo img/$(DEPDIR)/printer.Plo \
-	img/$(DEPDIR)/resize.Plo img/$(DEPDIR)/vectors.Plo \
+	./$(DEPDIR)/palette.Plo arena/$(DEPDIR)/testgif.Plo \
+	img/$(DEPDIR)/dither.Plo img/$(DEPDIR)/freetype.Plo \
+	img/$(DEPDIR)/icons.Plo img/$(DEPDIR)/parsec.Plo \
+	img/$(DEPDIR)/printer.Plo img/$(DEPDIR)/resize.Plo \
+	img/$(DEPDIR)/vectors.Plo \
 	img/formats/$(DEPDIR)/nsfb_gif_la-rdgif.Plo \
 	img/formats/$(DEPDIR)/nsfb_jpg_la-rdjpeg.Plo \
 	img/formats/$(DEPDIR)/nsfb_png_la-rdpng.Plo \
@@ -504,7 +505,7 @@ libnsfb_la_SOURCES = libnsfb.c surface/linux.c surface/ram.c \
 	palette.c dump.c nsglobe.c img/dither.c img/resize.c \
 	img/parsec.c img/printer.c img/icons.c img/freetype.c \
 	img/formats/rdico.c img/formats/rdxpm.c img/vectors.c \
-	src/pointers.c
+	src/pointers.c arena/testgif.c
 nsfb_drm_la_SOURCES = surface/drm.c 
 nsfb_vga_la_SOURCES = surface/linux.c 
 nsfb_X11_la_SOURCES = surface/x11.c plot/x11.c 
@@ -676,6 +677,14 @@ src/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) src/$(DEPDIR)
 	@: > src/$(DEPDIR)/$(am__dirstamp)
 src/pointers.lo: src/$(am__dirstamp) src/$(DEPDIR)/$(am__dirstamp)
+arena/$(am__dirstamp):
+	@$(MKDIR_P) arena
+	@: > arena/$(am__dirstamp)
+arena/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) arena/$(DEPDIR)
+	@: > arena/$(DEPDIR)/$(am__dirstamp)
+arena/testgif.lo: arena/$(am__dirstamp) \
+	arena/$(DEPDIR)/$(am__dirstamp)
 
 libnsfb.la: $(libnsfb_la_OBJECTS) $(libnsfb_la_DEPENDENCIES) $(EXTRA_libnsfb_la_DEPENDENCIES) 
 	$(AM_V_CCLD)$(libnsfb_la_LINK) -rpath $(libdir) $(libnsfb_la_OBJECTS) $(libnsfb_la_LIBADD) $(LIBS)
@@ -741,6 +750,8 @@ nsfb-vga.la: $(nsfb_vga_la_OBJECTS) $(nsfb_vga_la_DEPENDENCIES) $(EXTRA_nsfb_vga
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
+	-rm -f arena/*.$(OBJEXT)
+	-rm -f arena/*.lo
 	-rm -f img/*.$(OBJEXT)
 	-rm -f img/*.lo
 	-rm -f img/formats/*.$(OBJEXT)
@@ -762,6 +773,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libnsfb.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nsglobe.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/palette.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@arena/$(DEPDIR)/testgif.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@img/$(DEPDIR)/dither.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@img/$(DEPDIR)/freetype.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@img/$(DEPDIR)/icons.Plo@am__quote@ # am--include-marker
@@ -924,6 +936,7 @@ mostlyclean-libtool:
 
 clean-libtool:
 	-rm -rf .libs _libs
+	-rm -rf arena/.libs arena/_libs
 	-rm -rf img/.libs img/_libs
 	-rm -rf img/formats/.libs img/formats/_libs
 	-rm -rf img/formats/rdsvg/.libs img/formats/rdsvg/_libs
@@ -1292,6 +1305,8 @@ clean-generic:
 distclean-generic:
 	-test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
 	-test . = "$(srcdir)" || test -z "$(CONFIG_CLEAN_VPATH_FILES)" || rm -f $(CONFIG_CLEAN_VPATH_FILES)
+	-rm -f arena/$(DEPDIR)/$(am__dirstamp)
+	-rm -f arena/$(am__dirstamp)
 	-rm -f img/$(DEPDIR)/$(am__dirstamp)
 	-rm -f img/$(am__dirstamp)
 	-rm -f img/formats/$(DEPDIR)/$(am__dirstamp)
@@ -1320,6 +1335,7 @@ distclean: distclean-recursive
 	-rm -f ./$(DEPDIR)/libnsfb.Plo
 	-rm -f ./$(DEPDIR)/nsglobe.Plo
 	-rm -f ./$(DEPDIR)/palette.Plo
+	-rm -f arena/$(DEPDIR)/testgif.Plo
 	-rm -f img/$(DEPDIR)/dither.Plo
 	-rm -f img/$(DEPDIR)/freetype.Plo
 	-rm -f img/$(DEPDIR)/icons.Plo
@@ -1407,6 +1423,7 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f ./$(DEPDIR)/libnsfb.Plo
 	-rm -f ./$(DEPDIR)/nsglobe.Plo
 	-rm -f ./$(DEPDIR)/palette.Plo
+	-rm -f arena/$(DEPDIR)/testgif.Plo
 	-rm -f img/$(DEPDIR)/dither.Plo
 	-rm -f img/$(DEPDIR)/freetype.Plo
 	-rm -f img/$(DEPDIR)/icons.Plo

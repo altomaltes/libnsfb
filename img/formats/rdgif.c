@@ -28,7 +28,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <gif_lib.h>   
+#include <gif_lib.h>
 #include <malloc.h>
 #include <string.h>
 
@@ -108,7 +108,7 @@ ANSIC DeviceImageRec * loadImgFile( const char * fname, int wtarget, int htarget
                 ? gifFile->Image.ColorMap
                 : gifFile->SColorMap;
 
-    
+
         Col    = gifFile->Image.Left;
         Height = gifFile->Image.Height;
 
@@ -124,7 +124,7 @@ ANSIC DeviceImageRec * loadImgFile( const char * fname, int wtarget, int htarget
               ;         i ++ )
             for ( j = gifFile->Image.Top + InterlacedOffset[i]
                 ; j < gifFile->Image.Top + Height
-                ; j += InterlacedJumps[i])
+                ; j += InterlacedJumps[ i ])
           { char * line= (unsigned char *)alloca( width= gifFile->Image.Width ); /* Holds a line of data */
 
             if ( DGifGetLine( gifFile
@@ -133,7 +133,7 @@ ANSIC DeviceImageRec * loadImgFile( const char * fname, int wtarget, int htarget
                             , width ) == GIF_ERROR)
             { free( image ); return( NULL );
         } } }
-        else 
+        else
         { for ( i = 0
               ; i < Height
               ; i++)
@@ -144,7 +144,7 @@ ANSIC DeviceImageRec * loadImgFile( const char * fname, int wtarget, int htarget
                             , line + gifFile->Image.Left
                             , width ) == GIF_ERROR)
             { free( image ); return( NULL );
-            } 
+            }
 
 
             unsigned char * linePtr= changerLine( changerAlpha  );
@@ -305,9 +305,9 @@ ANSIC IcoRec * loadIcoFile( const char * fname, int wtarget, int htarget  )
   for ( i = 0
       ; i < ColorMap->ColorCount
       ; i++ )
-  { icon->pal[ i ].red=   ColorMap->Colors[i].Red;
-    icon->pal[ i ].green= ColorMap->Colors[i].Green;
-    icon->pal[ i ].blue=  ColorMap->Colors[i].Blue;
+  { icon->pal[ i ].red=   ColorMap->Colors[ i ].Red;
+    icon->pal[ i ].green= ColorMap->Colors[ i ].Green;
+    icon->pal[ i ].blue=  ColorMap->Colors[ i ].Blue;
     icon->pal[ i ].alpha= 0;
   }
   icon->pal[ i-1 ].alpha |= 0x80;
@@ -336,21 +336,21 @@ ANSIC IcoRec * loadIcoFile( const char * fname, int wtarget, int htarget  )
         { for ( Count = i = 0
               ; i < 4
               ; i++ )
-            for ( j = Row + InterlacedOffset[i]
+            for ( j = Row + InterlacedOffset[ i ]
                 ; j < Row + Height
-                ; j += InterlacedJumps[i])
+                ; j += InterlacedJumps[ i ])
           { if ( DGifGetLine( gifFile
                             , picture + j * gifFile->Image.Width + Col
                             , Width ) == GIF_ERROR)
             { return( NULL );
         } } }
-        else 
+        else
         { for ( i = 0
               ; i < Height
               ; i++)
           { if ( DGifGetLine( gifFile
                             , picture + Row++ * gifFile->Image.Width + Col
-                            , Width) == GIF_ERROR)
+                            , Width ) == GIF_ERROR)
             { return( NULL );
         } } }
 
@@ -368,7 +368,7 @@ ANSIC IcoRec * loadIcoFile( const char * fname, int wtarget, int htarget  )
         switch( ExtCode )
         { case GRAPHICS_EXT_FUNC_CODE:
 
-            if ( Extension[ 4 ]< ColorMap->ColorCount )  // Mark the transparent color
+            if ( Extension[ 4 ]< ColorMap->ColorCount )  /* Mark the transparent color */
             { icon->pal[ Extension[ 4 ] ].alpha= 0x0F;
             }
 
@@ -435,13 +435,68 @@ ANSIC IcoRec * loadIcoFile( const char * fname, int wtarget, int htarget  )
 
 
 
+/** ====================================================[ JACS 1997-11-11 ]== *\
+ *                                                                            *
+ *   JACS 2011                                                                *
+ *                                                                            *
+ *  FUNCTION: saveIcoFile                                                     *
+ *                                                                            *
+ *  @brief Write a bitmap to a gif disk file.                                 *
+ *                                                                            *
+\* ========================================================================= **/
+ANSIC int dumpIcoFile( const char * fname, Nsfb * nsfb )
+{ int rc;
 
+  GifFileType * gifFile= EGifOpenFileName( fname
+                                         , false
+                                         , &rc );
+  if ( !gifFile)
+  { printf( "EGifOpenFileName() failed - ",  rc );
+    return( false );
+  }
 
+  GifColorType colors[128];
+  GifColorType* c = colors;
 
+  int level[4] =
+  { 0, 85, 170, 255
+  };
 
+  for ( int r = 0; r < 4; ++r )
+  { for (int g = 0; g < 4; ++g)
+    { for (int b = 0; b < 4; ++b, c++)
+      { c->Red   = level[ r ];
+        c->Green = level[ g ];
+        c->Blue  = level[ b ];
+  } } }
 
+  gifFile->SWidth = 4;
+  gifFile->SHeight = 4;
+  gifFile->SColorResolution = 8;
+  gifFile->SBackGroundColor = 0;
+  gifFile->SColorMap = GifMakeMapObject( 64, colors );
 
+  SavedImage gifImage;
 
+  gifImage.ImageDesc.Left     = 0;
+  gifImage.ImageDesc.Top      = 0;
+  gifImage.ImageDesc.Width    = 4;
+  gifImage.ImageDesc.Height   = 4;
+  gifImage.ImageDesc.Interlace= false;
+  gifImage.ImageDesc.ColorMap = NULL;
+  gifImage.RasterBits         =  (GifByteType*)NULL;
+  gifImage.ExtensionBlockCount= 0;
+  gifImage.ExtensionBlocks    = NULL;
 
+  GifMakeSavedImage( gifFile, &gifImage );
+
+  if ( EGifSpew( gifFile ) == GIF_ERROR )
+  { fprintf( stderr, "EGifSpew() failed - %d\n", gifFile->Error );
+    EGifCloseFile( gifFile, &rc );
+    return( 0x80000000 );
+  }
+
+  return( 0 );
+}
 
 

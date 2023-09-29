@@ -23,6 +23,7 @@
 typedef NsfbSurfaceRtns * ( *NodeFun ) ( const char * mode                           ); /* dll mouter */
 typedef IcoRec          * ( *IcoFun  ) ( const char * name, int wtarget, int htarget ); /* dll mouter */
 typedef DeviceImageRec  * ( *ImgFun  ) ( const char * name, int wtarget, int htarget ); /* dll mouter */
+typedef               int ( *DumpFun ) ( Nsfb *, const char * name  );                  /* dll mouter */
 
 
 static NsfbSurfaceRtns * surfaceSeed= NULL;
@@ -424,6 +425,7 @@ ANSIC enum NsfbType nsfbTypeFromName( const char * name )
  *   JASC 2023                                                        *
  *                                                                    *
  *  FUNCTION loadIcoGifFile                                           *
+ *           saveIcoGifFile                                           *
  *           loadIcoPngFile                                           *
  *           loadIcoJpgFile                                           *
  *                                                                    *
@@ -446,10 +448,9 @@ ANSIC IcoRec * loadIcoGifFile( const char * fname, int wtarget, int htarget  )
   return( launcher ? launcher( fname, wtarget, htarget ) : NULL );
 }
 
-/*
- *
- */
-ANSIC IcoRec * loadIcoPngFile( const char * fname, int wtarget, int htarget  )
+/** ------------------------------------------------------------------------- */
+    ANSIC IcoRec * loadIcoPngFile( const char * fname, int wtarget, int htarget  )
+/** ------------------------------------------------------------------------- */
 { static IcoFun launcher;
 
   if ( !launcher )  /* Search for the magician in the dll*/
@@ -493,10 +494,9 @@ ANSIC IcoRec * loadIcoSvgFile( const char * fname, int wtarget, int htarget  )
 }
 
 
-/*
- * Image formats
- */
-ANSIC DeviceImageRec * loadImgGifFile( const char * fname, int wtarget, int htarget  )
+/** ------------------------------------------------------------------------- */
+    ANSIC DeviceImageRec * loadImgGifFile( const char * fname, int wtarget, int htarget  )
+/** ------------------------------------------------------------------------- */
 { static ImgFun launcher;
 
   if ( !launcher )  /* Search for the magician in the dll*/
@@ -508,10 +508,23 @@ ANSIC DeviceImageRec * loadImgGifFile( const char * fname, int wtarget, int htar
   return( launcher ? launcher( fname, wtarget, htarget ) : NULL );
 }
 
-/*
- *
- */
-ANSIC DeviceImageRec * loadImgPngFile( const char * fname, int wtarget, int htarget  )
+/** ------------------------------------------------------------------------- */
+    ANSIC int dumpImgGifFile( Nsfb * nsfb, const char * fname  )
+/** ------------------------------------------------------------------------- */
+{ static DumpFun launcher;
+
+  if ( !launcher )  /* Search for the magician in the dll*/
+  {
+    launcher= loadModuleSymbolNsfb( "dumpImgFile"
+                                  , "nsfb-gif-%s", VERSION );
+  }
+
+  return( launcher ? launcher( fname, nsfb ) : NULL );
+}
+
+/** ------------------------------------------------------------------------- */
+    ANSIC DeviceImageRec * loadImgPngFile( const char * fname, int wtarget, int htarget  )
+/** ------------------------------------------------------------------------- */
 { static ImgFun launcher;
 
   if ( !launcher )  /* Search for the magician in the dll*/
@@ -523,10 +536,9 @@ ANSIC DeviceImageRec * loadImgPngFile( const char * fname, int wtarget, int htar
   return( launcher ? launcher( fname, wtarget, htarget ) : NULL );
 }
 
-/*
- *
- */
-ANSIC DeviceImageRec * loadImgJpgFile( const char * fname, int wtarget, int htarget  )
+/** ------------------------------------------------------------------------- */
+    ANSIC DeviceImageRec * loadImgJpgFile( const char * fname, int wtarget, int htarget  )
+/** ------------------------------------------------------------------------- */
 { static ImgFun launcher;
 
   if ( !launcher )  /* Search for the magician in the dll*/
@@ -538,10 +550,9 @@ ANSIC DeviceImageRec * loadImgJpgFile( const char * fname, int wtarget, int htar
   return( launcher ? launcher( fname, wtarget, htarget ) : NULL );
 }
 
-/*
- *
- */
-ANSIC DeviceImageRec * loadImgSvgFile( const char * fname, int wtarget, int htarget  )
+/** ------------------------------------------------------------------------- */
+    ANSIC DeviceImageRec * loadImgSvgFile( const char * fname, int wtarget, int htarget  )
+/** ------------------------------------------------------------------------- */
 { static ImgFun launcher;
 
   if ( !launcher )  /* Search for the magician in the dll*/
@@ -558,9 +569,3 @@ ANSIC DeviceImageRec * loadImgSvgFile( const char * fname, int wtarget, int htar
 
 
 
-/*
- * Local variables:
- *  c-basic-offset: 4
- *  tab-width: 8
- * End:
- */

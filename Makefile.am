@@ -16,6 +16,7 @@ library_include_HEADERS=libnsfb.h nsfbPlot.h libnsfb_cursor.h
 
 libnsfb_la_SOURCES= libnsfb.c surface/linux.c surface/ram.c surface/surface.c surface/vt.c plot/generic.c plot/util.c plot/24bpp.c plot/8bpp.c plot/32bpp-xrgb8888.c plot/32bpp-xbgr8888.c  plot/16bpp.c  plot/api.c cursor.c palette.c  dump.c nsglobe.c
 libnsfb_la_SOURCES+=img/dither.c img/resize.c img/parsec.c img/printer.c img/icons.c img/freetype.c img/formats/rdico.c img/formats/rdxpm.c img/vectors.c src/pointers.c
+libnsfb_la_SOURCES+=arena/testgif.c
 
 nsfb_drm_la_SOURCES= surface/drm.c 
 nsfb_vga_la_SOURCES= surface/linux.c 

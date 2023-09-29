@@ -554,6 +554,13 @@ ANSIC DeviceImageRec * loadImgJpgFile( const char * fName, int wide, int height 
 ANSIC DeviceImageRec * loadImgPngFile( const char * fName, int wide, int height );
 ANSIC DeviceImageRec * loadImgSvgFile( const char * fName, int wide, int height );
 
+ANSIC int dumpImgGifFile( Nsfb *, const char * fName );
+ANSIC int dumpImgIcoFile( Nsfb *, const char * fName );
+ANSIC int dumpImgXpmFile( Nsfb *, const char * fName );
+ANSIC int dumpImgJpgFile( Nsfb *, const char * fName );
+ANSIC int dumpImgPngFile( Nsfb *, const char * fName );
+ANSIC int dumpImgSvgFile( Nsfb *, const char * fName );
+
 ANSIC IcoRec         * LoadIcoFile(    const char * fName, int wide, int height ); /* general */
 ANSIC DeviceImageRec * LoadImgFile(    const char * fName, int wide, int height ); /* general */
 ANSIC VectorRec      * LoadVecFile(    const char * fName, int wide, int height ); /* general */
@@ -579,6 +586,25 @@ ANSIC  void ** getChar(   void *, unsigned char idx );
 
 ANSIC int nsfbAttEvent( int sk, void * userData
                       , int sz, void * stream  );
+
+/*
+ *  From cropgif.c
+ *
+ */
+ANSIC void * gifMemoOtHandle( const void * memo  );
+ANSIC void * gifMemoInHandle( const void * memo  );
+ANSIC void * gifFileOTHandle( const char * fname );
+ANSIC void * gifFileOtHandle( const char * fname );
+ANSIC void * gifFileInHandle( const char * fname );
+ANSIC void * gifDescOtHandle( int          hnd   );
+ANSIC void * gifDescInHandle( int          hnd   );
+
+ANSIC int newBlankGif( const char * dst, void * clipFile
+                     , int x, int y, int w, int h
+                     , int tx, int ty
+                     , int tw, int th );
+
+
 
 
 

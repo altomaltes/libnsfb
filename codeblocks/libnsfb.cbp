@@ -141,6 +141,22 @@
 					<Add library="nsfb" />
 				</Linker>
 			</Target>
+			<Target title="testgif">
+				<Option output="/usr/local/lib/test" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="$(PROJECT_DIR)../arena" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+				<Linker>
+					<Add option="-L/usr/local/lib" />
+					<Add library="$(PROJECT_NAME)" />
+					<Add library="m" />
+					<Add library="gif" />
+				</Linker>
+			</Target>
 			<Environment>
 				<Variable name="VERSION" value="1.0.0" />
 			</Environment>
@@ -153,7 +169,16 @@
 		<Linker>
 			<Add directory="$(PROJECT_DIR)../../DLL" />
 		</Linker>
-		<Unit filename="../Makefile.am" />
+		<Unit filename="../Makefile.am">
+			<Option target="polystar" />
+			<Option target="DLL" />
+			<Option target="nsfb-X11" />
+			<Option target="nsfb-drm" />
+			<Option target="nsfb-egl" />
+			<Option target="polystar2" />
+			<Option target="bitmap" />
+			<Option target="nsfb-svg" />
+		</Unit>
 		<Unit filename="../arena/bitmap.c">
 			<Option compilerVar="CC" />
 			<Option target="bitmap" />
@@ -170,11 +195,24 @@
 			<Option compilerVar="CC" />
 			<Option target="polystar2" />
 		</Unit>
+		<Unit filename="../arena/testgif.c">
+			<Option compilerVar="CC" />
+			<Option target="testgif" />
+		</Unit>
 		<Unit filename="../arena/tspeed.c">
 			<Option compilerVar="CC" />
 			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
-		<Unit filename="../configure.ac" />
+		<Unit filename="../configure.ac">
+			<Option target="polystar" />
+			<Option target="DLL" />
+			<Option target="nsfb-X11" />
+			<Option target="nsfb-drm" />
+			<Option target="nsfb-egl" />
+			<Option target="polystar2" />
+			<Option target="bitmap" />
+			<Option target="nsfb-svg" />
+		</Unit>
 		<Unit filename="../cursor.c">
 			<Option compilerVar="CC" />
 			<Option target="DLL" />
@@ -204,6 +242,14 @@
 		<Unit filename="../img/dither.c">
 			<Option compilerVar="CC" />
 			<Option target="DLL" />
+		</Unit>
+		<Unit filename="../img/formats/cropgif.c">
+			<Option compilerVar="CC" />
+			<Option target="DLL" />
+		</Unit>
+		<Unit filename="../img/formats/mountgif.c">
+			<Option compilerVar="CC" />
+			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
 		<Unit filename="../img/formats/rdbmp.c">
 			<Option compilerVar="CC" />

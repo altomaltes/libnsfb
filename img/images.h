@@ -89,14 +89,18 @@ typedef struct DeviceImageRec_s
  *  From cropgif.c
  *
  */
-  ANSIC void * gifFileInHandle( const char * fname )         ;
-  ANSIC void * gifFileOtHandle( const char * fname, int tst );
-  ANSIC void * gifMemoInHandle( const void * memo )          ;
+ANSIC void * gifMemoOtHandle( const void * memo  );
+ANSIC void * gifMemoInHandle( const void * memo  );
+ANSIC void * gifFileOTHandle( const char * fname );
+ANSIC void * gifFileOtHandle( const char * fname );
+ANSIC void * gifFileInHandle( const char * fname );
+ANSIC void * gifDescOtHandle( int          hnd   );
+ANSIC void * gifDescInHandle( int          hnd   );
 
   ANSIC int clipGif( void * out
-                    , void * in
-                    , int ImageX1   , int  ImageY1
-                    , int ImageWidth, int ImageDepth );
+                   , void * in
+                   , int ImageX1   , int  ImageY1
+                   , int ImageWidth, int ImageDepth );
 
 
 

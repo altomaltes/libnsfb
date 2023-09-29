@@ -21,7 +21,7 @@ extern const struct
   unsigned char pixel_data[132 * 135 * 4 + 1];
 } nsglobe;
 
-static bool dump(Nsfb *nsfb, const char *filename)
+static bool dump( Nsfb *nsfb, const char *filename)
 { int fd;
 
   if ( !filename )
@@ -60,7 +60,7 @@ int doWindow( const char *fename )
 
 
     nsfb= nsfbNew( fetype );
-    
+
     if ( !nsfb )
     { printf("Unable to allocate \"%s\" nsfb surface\n", fename);
 	     return EXIT_FAILURE;
@@ -79,20 +79,20 @@ int doWindow( const char *fename )
   { if (!( nsfb= nsfbOpenAscii( fename )))
   	 { return( EXIT_FAILURE );
   } }
-  
+
   nsfbClaim(   nsfb, &box );
   nsfbPlotclg( nsfb, 0xffffffff );
 
 
   VectorRec * vec= loadImgSvgFile( "tiger.svg", 800, 600 );
   nsfbRenderDeviceVects( nsfb, vec, 0, 0, 400, 300 );
-  
+
   nsfbSnap( nsfb );  // Swap buffers
   return;
-  
+
 //  DeviceImageRec * pix= LoadImgFile( "/tmp/radar.gif", 0,0 );
 //  getDeviceBitmap( nsfb, pix );
-  
+
   //DeviceImageRec * pix= nsfbNewPixmap( nsfb
     //                                 , nsglobe.width
       //                               , nsglobe.height
@@ -116,7 +116,7 @@ int doWindow( const char *fename )
 /* get the geometry of the whole screen
  */
   box.x0 = box.y0 = 0;
-  nsfbGetGeometry(nsfb, &box.x1, &box.y1, NULL);
+  nsfbGetGeometry( nsfb, &box.x1, &box.y1, NULL);
 
 /* claim the whole screen for update
  */

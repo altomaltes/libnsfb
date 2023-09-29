@@ -233,6 +233,7 @@ ANSIC DeviceImageRec * openIco( IcoRec * ico )
 
 typedef IcoRec         *  (*LoadIcoCode) ( const char * fname, int w, int h  );
 typedef DeviceImageRec *  (*LoadImgCode) ( const char * fname, int w, int h  );
+typedef               int ( *DumpFun ) ( Nsfb *, const char * name  );                  /* dll mouter */
 
 ANSIC IcoRec * loadImgVecFile( const char * fName, int wide, int height ) /* Vector to raster */
 {
@@ -300,6 +301,29 @@ DeviceImageRec * LoadImgFile( const char * fileName, int w, int h )
   { if ( strstr( fileName
                , codec->ext ))
     { return( codec->codec( fileName, w, h ));
+  } }
+
+  return( NULL );
+}
+
+int DumpImgFile( const char * fileName, const Nsfb * nsfb )
+{ typedef struct
+  { const char * ext;   /* File extension */
+    DumpFun codec;  /* Loader         */
+  } IcoCodecsRec;
+
+  static IcoCodecsRec codecs[]=
+  {{ ".gif", dumpImgGifFile }
+  ,{ NULL , NULL        }};
+
+  IcoCodecsRec * codec;
+
+  for( codec= codecs
+     ; codec->ext
+     ; codec ++ )
+  { if ( strstr( fileName
+               , codec->ext ))
+    { return( codec->codec( fileName, nsfb ));
   } }
 
   return( NULL );

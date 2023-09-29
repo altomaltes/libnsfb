@@ -99,14 +99,14 @@ svgtiny_code svgtinyAddPathLinearGradient(float *p, unsigned int n,
 
 /* svgtiny_list.c
  */
-struct svgtiny_list *svgtiny_list_create(size_t item_size);
+struct svgtiny_list *svgtinyListCreate(size_t item_size);
 unsigned int svgtiny_list_size(struct svgtiny_list *list);
 svgtiny_code svgtiny_list_resize(struct svgtiny_list *list,
 		unsigned int new_size);
-void *svgtiny_list_get(struct svgtiny_list *list,
+void *svgtinyListGet(struct svgtiny_list *list,
 		unsigned int i);
-void *svgtiny_list_push(struct svgtiny_list *list);
-void svgtiny_list_free(struct svgtiny_list *list);
+void *svgtinyListPush(struct svgtiny_list *list);
+void svgtinyListFree(struct svgtiny_list *list);
 
 /* colors.gperf */
 const struct svgtiny_named_color *
