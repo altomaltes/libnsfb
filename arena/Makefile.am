@@ -11,8 +11,8 @@ noinst_PROGRAMS= bitmap polystar polystar2 tspeed
 
 AM_CPPFLAGS= -I$(top_srcdir)/
 
-tspeed_CPPFLAGS = -I/usr/include/freetype2
-tspeed_LDFLAGS  = -lfreetype
+tspeed_CPPFLAGS = ${FT2_CFLAGS}
+tspeed_LDFLAGS  = ${FT2_LIBS}
 
 
 LDADD= $(top_builddir)/libnsfb.la -lm

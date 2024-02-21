@@ -4,9 +4,9 @@ libdir=@libdir@
 includedir=@includedir@
 
 Name: LibNSFB
-Description: Netsurf 2D graphics redered.
+Description: Netsurf 2D graphics rendor.
 Version: @VERSION@
 Requires:
-Libs: -L${libdir} -lnsfb @LIBS@ 
+Libs: -L${libdir} -lnsfb @LIBS@
 Cflags: -I${includedir}
 

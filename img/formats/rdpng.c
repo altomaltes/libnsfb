@@ -26,7 +26,7 @@
  */
 
 
-#include <alloca.h>
+
 
 #define PNG_SETJMP_SUPPORTED
 #include <png.h>
@@ -99,7 +99,7 @@ ANSIC DeviceImageRec * loadImgFile( const char * fname, int wtarget, int htarget
                                             , wDst, hDst                            /* Final size    */
                                             , wOrg, hOrg );                         /* Original size */
 
-        png_set_strip_16( pngPtr ); 
+        png_set_strip_16( pngPtr );
 /* Tell libpng to strip 16 bit/color files down to 8 bits/color */
 //        png_set_strip_alpha( pngPtr ); /* Strip alpha bytes from the input data without combining background (not rec.) */
 /*   png_set_packing(     pngPtr ); Pixels with bit depths of 1, 2, and 4 into separate bytes */
@@ -165,7 +165,7 @@ ANSIC DeviceImageRec * loadImgFile( const char * fname, int wtarget, int htarget
           { char * row= changerLine( changerAlpha  );
             png_read_row( pngPtr, row, NULL );
             changeImageAddLine( changerAlpha  ); /* Line */
-          } } 
+          } }
           return( image );
         }
         fclose(fp);

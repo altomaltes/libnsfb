@@ -179,6 +179,12 @@
 			<Option target="bitmap" />
 			<Option target="nsfb-svg" />
 		</Unit>
+		<Unit filename="../arena/Makefile.am">
+			<Option target="polystar2" />
+			<Option target="bitmap" />
+			<Option target="nsfb-svg" />
+			<Option target="testgif" />
+		</Unit>
 		<Unit filename="../arena/bitmap.c">
 			<Option compilerVar="CC" />
 			<Option target="bitmap" />
@@ -361,6 +367,9 @@
 			<Option target="nsfb-egl" />
 			<Option target="nsfb-svg" />
 		</Unit>
+		<Unit filename="../libnsfb.pc.in">
+			<Option target="DLL" />
+		</Unit>
 		<Unit filename="../libnsfb_cursor.h">
 			<Option target="DLL" />
 		</Unit>
@@ -376,12 +385,6 @@
 		</Unit>
 		<Unit filename="../nsfbPlot.h">
 			<Option target="DLL" />
-		</Unit>
-		<Unit filename="../nsfbcfg.h.in">
-			<Option target="nsfb-X11" />
-			<Option target="nsfb-drm" />
-			<Option target="nsfb-egl" />
-			<Option target="nsfb-svg" />
 		</Unit>
 		<Unit filename="../palette.c">
 			<Option compilerVar="CC" />

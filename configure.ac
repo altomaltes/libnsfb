@@ -36,7 +36,7 @@ AC_C_BIGENDIAN
 AC_C_CONST
 AC_C_INLINE
 
-dnl Traditional typedefs and replacements 
+dnl Traditional typedefs and replacements
 
 AC_TYPE_MODE_T
 AC_CHECK_TYPE(off_t, long)
@@ -56,7 +56,7 @@ AC_CHECK_LIB( drm, drmError, [LIBDRM="-ldrm" AC_DEFINE(HAVE_DRM, 1, [ Define if 
             , [AC_MSG_WARN([drm is required for GPU driver ])]
             , [])
 
-dnl needed for GIF format 
+dnl needed for GIF format
 AC_CHECK_LIB( gif, gifError, [LIBGIF="-lgif" AC_DEFINE(HAVE_GIF, 1, [ Define if you have gif support. ])]
             , [AC_MSG_WARN([gif is required for GIF image format support ])]
             , [])
@@ -64,6 +64,8 @@ AC_CHECK_LIB( gif, gifError, [LIBGIF="-lgif" AC_DEFINE(HAVE_GIF, 1, [ Define if 
 dnl needs freetype, so check for it here
 PKG_CHECK_MODULES( FT2, freetype2 >= 2.0.9, HAVE_FT2="yes", HAVE_FT2="no" )
 dnl make the HAVE_FT2 variable available to automake and Makefile.am
+
+PKG_CHECK_MODULES([XML], [libxml-2.0],  HAVE_LIBXML2="yes", HAVE_LIBXML2="no" )
 
 
 AC_PATH_PROG([SLACKBUILD], [makepkg], [notfound])
@@ -139,6 +141,11 @@ AC_PROG_CC
 AC_CONFIG_FILES([libnsfb.pc Makefile arena/Makefile])
 AC_OUTPUT
 
+ # freetype: $FT2_CFLAGS
+ #           $FT2_LIBS
+
+
+
 echo "
 
 Configuration:
@@ -152,10 +159,8 @@ Configuration:
   Linker:                     $CC $LDFLAGS $LIBS
   Install path:               $prefix
 
-  freetype: $FT2_CFLAGS
-            $FT2_LIBS
-
-  gif: $HAVE_GIF
+   gif: $HAVE_GIF
+  xml2: $HAVE_LIBXML2
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

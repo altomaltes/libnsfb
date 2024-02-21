@@ -44,7 +44,6 @@ struct NsfbSt
 
   const char * theTitle;
 
-
   int offx;                           /** Panel offset */
   int offy;                           /** Panel offset */
 
