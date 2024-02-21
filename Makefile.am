@@ -49,6 +49,10 @@ nsfb_png_la_LDFLAGS= $(MODULE_FLAGS) -lpng
 nsfb_jpg_la_LDFLAGS= $(MODULE_FLAGS) -ljpeg
 nsfb_svg_la_LDFLAGS= $(MODULE_FLAGS) -lxml2
 
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = libnsfb.pc
+
+
 if BUILDING_SLACK
 
 

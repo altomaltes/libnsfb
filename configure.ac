@@ -9,7 +9,7 @@ AC_CONFIG_SRCDIR([libnsfb.c])
 AM_INIT_AUTOMAKE( [subdir-objects]  )
 
 AC_REVISION($Revision: 1.0.0.1 $)
-AM_CONFIG_HEADER( nsfbcfg.h  )
+AC_CONFIG_HEADERS( nsfbcfg.h  )
 AC_CONFIG_MACRO_DIR([m4])
 
 dnl# Set some basic variables
@@ -66,8 +66,6 @@ PKG_CHECK_MODULES( FT2, freetype2 >= 2.0.9, HAVE_FT2="yes", [ AC_CHECK_FT2(2.0.9
 dnl make the HAVE_FT2 variable available to automake and Makefile.am
 
 
-
-
 AC_PATH_PROG([SLACKBUILD], [makepkg], [notfound])
 
 dnl AC_ARG_ENABLE([slack],
@@ -85,6 +83,37 @@ AC_ARG_ENABLE([slack],
   [enable_slack=yes])
 
 AM_CONDITIONAL(BUILDING_SLACK, test "x$enable_slack" = "xyes" )
+
+
+buildLinux=no
+buildWindows=no
+buildMac=no
+
+# Detect the target system
+case "${host_os}" in
+
+    linux*)
+        buildLinux=yes
+    ;;
+
+    cygwin*|mingw*)
+        buildWindows=yes
+    ;;
+
+    darwin*)
+        buildMac=yes
+    ;;
+
+    *)
+        AC_MSG_ERROR(["OS $host_os is not supported"])
+    ;;
+esac
+
+# Pass the conditionals to automake
+#
+AM_CONDITIONAL([LINUX],   [test "$buildLinux"   = "yes"])
+AM_CONDITIONAL([WINDOWS], [test "$buildWindows" = "yes"])
+AM_CONDITIONAL([OSX],     [test "$buildMac"     = "yes"])
 
 
 
@@ -107,7 +136,7 @@ dnl Output stuff
 AC_PROG_CC
 
 
-AC_CONFIG_FILES([Makefile arena/Makefile])
+AC_CONFIG_FILES([libnsfb.pc Makefile arena/Makefile])
 AC_OUTPUT
 
 echo "
