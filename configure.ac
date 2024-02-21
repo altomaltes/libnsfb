@@ -62,7 +62,7 @@ AC_CHECK_LIB( gif, gifError, [LIBGIF="-lgif" AC_DEFINE(HAVE_GIF, 1, [ Define if 
             , [])
 
 dnl needs freetype, so check for it here
-PKG_CHECK_MODULES( FT2, freetype2 >= 2.0.9, HAVE_FT2="yes", [ AC_CHECK_FT2(2.0.9, HAVE_FT2="yes", HAVE_FT2="no") ])
+PKG_CHECK_MODULES( FT2, freetype2 >= 2.0.9, HAVE_FT2="yes", HAVE_FT2="no" )
 dnl make the HAVE_FT2 variable available to automake and Makefile.am
 
 
