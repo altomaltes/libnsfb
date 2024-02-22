@@ -70,6 +70,10 @@ nsfb_svg_la_LDFLAGS= $(MODULE_FLAGS) $(XML_LIBS)
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libnsfb.pc
 
+# Get rid of these, you may also preach about its utility
+#
+install-exec-hook:
+	@(cd $(DESTDIR)$(libdir) && ls && pwd && $(RM) $(lib_LTLIBRARIES))
 
 if BUILDING_SLACK
 

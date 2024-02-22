@@ -81,7 +81,7 @@ static void * loadModuleSymbolNsfb( const char * name
   #include "windows.h"
 
 ANSIC void * loadModuleSymbolNsfb( const char * name
-                                  , const char * dll, ...  )
+                                 , const char * dll, ...  )
 { char lib[ 1024 ];
   void * hOle2Dll;
 
@@ -408,7 +408,7 @@ ANSIC enum NsfbType nsfbTypeFromName( const char * name )
 /* Load from shared lib if not, this registers surface also
  */
         NodeFun launch= loadModuleSymbolNsfb( "newNode"
-                                            , "nsfb-%s-%s", drv, VERSION );
+                                            , "nsfb-%s-%s", drv, DLLVERSION );
         if ( launch )
         { if (( ptr= launch( display )))
           { _nsfb_register_surface( ptr );
@@ -442,7 +442,7 @@ ANSIC IcoRec * loadIcoGifFile( const char * fname, int wtarget, int htarget  )
   if ( !launcher )  /* Search for the magician in the dll*/
   {
     launcher= loadModuleSymbolNsfb( "loadIcoFile"
-                                  , "nsfb-gif-%s", VERSION );
+                                  , "nsfb-gif-%s", DLLVERSION );
   }
 
   return( launcher ? launcher( fname, wtarget, htarget ) : NULL );
@@ -456,7 +456,7 @@ ANSIC IcoRec * loadIcoGifFile( const char * fname, int wtarget, int htarget  )
   if ( !launcher )  /* Search for the magician in the dll*/
   {
     launcher= loadModuleSymbolNsfb( "loadIcoFile"
-                                  , "nsfb-png-%s", VERSION );
+                                  , "nsfb-png-%s", DLLVERSION );
   }
 
   return( launcher ? launcher( fname, wtarget, htarget ) : NULL );
@@ -471,7 +471,7 @@ ANSIC IcoRec * loadIcoJpgFile( const char * fname, int wtarget, int htarget  )
   if ( !launcher )  /* Search for the magician in the dll*/
   {
     launcher= loadModuleSymbolNsfb( "loadIcoFile"
-                                  , "nsfb-jpg-%s", VERSION );
+                                  , "nsfb-jpg-%s", DLLVERSION );
   }
 
   return( launcher ? launcher( fname, wtarget, htarget ) : NULL );
@@ -487,7 +487,7 @@ ANSIC IcoRec * loadIcoSvgFile( const char * fname, int wtarget, int htarget  )
   if ( !launcher )  /* Search for the magician in the dll*/
   {
     launcher= loadModuleSymbolNsfb( "loadIcoFile"
-                                  , "nsfb-svg-%s", VERSION );
+                                  , "nsfb-svg-%s", DLLVERSION );
   }
 
   return( launcher ? launcher( fname, wtarget, htarget ) : NULL );
@@ -502,7 +502,7 @@ ANSIC IcoRec * loadIcoSvgFile( const char * fname, int wtarget, int htarget  )
   if ( !launcher )  /* Search for the magician in the dll*/
   {
     launcher= loadModuleSymbolNsfb( "loadImgFile"
-                                  , "nsfb-gif-%s", VERSION );
+                                  , "nsfb-gif-%s", DLLVERSION );
   }
 
   return( launcher ? launcher( fname, wtarget, htarget ) : NULL );
@@ -516,7 +516,7 @@ ANSIC IcoRec * loadIcoSvgFile( const char * fname, int wtarget, int htarget  )
   if ( !launcher )  /* Search for the magician in the dll*/
   {
     launcher= loadModuleSymbolNsfb( "dumpImgFile"
-                                  , "nsfb-gif-%s", VERSION );
+                                  , "nsfb-gif-%s", DLLVERSION );
   }
 
   return( launcher ? launcher( fname, nsfb ) : NULL );
@@ -530,7 +530,7 @@ ANSIC IcoRec * loadIcoSvgFile( const char * fname, int wtarget, int htarget  )
   if ( !launcher )  /* Search for the magician in the dll*/
   {
     launcher= loadModuleSymbolNsfb( "loadImgFile"
-                                  , "nsfb-png-%s", VERSION );
+                                  , "nsfb-png-%s", DLLVERSION );
   }
 
   return( launcher ? launcher( fname, wtarget, htarget ) : NULL );
@@ -544,7 +544,7 @@ ANSIC IcoRec * loadIcoSvgFile( const char * fname, int wtarget, int htarget  )
   if ( !launcher )  /* Search for the magician in the dll*/
   {
     launcher= loadModuleSymbolNsfb( "loadImgFile"
-                                  , "nsfb-jpg-%s", VERSION );
+                                  , "nsfb-jpg-%s", DLLVERSION );
   }
 
   return( launcher ? launcher( fname, wtarget, htarget ) : NULL );
@@ -558,7 +558,7 @@ ANSIC IcoRec * loadIcoSvgFile( const char * fname, int wtarget, int htarget  )
   if ( !launcher )  /* Search for the magician in the dll*/
   {
     launcher= loadModuleSymbolNsfb( "loadVectors"
-                                  , "nsfb-svg-%s", VERSION );
+                                  , "nsfb-svg-%s", DLLVERSION );
   }
 
   return( launcher ? launcher( fname, wtarget, htarget ) : NULL );

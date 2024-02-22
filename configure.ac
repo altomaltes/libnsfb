@@ -96,11 +96,13 @@ case "${host_os}" in
 
     linux*)
         buildLinux=yes
+        DLLVERSION=$VERSION
     ;;
 
     cygwin*|mingw*)
         buildWindows=yes
-    ;;
+        DLLVERSION="$(echo $VERSION | tr . - )"
+       ;;
 
     darwin*)
         buildMac=yes
@@ -132,6 +134,7 @@ AC_SUBST(DIST_ROOT)
 AC_SUBST(SVN_BUILD)
 
 AC_DEFINE_UNQUOTED(AUTHORS, "$AUTHORS", [ library authors ] )
+AC_DEFINE_UNQUOTED(DLLVERSION, "$DLLVERSION", [ OS dependent shared library name ] )
 
 dnl Output stuff
 

@@ -13103,11 +13103,13 @@ case "${host_os}" in
 
     linux*)
         buildLinux=yes
+        DLLVERSION=$VERSION
     ;;
 
     cygwin*|mingw*)
         buildWindows=yes
-    ;;
+        DLLVERSION="$(echo $VERSION | tr . - )"
+       ;;
 
     darwin*)
         buildMac=yes
@@ -13163,6 +13165,11 @@ DATE=`date '+%d %B %Y'`
 
 cat >>confdefs.h <<_ACEOF
 #define AUTHORS "$AUTHORS"
+_ACEOF
+
+
+cat >>confdefs.h <<_ACEOF
+#define DLLVERSION "$DLLVERSION"
 _ACEOF
 
 
