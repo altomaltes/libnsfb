@@ -86,7 +86,7 @@ AC_ARG_ENABLE([slack],
 
 AM_CONDITIONAL(BUILDING_SLACK, test "x$enable_slack" = "xyes" )
 
-
+AC_CANONICAL_HOST
 buildLinux=no
 buildWindows=no
 buildMac=no
