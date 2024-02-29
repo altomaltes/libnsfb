@@ -559,7 +559,6 @@ NsfbSurfaceRtns fbuffRtns =
 , .update    = voidUpdate
 , .cursor    = voidCursor
 
-
 , .dataSize  = sizeof( Nsfb )
 };
 NSFB_SURFACE_DEF( fbuffRtns )
@@ -586,6 +585,17 @@ NsfbSurfaceRtns linuxRtns=
 };
 
 NSFB_SURFACE_DEF( linuxRtns )
+
+/*
+ *
+ */
+NsfbSurfaceRtns * newNode( const char * mode )
+{ _nsfb_register_surface( &linuxRtns );
+  _nsfb_register_surface( &fbuffRtns );
+
+  return( NULL );
+}
+
 
 
 int linuxFbOutput( int active, NsfbSurfaceRtns * sf )

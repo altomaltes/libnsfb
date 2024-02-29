@@ -42,7 +42,7 @@ static int ramSetGeometry( Nsfb * nsfb
 
   startsize = (nsfb->width * nsfb->height * nsfb->bpp) / 8;
 
-  if ( width  > 0 )  { nsfb->width = width;  }
+  if ( width  > 0 )  { nsfb->width = width;   }
   if ( height > 0 )  { nsfb->height= height;  }
 
   if (format != NSFB_FMT_ANY)
@@ -77,7 +77,6 @@ NsfbSurfaceRtns ramRtns =
 , .finalise  = ramFinalise
 , .geometry  = ramSetGeometry
 , .cursor    = NULL
-
 
 
 , .dataSize  = sizeof( ramRtns )

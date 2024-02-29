@@ -128,7 +128,7 @@ void _nsfb_register_surface( NsfbSurfaceRtns * rtns )
 struct NsfbSurfaceRtnsSt * nsfbFindSurface( int type )
 { NsfbSurfaceRtns * ptr;
 
-  for( ptr = surfaceSeed
+  for( ptr= surfaceSeed
      ; ptr
      ; ptr= ptr->next )
   { if ( ptr->type == type )
@@ -234,7 +234,7 @@ ANSIC Nsfb * nsfbNewSurface( enum NsfbType type
 { Nsfb * newfb= nsfbNew( type );
 
   if ( !newfb )
-  { printf("Unable to allocate \"%d %d\" nsfb surface\n", w,h );
+  { fprintf( stderr, "Unable to allocate \"%d %d %s\" new nsfb surface\n", w, h, title );
   }
   else
   { nsfbSetGeometry( newfb         /* Before nsfbInit, because of the size */
@@ -243,10 +243,8 @@ ANSIC Nsfb * nsfbNewSurface( enum NsfbType type
     nsfbSetAttrib(  newfb
                  ,  title );
     nsfbInit( newfb );
-
     nsfbSetPosition( newfb
                    , x, y, geo );
-
   }
 
   return( newfb );
@@ -323,7 +321,7 @@ const char * nsfbDemangleName( const char * name
       break;
 
       case '#':                         /* Resolution information */
-        *dst++= '@';
+        *dst++= '@';                    /* */
         src++;                          /* Point to resolution    */
       break;
 
@@ -353,27 +351,32 @@ const char * nsfbDemangleName( const char * name
                         , &thisY );
     }
 
-    while( *src++ != '@' )            /* Point to the driver */
+    while( *src++ != '@' )   /* Point to the driver */
     { if ( ! *src )
       { src= NULL;
         break;
     } }
 
-    while( *src )            /* Point to the driver */
+    thisDriver= src;
+
+     /* Driver at the end, ergo terminator valid */
+
+    while( *src )            /* Add the driver */
     { *dst++= *src++;
     }
     *dst=0;
 
-    if (( w   ) && ( thisW != -1 )) { *w= thisW; }
-    if (( h   ) && ( thisH != -1 )) { *h= thisH; }
-    if (( x   ) && ( thisX != -1 )) { *x= thisX; }
-    if (( y   ) && ( thisY != -1 )) { *y= thisY; }
+    if (( w   ) && ( thisW   != -1 )) { *w= thisW; }
+    if (( h   ) && ( thisH   != -1 )) { *h= thisH; }
+    if (( x   ) && ( thisX   != -1 )) { *x= thisX; }
+    if (( y   ) && ( thisY   != -1 )) { *y= thisY; }
 
     if (( bpp ) && ( thisBpp != -1 )) { *bpp= thisBpp; }
     if (( geo ) && ( thisGeo != -1 )) { *geo= thisGeo; }
 
-    return( display );
+    return( thisDriver );
   }
+
   return( NULL );
 }
 
@@ -402,6 +405,7 @@ ANSIC enum NsfbType nsfbTypeFromName( const char * name )
            ; ptr= ptr->next )
         { if ( !strcmp( ptr->name, display ) )
           { ptr->theGeo= theGeo;
+            ptr->theDepth= theBpp;
             return( ptr->type );
         } }
 
@@ -412,7 +416,7 @@ ANSIC enum NsfbType nsfbTypeFromName( const char * name )
         if ( launch )
         { if (( ptr= launch( display )))
           { _nsfb_register_surface( ptr );
-            ptr->theGeo= theGeo;
+            ptr->theGeo  = theGeo;
             ptr->theDepth= theBpp;
             return( ptr->type );
   } } } } }
