@@ -276,7 +276,7 @@ static int x11Events( int theDisp, void * userData
   { return( 0 );
   }
 
-  while ( XCheckMaskEvent( x11->theDisplay   // Flush all events in the library, because then doesn't awake the select()
+  if ( XCheckMaskEvent( x11->theDisplay   // Flush all events in the library, because then doesn't awake the select()
                          , EVENTMASK         // Select all events
                          , &e ))
   { //    printf ("Type >> %d - %d\n", thisEvent.type, ButtonPress );
