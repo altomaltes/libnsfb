@@ -491,6 +491,10 @@
 			<Option compilerVar="CC" />
 			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
+		<Unit filename="../surface/vnc.c">
+			<Option compilerVar="CC" />
+			<Option target="DLL" />
+		</Unit>
 		<Unit filename="../surface/vt.c">
 			<Option compilerVar="CC" />
 			<Option target="&lt;{~None~}&gt;" />

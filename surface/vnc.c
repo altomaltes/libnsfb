@@ -13,7 +13,7 @@
 
 static nsfb _event_t *gevent;
 
-/* vnc special set codes 
+/* vnc special set codes
  */
 static enum nsfb _key_code_e vncNsfbMap[ 256 ] =
 { NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN
@@ -80,23 +80,23 @@ static enum nsfb _key_code_e vncNsfbMap[ 256 ] =
 
  /* 0x80 */
 , NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN
-, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN 
+, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN
 
 /* 0x88 */
 , NSFB_KEY_UNKNOWN , NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN
-, NSFB_KEY_KP_ENTER, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN 
+, NSFB_KEY_KP_ENTER, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN
 
 /* 0x90 */
 , NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN
-, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN 
+, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN
 
 /* 0x98 */
 , NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN
-, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN 
+, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN
 
 /* 0xA0 */
 , NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN
-, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN 
+, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN
 
 /* 0xA8 */
 , NSFB_KEY_UNKNOWN , NSFB_KEY_KP_MULTIPLY, NSFB_KEY_KP_PLUS, NSFB_KEY_UNKNOWN
@@ -266,14 +266,14 @@ static int vncInitialise(Nsfb *nsfb)
   int argc = 0;
   char **argv = NULL;
 
-  if ( nsfb->surfacePriv  )  /* fail if surface already initialised */
+  if ( nsfb->surfacePriv  )  /* fail l if surface already initialised */
   { return -1;
   }
 
 
   if (nsfb->bpp != 32)     /* sanity checked depth. */
   { return -1;
-  } 
+  }
 
 /*
  *   create vnc screen with 8bits per sample, three samples per
@@ -359,10 +359,10 @@ static int vncUpdate(Nsfb *nsfb, NsfbBbox *box)
 //{ rfbScreenInfoPtr vncscreen = nsfb->surfacePriv;
 //  int ret;
 //
-//  if ( vncscreen  ) 
+//  if ( vncscreen  )
 //  { gevent = event; /* blergh - have to use global state to pass data */
 
-/* set default to timeout 
+/* set default to timeout
  */
 //  	 event->type             = NSFB_EVENT_CONTROL;
 //	   event->value.controlcode= NSFB_CONTROL_TIMEOUT;
