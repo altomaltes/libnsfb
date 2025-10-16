@@ -28,16 +28,17 @@ ANSIC bool nsfbPlotclg( Nsfb *nsfb, NSFBCOLOUR c )
 { return( nsfb->plotterFns->clg( nsfb, c ) );
 }
 
-/** Plots a rectangle outline.
+/**
+ *   Plots a rectangle outline.
  *
  * The line can be solid, dotted or dashed. Top left corner at (x0,y0) and
  * rectangle has given width and height.
  */
 ANSIC bool nsfbPlotrectangle( Nsfb *nsfb
-                        , NsfbBbox *rect
-                        , int line_width
-                        , NSFBCOLOUR c
-                        , bool dotted, bool dashed)
+                            , NsfbBbox *rect
+                            , int line_width
+                            , NSFBCOLOUR c
+                            , bool dotted, bool dashed)
 { return( nsfb->plotterFns->rectangle(nsfb, rect, line_width, c, dotted, dashed ));
 }
 

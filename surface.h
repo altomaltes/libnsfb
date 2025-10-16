@@ -55,7 +55,7 @@ typedef struct NsfbSurfaceRtnsSt
 { struct NsfbSurfaceRtnsSt * next;       /** List of registered surfaces */
   struct NsfbSt            * clients;    /** List of surface clients     */
   struct RenderListSt      * renderList; /** Cache of fonts              */
-  struct NsfbCursorSt      * pointer;        /** cursor                  */
+  struct NsfbCursorSt      * pointer;    /** cursor                  */
 
   enum NsfbType   type;       /* JACS, octy 2022 */
   const char    * name;
@@ -69,7 +69,8 @@ typedef struct NsfbSurfaceRtnsSt
   int    buffSize;
   void * buffStart;
 
-  int stride, width, height
+  int stride
+    , theWidth, theHeigth
     , theDepth, theGeo;
 
 

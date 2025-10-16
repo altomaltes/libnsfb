@@ -41,8 +41,8 @@ int main(int argc, char **argv)
 
   double rotate;
 
-//  if (!( nsfb= nsfbOpenAscii( ":0.0#800x600x32.N@X11" )))
-  if (!( nsfb= nsfbOpenAscii( "800x600x32.N@w32" )))
+  if (!( nsfb= nsfbOpenAscii( "fb#1200x800x32.N@vga" )))
+//  if (!( nsfb= nsfbOpenAscii( "800x600x32.N@w32" )))
   { fprintf(stderr, "Unable to initialise nsfb surface\n");
     nsfbFree( nsfb );
     return( 4);

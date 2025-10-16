@@ -136,7 +136,8 @@ ANSIC const char * nsfbSetAttrib( Nsfb * nsfb
   return( tmp );
 }
 
-/* exported interface documented in libnsfb.h
+/**
+ * exported interface documented in libnsfb.h
  */
 ANSIC int  nsfbSetGeometry( Nsfb * nsfb
                           , int width, int height
@@ -147,7 +148,8 @@ ANSIC int  nsfbSetGeometry( Nsfb * nsfb
   if ( height <= 0         ) { height= nsfb->height; }
   if ( fmt == NSFB_FMT_ANY ) { format= nsfb->format; }
 
-/*  Default clip
+/**
+ *  Default clip
  */
   nsfb->clip.x0= nsfb->clip.y0= 0;
   nsfb->clip.x1= width + 1;
@@ -158,7 +160,8 @@ ANSIC int  nsfbSetGeometry( Nsfb * nsfb
                                      , format ));
 }
 
-/* exported interface documented in libnsfb.h
+/**
+ * exported interface documented in libnsfb.h
  */
 ANSIC int  nsfbSetPan( Nsfb * nsfb, int type )
 { return( nsfb->surfaceRtns->pan( nsfb, type ) );
@@ -232,25 +235,26 @@ ANSIC NsfbSurfacefnEvents nsfbGetEventSinker(  NsfbSurfaceRtns * surf )
 { return( surf ? surf->events : NULL );
 }
 
-ANSIC int                 nsfbGetEventHandler(  NsfbSurfaceRtns * surf )
+ANSIC int nsfbGetEventHandler(  NsfbSurfaceRtns * surf )
 { return( surf ? surf->fd     : -1 );
 }
 
-ANSIC int                 nsfbGetDepth(       NsfbSurfaceRtns * surf )
+ANSIC int nsfbGetFbDepth( NsfbSurfaceRtns * surf )
 { return( surf ? surf->theDepth: -1 );
 }
 
-ANSIC int                 nsfbGetWidth(       NsfbSurfaceRtns * surf )
-{ return( surf ? surf->width : -1 );
+ANSIC int nsfbGetFbWidth( NsfbSurfaceRtns * surf )
+{ return( surf ? surf->theWidth : -1 );
 }
 
-ANSIC int                 nsfbGetHard(        NsfbSurfaceRtns * surf )
+ANSIC int nsfbGetFbHeight( NsfbSurfaceRtns * surf )
+{ return( surf ? surf->theHeigth : -1 );
+}
+
+ANSIC int nsfbGetHard( NsfbSurfaceRtns * surf )
 { return( surf ? surf->initialise( NULL ) : -1 );
 }
 
-ANSIC int                 nsfbGetHeight(      NsfbSurfaceRtns * surf )
-{ return( surf ? surf->height : -1 );
-}
 
 
 ANSIC void *  nsfbSetEventSourcer( Nsfb * nsfb, void * code, void * data )

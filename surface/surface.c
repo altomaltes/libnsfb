@@ -240,8 +240,15 @@ ANSIC Nsfb * nsfbNewSurface( enum NsfbType type
   { nsfbSetGeometry( newfb         /* Before nsfbInit, because of the size */
                    , w, h, plan );
 
-    nsfbSetAttrib(  newfb
-                 ,  title );
+
+    fprintf( stderr, "SET GEO \"%d %d %s\" new nsfb surface\n", w, h, title );
+
+/** Give most suitable default values */
+    newfb->fbWidth=  newfb->width;
+    newfb->fbHeigth= newfb->height;
+
+    nsfbSetAttrib( newfb
+                 , title );
     nsfbInit( newfb );
     nsfbSetPosition( newfb
                    , x, y, geo );

@@ -65,8 +65,8 @@ static NsfbSurfaceRtns * initX11Display( struct x11Priv * drv )
   drv->theRoot       = RootWindow     ( drv->theDisplay, drv->theScreen ); // Abrir el ingenio
   drv->theVisual     = DefaultVisual  ( drv->theDisplay, drv->theScreen );
   drv->theCmap       = DefaultColormap( drv->theDisplay, drv->theScreen );
-  drv->rtns.width    = XWidthOfScreen(  XDefaultScreenOfDisplay( drv->theDisplay ) );
-  drv->rtns.height   = XHeightOfScreen( XDefaultScreenOfDisplay( drv->theDisplay ) );
+  drv->rtns.theWidth = XWidthOfScreen ( XDefaultScreenOfDisplay( drv->theDisplay ) );
+  drv->rtns.theHeigth= XHeightOfScreen( XDefaultScreenOfDisplay( drv->theDisplay ) );
   drv->rtns.theDepth = DefaultDepth   ( drv->theDisplay, drv->theScreen );
 
 /*

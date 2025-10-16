@@ -74,7 +74,7 @@ static int fbuffInitialise( Nsfb * nsfb )
 {
   if ( nsfb )
   { nsfb->loclen=
-    nsfb->panlen= nsfb->width  * sizeof(int);
+    nsfb->panlen= nsfb->width * sizeof(int);
     nsfb->buflen= nsfb->width * nsfb->height * sizeof( int );
 
 //  fprintf( stderr, "MEMES %d\n",  nsfb->buflen );
@@ -128,7 +128,9 @@ static int fbuffPan( Nsfb * nsfb, int type )
   return( 0 );
 }
 
-
+/**
+ *
+ */
 static NsfbSurfaceRtns * initLinux( NsfbSurfaceRtns * drv )
 { int    code, format;
 
@@ -177,9 +179,9 @@ static NsfbSurfaceRtns * initLinux( NsfbSurfaceRtns * drv )
  // VarInfo.bits_per_pixel= 16; /* No autoscroll */
  // VarInfo.vmode=    FB_VMODE_YWRAP;
 
-  drv->width = VarInfo.xres_virtual;
-  drv->height= VarInfo.yres_virtual;
-  drv->theDepth= VarInfo.bits_per_pixel;
+  drv->theWidth = VarInfo.xres_virtual;
+  drv->theHeigth= VarInfo.yres_virtual;
+  drv->theDepth = VarInfo.bits_per_pixel;
 //  drv->theGeo=   VarInfo.rotate;
 
   if ( ioctl( drv->fd, FBIOPUT_VSCREENINFO, &VarInfo) < 0)
@@ -218,8 +220,8 @@ static NsfbSurfaceRtns * initLinux( NsfbSurfaceRtns * drv )
 //  nsfb->loc= CALLOC( nsfb->height * nsfb->loclen );   // Not double buffer schema
 
   memset( drv->buffStart, 0, FixInfo.smem_len );
-  drv->width=  VarInfo.xres;
-  drv->height= VarInfo.yres;
+// relay on virtual, conceptually correct drv->width=  VarInfo.xres;
+//  drv->height= VarInfo.yres;
   drv->stride= FixInfo.line_length;
 
 
@@ -232,8 +234,8 @@ static NsfbSurfaceRtns * initLinux( NsfbSurfaceRtns * drv )
 
 
   fprintf( stderr, "Resolution %d %d\n"
-        , drv->width
-        , drv->height );
+         , drv->theWidth
+         , drv->theHeigth );
 //        , nsfb->width,  nsfb->height );
 
   drv->format= GETFMITEM( VarInfo.red.length,   VarInfo.red.offset,    0 )
@@ -302,11 +304,15 @@ static int linuxInitialise( Nsfb * nsfb )
 
   if ( nsfb )
   { nsfb->surfaceRtns= &linuxRtns;
-    nsfb->theGeo= linuxRtns.theGeo;       /* Default rotation */
+    nsfb->theGeo     = linuxRtns.theGeo;       /* Default rotation */
+    nsfb->theGeo     = linuxRtns.theGeo;       /* Default rotation */
+
+    nsfb->fbWidth = linuxRtns.theWidth;
+    nsfb->fbHeigth= linuxRtns.theHeigth;
 
     nsfb->format= NSFB_FMT_ABGR8888;
-    nsfb->loc= CALLOC( nsfb->buflen= nsfb->width * nsfb->height * sizeof( int ) );
-    nsfb->pan= linuxRtns.buffStart;
+    nsfb->loc   = CALLOC( nsfb->buflen= nsfb->width * nsfb->height * sizeof( int ) );
+    nsfb->pan   = linuxRtns.buffStart;
 
 /*  Apply window position
  */
@@ -347,9 +353,9 @@ static int linuxPan( Nsfb * nsfb, int type )
      case NSFB_ROTATE_EAST :
      case NSFB_ROTATE_SOUTH:
        fbPlotMoverect( nsfb
-                       , nsfb->width
-                       , nsfb->height
-                       , 0, 0);
+                     , nsfb->width
+                     , nsfb->height
+                     , 0, 0);
   }  }
 
   if ( !nsfb )
@@ -453,7 +459,7 @@ static int linuxClaim( Nsfb *nsfb, NsfbBbox * box )
 }
 
 
-/*
+/**
  * plotted :  0 -> only write, status    -> 1
  *         :  1 -> recover and write     -> 1
  *         : -1 -> only recover          -> 0

@@ -779,8 +779,12 @@ static bool readrect( Nsfb       * nsfb
   width = rect->x1 - rect->x0;
   pvideo= getXYloc( nsfb, rect->x0, rect->y0);
 
-  for (yloop = rect->y0; yloop < rect->y1; yloop += 1)
-  { for (xloop = 0; xloop < width; xloop++)
+  for( yloop = rect->y0
+     ; yloop < rect->y1
+     ; yloop += 1)
+  { for( xloop = 0
+       ; xloop < width
+       ; xloop++ )
     { *buffer++ = PIXEL_TO_COLOR( pvideo, xloop );
     }
     pvideo += PLOT_LINELEN(nsfb->loclen);
@@ -789,13 +793,18 @@ static bool readrect( Nsfb       * nsfb
 }
 
 
-/*
+/**
  *
  */
 static int moverect( Nsfb * nsfb
                    , int  w, int h
                    , int  x, int y )
-{ int xoff, yoff, sz, reverse= 0;
+{ int xoff, yoff
+    , fbW= nsfb->fbWidth
+    , fbH= nsfb->fbHeigth
+    , sz, reverse= 0;
+
+//  fprintf( stderr, "Panelize %d  %d %d %d %d.%d \n", x, y, w, h, nsfb->fbWidth, nsfb->fbHeigth );
 
   PLOT_TYPE * ptr;
   PLOT_TYPE * dst;
@@ -807,9 +816,9 @@ static int moverect( Nsfb * nsfb
   { return( 0 );   // Not necessary
   }
 
-//  printf( "Panelize %d  %d %d %d \n", x, y, w, h );
 
-/*  Direction overloaded
+/**
+ *  Direction overloaded
  */
   if ( w < 0 ) { w= -w; reverse++; }
   if ( h < 0 ) { h= -h; reverse++; }
@@ -823,8 +832,11 @@ static int moverect( Nsfb * nsfb
   { return( 0 );
   }
 
-  if ( ( x + w ) > nsfb->width  ) { w= nsfb->width - x; }
-  if ( ( y + h ) > nsfb->height ) { h= nsfb->height- y; }
+/**
+ * don not overreach physical dimesions
+ */
+  if ( ( x + w ) > fbW ) { w= fbW - x; }
+  if ( ( y + h ) > fbH ) { h= fbH - y; }
 
   if ( w <= 0 || h <= 0 )   /* Alles done */
   { return( 0 );
@@ -853,7 +865,7 @@ static int moverect( Nsfb * nsfb
 
     case NSFB_ROTATE_WEST:
     {  w += x; h += y;         /* endpoint */
-      int width= nsfb->width - x -1;
+      int width= fbW - x -1;
 
       for( yoff= y
          ; yoff< h
@@ -871,7 +883,7 @@ static int moverect( Nsfb * nsfb
     case NSFB_ROTATE_EAST:
     { w += x; h += y;         /* endpoint */
 
-      int  width= nsfb->height - y - 1;
+      int  width= fbH - y - 1;
 
       for( yoff= y
          ; yoff< h
@@ -891,13 +903,13 @@ static int moverect( Nsfb * nsfb
 
     case NSFB_ROTATE_SOUTH:
     {  w += x; h += y;         /* endpoint */
-      int width= nsfb->height - y - 1;
+      int width= fbH - y - 1;
 
       for( yoff= y
          ; yoff< h
          ; yoff++, width-- )
-      { src= reverse ? getXYpan( nsfb,               x,  yoff  ) : getXYloc( nsfb,               x,  yoff  );
-        dst= reverse ? getXYloc( nsfb, nsfb->width - x,  width ) : getXYpan( nsfb, nsfb->width - x,  width );
+      { src= reverse ? getXYpan( nsfb,       x, yoff  ) : getXYloc( nsfb,       x,  yoff  );
+        dst= reverse ? getXYloc( nsfb, fbW - x, width ) : getXYpan( nsfb, fbW - x,  width );
 
         for( xoff= x
            ; xoff< w

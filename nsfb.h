@@ -44,31 +44,34 @@ struct NsfbSt
 
   const char * theTitle;
 
-  int offx;                           /** Panel offset */
-  int offy;                           /** Panel offset */
+  int offx;                      /** Panel offset */
+  int offy;                      /** Panel offset */
 
-  int width;                          /** Visible width.  */
-  int height;                         /** Visible height. */
+  int width;                     /** Total width.  */
+  int height;                    /** Total height. */
 
-  enum NsfbFormat format;             /** Framebuffer format */
-  enum NsfbRotate theGeo;             /** Rotate canvas    */
+  unsigned fbWidth;              /** framebuffer actual dimensions */
+  unsigned fbHeigth;
 
-  int    bpp;                         /** Bits per pixel - distinct from format */
+  enum NsfbFormat format;        /** Framebuffer format  */
+  enum NsfbRotate theGeo;        /** Rotate canvas       */
 
-  byte * loc;                         /** Base of working video memory. */
-  byte * pan;                         /** Panned video memory. */
+  int    bpp;                    /** Bits per pixel - distinct from format */
 
-  int    loclen;                      /** length of a video line. */
-  int    panlen;                      /** length of a video line. */
-  int    buflen;                      /** frame buffer size       */
-  int    panCount;                    /** doublebuffer switch counter */
+  byte * loc;                    /** Base of working video memory. */
+  byte * pan;                    /** Panned video memory. */
 
-  struct NsfbPalette * palette;       /** palette for index modes */
+  int    loclen;                 /** length of a video line. */
+  int    panlen;                 /** length of a video line. */
+  int    buflen;                 /** frame buffer size       */
+  int    panCount;               /** doublebuffer switch counter */
 
-  NsfbBbox clip;                      /** current clipping rectangle for plotters */
+  struct NsfbPalette * palette;  /** palette for index modes */
 
-  ToClientFun     toClient;           /** client sourcer          */
-  void          * toData;             /** client sourcer data     */
+  NsfbBbox clip;                 /** current clipping rectangle for plotters */
+
+  ToClientFun     toClient;      /** client sourcer          */
+  void          * toData;        /** client sourcer data     */
 
 
 };

@@ -459,12 +459,12 @@ typedef int ( *NsfbSurfacefnEvents )( int theDisp, void * userData
 ANSIC int                 nsfbSetPan(          Nsfb *, int type );
 
 ANSIC int                 nsfbGetEventHandler( struct NsfbSurfaceRtnsSt * );
-ANSIC NsfbSurfacefnEvents nsfbGetEventSinker(  struct NsfbSurfaceRtnsSt * );
-ANSIC NsfbSurfacefnEvents nsfbGetEventCursor(  struct NsfbSurfaceRtnsSt * );
-ANSIC int                 nsfbGetDepth(        struct NsfbSurfaceRtnsSt * );
-ANSIC int                 nsfbGetWidth(        struct NsfbSurfaceRtnsSt * );
-ANSIC int                 nsfbGetHeight(       struct NsfbSurfaceRtnsSt * );
-ANSIC int                 nsfbGetHard(         struct NsfbSurfaceRtnsSt * );
+ANSIC NsfbSurfacefnEvents nsfbGetEventSinker ( struct NsfbSurfaceRtnsSt * );
+ANSIC NsfbSurfacefnEvents nsfbGetEventCursor ( struct NsfbSurfaceRtnsSt * );
+ANSIC int                 nsfbGetFbDepth     ( struct NsfbSurfaceRtnsSt * );
+ANSIC int                 nsfbGetFbWidth     ( struct NsfbSurfaceRtnsSt * );
+ANSIC int                 nsfbGetFbHeight    ( struct NsfbSurfaceRtnsSt * );
+ANSIC int                 nsfbGetHard        ( struct NsfbSurfaceRtnsSt * );
 
 
 ANSIC void *              nsfbSetEventSourcer( Nsfb * nsfb, void * code, void * data );

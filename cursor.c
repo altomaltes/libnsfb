@@ -23,8 +23,8 @@
 bool nsfbCursorInit( NsfbSurfaceRtns * surf )
 { if ( !surf->pointer )
   { if (surf->pointer = CALLOC( sizeof( NsfbCursor )))
-    { surf->pointer->loc.posi.x= surf->width  / 2 + 1;
-      surf->pointer->loc.posi.y= surf->height / 2 + 1;
+    { surf->pointer->loc.posi.x= surf->theWidth  / 2 + 1;
+      surf->pointer->loc.posi.y= surf->theHeigth / 2 + 1;
       surf->pointer->plotted= -2; /* Mark as hidded */
 
       return( true );
@@ -115,20 +115,20 @@ ANSIC NsfbPoint * nsfbCursorLocSet( NsfbSurfaceRtns * surf
 
         if ( x < 0            ) { x= 0;  }
         if ( y < 0            ) { y= 0; }
-        if ( x > surf->width  ) { x= surf->width;  }
-        if ( y > surf->height ) { y= surf->height; }
+        if ( x > surf->theWidth  ) { x= surf->theWidth;  }
+        if ( y > surf->theHeigth ) { y= surf->theHeigth; }
 
         cursor->loc.posi.x= x;
         cursor->loc.posi.y= y;
 
         cursor->loc.size.w= cursor->ico->width;
-        if ( x + cursor->ico->width > surf->width )
-        { cursor->loc.size.w= surf->width - x;
+        if ( x + cursor->ico->width > surf->theWidth )
+        { cursor->loc.size.w= surf->theWidth - x;
         }
 
         cursor->loc.size.h= cursor->ico->height;
-        if ( y + cursor->ico->height > surf->height )
-        { cursor->loc.size.h= surf->height - y;
+        if ( y + cursor->ico->height > surf->theHeigth )
+        { cursor->loc.size.h= surf->theHeigth - y;
         }
 
         if ( flag )
