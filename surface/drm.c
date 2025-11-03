@@ -31,9 +31,7 @@
 
 
 #ifndef _WIN32
-
   #define DRM_NAME "/dev/dri/card0"
-
 #endif
 
 
@@ -58,8 +56,6 @@
 #include "../cursor.h"
 
 
-
-
 struct ModesetBuf
 { dword width;
   dword height;
@@ -82,7 +78,7 @@ struct ModesetDev
 };
 
 
-/*
+/**
  * modeset_draw() is the place where things change. The render-logic is the same
  * and we still draw a solid-color on the whole screen. However, we now have two
  * buffers and need to flip between them.
@@ -118,7 +114,7 @@ struct ModesetDev
 
 static struct ModesetDev *modesetList = NULL;
 
-/*
+/**
  * modesetOpen() stays the same as before.
  */
 static int modesetOpen( int * out
@@ -149,13 +145,12 @@ static int modesetOpen( int * out
   return 0;
 }
 
-/*
+/**
  * modesetDestroyFb() is a new function. It does exactly the reverse of
  * modesetCreateFb() and destroys a single framebuffer. The modeset.c example
  * used to do this directly in modeset_cleanup().
  * We simply unmap the buffer, remove the drm-FB and destroy the memory buffer.
  */
-
 static void modesetDestroyFb( int fd
                             , struct ModesetBuf * buf )
 { struct drm_mode_destroy_dumb dreq;
@@ -169,7 +164,7 @@ static void modesetDestroyFb( int fd
   drmIoctl( fd, DRM_IOCTL_MODE_DESTROY_DUMB, &dreq );
 }
 
-/*
+/**
  * modesetCreateFb() is mostly the same as before. Buf instead of writing the
  * fields of a ModesetDev, we now require a buffer pointer passed as @buf.
  * Please note that buf->width and buf->height are initialized by
@@ -220,10 +215,9 @@ static void * modesetCreateFb( int fd, struct ModesetBuf * buf )
 
 
 
-/*
+/**
  * modeset_find_crtc() stays the same.
  */
-
 static int modesetFindCrtc( int fd
                           , drmModeRes *res
                           , drmModeConnector *conn
@@ -261,7 +255,8 @@ static int modesetFindCrtc( int fd
     drmModeFreeEncoder(enc);
   }
 
-/* If the connector is not currently bound to an encoder or if the
+/**
+ *   If the connector is not currently bound to an encoder or if the
  * encoder+crtc is already used by another connector (actually unlikely
  * but lets be safe), iterate all other available encoders to find a
  * matching CRTC.
@@ -308,7 +303,7 @@ static int modesetFindCrtc( int fd
 
 
 
-/*
+/**
  * modeset_setup_dev() sets up all resources for a single device. It mostly
  * stays the same, but one thing changes: We allocate two framebuffers instead
  * of one. That is, we call modesetCreateFb() twice.
@@ -371,10 +366,7 @@ static int modesetSetupDev( int fd
 }
 
 
-
-
-
-/*
+/**
  * Previously, we used the ModesetDev objects to hold buffer informations, too.
  * Technically, we could have split them but avoided this to make the
  * example simpler.
@@ -393,10 +385,9 @@ static int modesetSetupDev( int fd
  * Everything else stays the same.
  */
 
-/*
+/**
  * modesetPrepare() stays the same.
  */
-
 static int modesetPrepare( int fd )
 { drmModeRes *res;
   drmModeConnector *conn;
@@ -415,7 +406,6 @@ static int modesetPrepare( int fd )
       ; i < res->count_connectors
       ; i ++ )
   { conn= drmModeGetConnector( fd, res->connectors[i]); /* get information for each connector */
-
 
     if (!conn)
     { fprintf(stderr, "cannot retrieve DRM connector %u:%u (%d): %m\n",	i, res->connectors[i], errno);
@@ -448,11 +438,10 @@ static int modesetPrepare( int fd )
 
 
 
-/*
+/**
  * modeset_cleanup() stays the same as before. But it now calls
  * modesetDestroyFb() instead of accessing the framebuffers directly.
  */
-
 static void modesetCleanup( int fd )
 { struct ModesetDev *iter;
 
@@ -477,9 +466,8 @@ static void modesetCleanup( int fd )
 } }
 
 
-/* perform actual modesetting on each found connector+CRTC
+/** perform actual modesetting on each found connector+CRTC
  */
-
 static int  modesetConnector( int fd )
 { struct ModesetDev * iter= modesetList;
   struct ModesetBuf * buf;

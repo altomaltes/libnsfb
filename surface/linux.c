@@ -129,6 +129,34 @@ static int fbuffPan( Nsfb * nsfb, int type )
 }
 
 /**
+ *  identifies a framebuffer
+ */
+unsigned long getFbSize( )
+{ struct fb_var_screeninfo VarInfo;
+  int fd= open( FB_NAME, O_RDWR | O_NOCTTY );
+  dword size= 0;
+
+  if ( fd < 0 )
+  { fprintf( stderr, "Unable to open %s.\n", FB_NAME );
+  }
+
+  else
+  { if ( ioctl( fd, FBIOGET_VSCREENINFO, &VarInfo ) < 0)
+    { fprintf( stderr,  "Unable to retrieve variable screen info: %s\n"
+             , strerror(errno));
+    }
+    else
+    { size = VarInfo.yres; size <<= 16;
+      size|= VarInfo.xres;
+    }
+
+    close( fd );
+  }
+
+  return( size );
+}
+
+/**
  *
  */
 static NsfbSurfaceRtns * initLinux( NsfbSurfaceRtns * drv )

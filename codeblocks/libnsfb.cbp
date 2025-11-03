@@ -481,7 +481,11 @@
 			<Option compilerVar="CC" />
 			<Option compile="0" />
 			<Option link="0" />
-			<Option target="&lt;{~None~}&gt;" />
+			<Option target="nsfb-drm" />
+		</Unit>
+		<Unit filename="../surface/drmk.c">
+			<Option compilerVar="CC" />
+			<Option target="nsfb-drm" />
 		</Unit>
 		<Unit filename="../surface/linux.c">
 			<Option compilerVar="CC" />

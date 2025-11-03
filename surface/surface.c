@@ -14,6 +14,11 @@
 #include <stdarg.h>
 #include <ctype.h>
 
+#ifdef __linux__
+  #include <linux/fb.h>
+  #include <fcntl.h>
+#endif
+
 #include "../surface.h"
 #include "../plot.h"
 #include "../nsfb.h"
@@ -574,6 +579,42 @@ ANSIC IcoRec * loadIcoSvgFile( const char * fname, int wtarget, int htarget  )
 
   return( launcher ? launcher( fname, wtarget, htarget ) : NULL );
 }
+
+
+/**
+ *  identifies a framebuffer
+ */
+#ifdef __linux__
+
+  #include <errno.h>
+
+#define FB_NAME "/dev/fb0"
+unsigned long getFbSize( )
+{ struct fb_var_screeninfo VarInfo;
+  int fd= open( FB_NAME, O_RDWR | O_NOCTTY );
+  unsigned long size= 0;
+
+  if ( fd < 0 )
+  { fprintf( stderr, "Unable to open %s.\n", FB_NAME );
+  }
+
+  else
+  { if ( ioctl( fd, FBIOGET_VSCREENINFO, &VarInfo ) < 0)
+    { fprintf( stderr,  "Unable to retrieve variable screen info: %s\n"
+             , strerror( errno));
+    }
+    else
+    { size = VarInfo.yres; size <<= 16;
+      size|= VarInfo.xres;
+    }
+
+    close( fd );
+  }
+
+  return( size );
+}
+#endif
+
 
 
 

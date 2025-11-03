@@ -604,6 +604,7 @@ ANSIC int newBlankGif( const char * dst, void * clipFile
                      , int tx, int ty
                      , int tw, int th );
 
+ANSIC unsigned long getFbSize( );
 
 
 
