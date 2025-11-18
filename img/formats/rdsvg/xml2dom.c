@@ -11,9 +11,9 @@
 
 #include <assert.h>
 #include <ctype.h>
-#include <libxml/tree.h>
-#include <libxml/parser.h>
-#include <libxml/xmlstring.h>
+#include <libxml2/libxml/tree.h>
+#include <libxml2/libxml/parser.h>
+#include <libxml2/libxml/xmlstring.h>
 #include <string.h>
 
 static int sDidInitXML2Lib = 0;

@@ -13,19 +13,19 @@
  * will be returned and the new clipping area not set.
  */
 ANSIC bool nsfbPlotsetClip(Nsfb *nsfb, NsfbBbox *clip)
-{ return nsfb->plotterFns->setClip(nsfb, clip);
+{ return( nsfb->plotterFns ? nsfb->plotterFns->setClip(nsfb, clip) : false );
 }
 
 /** Get the previously set clipping region.
  */
 ANSIC bool nsfbPlotgetClip(Nsfb *nsfb, NsfbBbox *clip)
-{ return nsfb->plotterFns->getClip(nsfb, clip);
+{ return( nsfb->plotterFns ?  nsfb->plotterFns->getClip(nsfb, clip) : false );
 }
 
 /** Clears plotting area to a flat colour.
  */
 ANSIC bool nsfbPlotclg( Nsfb *nsfb, NSFBCOLOUR c )
-{ return( nsfb->plotterFns->clg( nsfb, c ) );
+{ return( nsfb->plotterFns ? nsfb->plotterFns->clg( nsfb, c ) :false );
 }
 
 /**
@@ -47,7 +47,7 @@ ANSIC bool nsfbPlotrectangle( Nsfb *nsfb
  *		  but (x1,y1) is below and to the right. See diagram below.
  */
 ANSIC bool nsfbPlotrectangleFill( Nsfb *nsfb, NsfbBbox *rect, NSFBCOLOUR c )
-{ return( nsfb->plotterFns->fill(nsfb, rect, c ));
+{ return( nsfb->plotterFns ? nsfb->plotterFns->fill(nsfb, rect, c ) : false );
 }
 
 /** Plots a line.
@@ -56,7 +56,7 @@ ANSIC bool nsfbPlotrectangleFill( Nsfb *nsfb, NsfbBbox *rect, NSFBCOLOUR c )
  * width/thickness.
  */
 ANSIC bool nsfbPlotline(Nsfb *nsfb, NsfbBbox *line, NsfbPlotpen *pen)
-{ return( nsfb->plotterFns->line(nsfb, 1, line, pen ));
+{ return( nsfb->plotterFns ? nsfb->plotterFns->line(nsfb, 1, line, pen ) : false );
 }
 
 /** Plots more than one line.
@@ -65,11 +65,11 @@ ANSIC bool nsfbPlotline(Nsfb *nsfb, NsfbBbox *line, NsfbPlotpen *pen)
  * width/thickness.
  */
 ANSIC bool nsfbPlotlines(Nsfb *nsfb, int linec, NsfbBbox *line, NsfbPlotpen *pen)
-{ return nsfb->plotterFns->line(nsfb, linec, line, pen);
+{ return( nsfb->plotterFns ?  nsfb->plotterFns->line(nsfb, linec, line, pen) : false );
 }
 
 ANSIC bool nsfbPlotpolylines(Nsfb *nsfb, int pointc, const NsfbPoint *points, NsfbPlotpen *pen)
-{ return nsfb->plotterFns->polylines(nsfb, pointc, points, pen);
+{ return( nsfb->plotterFns ?  nsfb->plotterFns->polylines(nsfb, pointc, points, pen) : false );
 }
 
 /** Plots a filled polygon.
@@ -81,7 +81,7 @@ ANSIC bool nsfbPlotpolylines(Nsfb *nsfb, int pointc, const NsfbPoint *points, Ns
  *
  */
 ANSIC bool nsfbPlotpolygon(Nsfb *nsfb, const int *p, unsigned int n, NSFBCOLOUR fill)
-{ return nsfb->plotterFns->polygon(nsfb, p, n, fill);
+{ return( nsfb->plotterFns ? nsfb->plotterFns->polygon(nsfb, p, n, fill) : false );
 }
 
 /** Plots an arc.
@@ -93,7 +93,7 @@ ANSIC bool nsfbPlotarc( Nsfb *nsfb
                          , int x, int y, int radius
                          , int angle1, int angle2
                          , NSFBCOLOUR c)
-{ return nsfb->plotterFns->arc(nsfb, x, y, radius, angle1, angle2, c);
+{ return( nsfb->plotterFns ? nsfb->plotterFns->arc(nsfb, x, y, radius, angle1, angle2, c) : false );
 }
 
 /** Plots an alpha blended pixel.
@@ -101,15 +101,15 @@ ANSIC bool nsfbPlotarc( Nsfb *nsfb
  * plots an alpha blended pixel.
  */
 ANSIC bool nsfbPlotpoint(Nsfb *nsfb, int x, int y, NSFBCOLOUR c)
-{ return nsfb->plotterFns->point(nsfb, x, y, c);
+{ return( nsfb->plotterFns ?  nsfb->plotterFns->point(nsfb, x, y, c) : false );
 }
 
 ANSIC bool nsfbPlotellipse(Nsfb *nsfb, NsfbBbox *ellipse, NSFBCOLOUR c)
-{ return nsfb->plotterFns->ellipse(nsfb, ellipse, c);
+{ return( nsfb->plotterFns ?  nsfb->plotterFns->ellipse(nsfb, ellipse, c) : false );
 }
 
 ANSIC bool nsfbPlotellipseFill(      Nsfb * nsfb, NsfbBbox *ellipse, NSFBCOLOUR c)
-{ return( nsfb->plotterFns->ellipseFill(nsfb, ellipse, c ));
+{ return( nsfb->plotterFns ? nsfb->plotterFns->ellipseFill(nsfb, ellipse, c ) : false );
 }
 
 
@@ -121,6 +121,10 @@ ANSIC bool nsfbPlotcopy( Nsfb * srcfb, NsfbBbox * srcbox
                        , Nsfb * dstfb, NsfbBbox * dstbox )
 { int trans = 0;
   NSFBCOLOUR srccol;
+
+  if ( !dstfb->plotterFns )
+  { return( false );
+  }
 
   if ( srcfb == dstfb )
   { return( dstfb->plotterFns->copy(srcfb, srcbox, dstbox));
@@ -144,11 +148,11 @@ ANSIC bool nsfbPlotcopy( Nsfb * srcfb, NsfbBbox * srcbox
   	 { return dstfb->plotterFns->fill(dstfb, dstbox, srccol);
   } }
 
-  return dstfb->plotterFns->bitmap( dstfb, dstbox
+  return( dstfb->plotterFns->bitmap( dstfb, dstbox
                                   , (const NSFBCOLOUR *)(void *)srcfb->loc + (srcbox->y0*srcbox->x1)// JACS ptr -> pan
                                   , srcfb->width, srcfb->height
                                   , (srcfb->panlen << 3) / srcfb->bpp
-                                  , trans );
+                                  , trans ));
 }
 
 ANSIC bool nsfbPlotbitmap( Nsfb              * nsfb
@@ -156,7 +160,7 @@ ANSIC bool nsfbPlotbitmap( Nsfb              * nsfb
                           , const NSFBCOLOUR * pixel
                           , int bmp_width, int bmp_height
                           , int bmp_stride, int alpha )
-{ return nsfb->plotterFns->bitmap( nsfb, loc, pixel, bmp_width, bmp_height, bmp_stride, alpha);
+{ return( nsfb->plotterFns ? nsfb->plotterFns->bitmap( nsfb, loc, pixel, bmp_width, bmp_height, bmp_stride, alpha) : NULL );
 }
 
 ANSIC bool nsfbPlotbitmapTiles( Nsfb *nsfb, const NsfbBbox *loc
