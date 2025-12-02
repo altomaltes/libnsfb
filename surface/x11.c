@@ -263,7 +263,7 @@ static int x11Pan( Nsfb * nsfb, int type )
 
 
 
-/*
+/**
  * Main entry point for sourcer/sinker
  */
 static int x11Events( int theDisp, void * userData
@@ -277,8 +277,8 @@ static int x11Events( int theDisp, void * userData
   }
 
   if ( XCheckMaskEvent( x11->theDisplay   // Flush all events in the library, because then doesn't awake the select()
-                         , EVENTMASK         // Select all events
-                         , &e ))
+                      , EVENTMASK         // Select all events
+                      , &e ))
   { //    printf ("Type >> %d - %d\n", thisEvent.type, ButtonPress );
 
 /*  Search for window affectees
@@ -457,7 +457,7 @@ static int x11Pixmap( struct x11Priv * x11
 }
 
 
-/*
+/**
  *
  */
 NsfbSurfaceRtns * newNode( const char * mode )
