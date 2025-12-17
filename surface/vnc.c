@@ -13,12 +13,13 @@
 
 static nsfb _event_t *gevent;
 
-/* vnc special set codes
+/**
+ * vnc special set codes
  */
 static enum nsfb _key_code_e vncNsfbMap[ 256 ] =
 { NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN
 , NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN
-, NSFB_KEY_BACKSPACE, NSFB_KEY_TAB    , NSFB_KEY_LF     , NSFB_KEY_CLEAR    /* 0x08 */
+, NSFB_KEY_BACKSPACE, NSFB_KEY_TAB  , NSFB_KEY_LF     , NSFB_KEY_CLEAR    /* 0x08 */
 , NSFB_KEY_UNKNOWN, NSFB_KEY_RETURN , NSFB_KEY_UNKNOWN, NSFB_KEY_UNKNOWN
 
 /* 0x10 */
@@ -346,7 +347,10 @@ static int vncFinalise(Nsfb *nsfb)
 }
 
 
-static int vncUpdate(Nsfb *nsfb, NsfbBbox *box)
+/**
+ */
+static int vncUpdate( Nsfb     * nsfb
+                    , NsfbBbox * box)
 { rfbScreenInfoPtr vncscreen= nsfb->surfacePriv;
 
   rfbMarkRectAsModified( vncscreen, box->x0, box->y0, box->x1, box->y1 );
@@ -355,30 +359,8 @@ static int vncUpdate(Nsfb *nsfb, NsfbBbox *box)
 }
 
 
-//static bool vncInput( Nsfb *nsfb, nsfb/_event_t *event, int timeout )
-//{ rfbScreenInfoPtr vncscreen = nsfb->surfacePriv;
-//  int ret;
-//
-//  if ( vncscreen  )
-//  { gevent = event; /* blergh - have to use global state to pass data */
-
-/* set default to timeout
+/**
  */
-//  	 event->type             = NSFB_EVENT_CONTROL;
-//	   event->value.controlcode= NSFB_CONTROL_TIMEOUT;
-//
-//  	 ret = rfbProcessEvents(vncscreen, timeout * 1000);
-//
-//	   if (ret == 0)  /* valid event */
-//  	 { return true;
-//    }
-
-	/* connection error occurred */
-//  }
-
- // return false;
-//}
-
 static int vncCursor( Nsfb *nsfb
                     , struct nsfbCursor_s *cursor )
 { rfbScreenInfoPtr vncscreen= nsfb->surfacePriv;
@@ -420,6 +402,8 @@ static int vncCursor( Nsfb *nsfb
   return true;
 }
 
+/**
+ */
 const NsfbSurfaceRtns vncRtns =
 { .type=     NSFB_SURFACE_VNC
 
