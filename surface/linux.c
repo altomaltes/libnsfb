@@ -153,6 +153,8 @@ unsigned long getFbSize( )
     close( fd );
   }
 
+  fprintf( stderr, "SURFACE %s %d %d %X\n", FB_NAME, VarInfo.yres, VarInfo.xres, size );
+
   return( size );
 }
 
